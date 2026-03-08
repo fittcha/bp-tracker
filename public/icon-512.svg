@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <rect width="512" height="512" rx="100" fill="#111111"/>
-  <!-- Dumbbell - thick and simple -->
-  <g fill="#F97316">
-    <!-- Left weight -->
-    <rect x="96" y="128" width="74" height="128" rx="16"/>
-    <!-- Right weight -->
-    <rect x="342" y="128" width="74" height="128" rx="16"/>
+  <!-- Dumbbell - thick rounded stroke style -->
+  <g fill="none" stroke="#F97316" stroke-width="26" stroke-linecap="round" stroke-linejoin="round">
     <!-- Bar -->
-    <rect x="156" y="166" width="200" height="52" rx="10"/>
+    <line x1="122" y1="204" x2="390" y2="204"/>
+    <!-- Left weight -->
+    <rect x="90" y="140" width="64" height="128" rx="20"/>
+    <!-- Right weight -->
+    <rect x="358" y="140" width="64" height="128" rx="20"/>
   </g>
-  <!-- BP text -->
-  <text x="256" y="396" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="140" letter-spacing="16" fill="#F97316">BP</text>
+  <!-- BP text - smaller, matching dumbbell width -->
+  <text x="256" y="400" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="96" letter-spacing="22" fill="#F97316">BP</text>
 </svg>
