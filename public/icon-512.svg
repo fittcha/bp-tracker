@@ -1,18 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <rect width="512" height="512" rx="100" fill="#111111"/>
-  <!-- Barbell icon -->
-  <g stroke="#FFFFFF" stroke-width="14" stroke-linecap="round" fill="none">
+  <!-- Barbell icon (same as BottomNav) -->
+  <g fill="none" stroke="#F97316" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
     <!-- Bar -->
-    <line x1="148" y1="192" x2="364" y2="192"/>
-    <!-- Left inner plate -->
-    <rect x="116" y="138" width="42" height="108" rx="10" fill="#FFFFFF" stroke="none"/>
-    <!-- Left outer plate -->
-    <rect x="72" y="154" width="34" height="76" rx="10" fill="#FFFFFF" stroke="none"/>
-    <!-- Right inner plate -->
-    <rect x="354" y="138" width="42" height="108" rx="10" fill="#FFFFFF" stroke="none"/>
-    <!-- Right outer plate -->
-    <rect x="406" y="154" width="34" height="76" rx="10" fill="#FFFFFF" stroke="none"/>
+    <line x1="164" y1="192" x2="348" y2="192"/>
+    <!-- Left inner plate (big) -->
+    <rect x="110" y="133" width="58" height="118" rx="10"/>
+    <!-- Left outer plate (small) -->
+    <rect x="56" y="152" width="48" height="80" rx="10"/>
+    <!-- Right inner plate (big) -->
+    <rect x="344" y="133" width="58" height="118" rx="10"/>
+    <!-- Right outer plate (small) -->
+    <rect x="408" y="152" width="48" height="80" rx="10"/>
   </g>
   <!-- BP text -->
-  <text x="256" y="396" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="140" letter-spacing="16" fill="#FFFFFF">BP</text>
+  <text x="256" y="396" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="140" letter-spacing="16" fill="#F97316">BP</text>
 </svg>
