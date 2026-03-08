@@ -1,18 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <rect width="512" height="512" rx="100" fill="#111111"/>
-  <!-- Barbell icon (same as BottomNav) -->
-  <g fill="none" stroke="#F97316" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Dumbbell - thick and simple -->
+  <g fill="#F97316">
+    <!-- Left weight -->
+    <rect x="96" y="128" width="74" height="128" rx="16"/>
+    <!-- Right weight -->
+    <rect x="342" y="128" width="74" height="128" rx="16"/>
     <!-- Bar -->
-    <line x1="164" y1="192" x2="348" y2="192"/>
-    <!-- Left inner plate (big) -->
-    <rect x="110" y="133" width="58" height="118" rx="10"/>
-    <!-- Left outer plate (small) -->
-    <rect x="56" y="152" width="48" height="80" rx="10"/>
-    <!-- Right inner plate (big) -->
-    <rect x="344" y="133" width="58" height="118" rx="10"/>
-    <!-- Right outer plate (small) -->
-    <rect x="408" y="152" width="48" height="80" rx="10"/>
+    <rect x="156" y="166" width="200" height="52" rx="10"/>
   </g>
   <!-- BP text -->
-  <text x="256" y="396" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="140" letter-spacing="16" fill="#F97316">BP</text>
+  <text x="256" y="396" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="140" letter-spacing="16" fill="#F97316">BP</text>
 </svg>
