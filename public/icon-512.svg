@@ -1,4 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="100" fill="#1E3A5F"/>
-  <text x="256" y="320" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="220" fill="#F97316">BP</text>
+  <rect width="512" height="512" rx="100" fill="#111111"/>
+  <!-- Barbell icon -->
+  <g stroke="#FFFFFF" stroke-width="14" stroke-linecap="round" fill="none">
+    <!-- Bar -->
+    <line x1="148" y1="192" x2="364" y2="192"/>
+    <!-- Left inner plate -->
+    <rect x="116" y="138" width="42" height="108" rx="10" fill="#FFFFFF" stroke="none"/>
+    <!-- Left outer plate -->
+    <rect x="72" y="154" width="34" height="76" rx="10" fill="#FFFFFF" stroke="none"/>
+    <!-- Right inner plate -->
+    <rect x="354" y="138" width="42" height="108" rx="10" fill="#FFFFFF" stroke="none"/>
+    <!-- Right outer plate -->
+    <rect x="406" y="154" width="34" height="76" rx="10" fill="#FFFFFF" stroke="none"/>
+  </g>
+  <!-- BP text -->
+  <text x="256" y="396" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="140" letter-spacing="16" fill="#FFFFFF">BP</text>
 </svg>
