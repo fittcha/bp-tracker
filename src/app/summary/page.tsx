@@ -35,9 +35,13 @@ export default function SummaryPage() {
 
   useEffect(() => {
     async function load() {
-      const data = await getWeeks()
-      setWeeks(data || [])
-      if (data?.length) setSelectedWeekId(data[0].id)
+      try {
+        const data = await getWeeks()
+        setWeeks(data || [])
+        if (data?.length) setSelectedWeekId(data[0].id)
+      } catch (err) {
+        console.error('Failed to load weeks:', err)
+      }
       setLoading(false)
     }
     load()
@@ -49,14 +53,18 @@ export default function SummaryPage() {
       const week = weeks.find(w => w.id === selectedWeekId)
       if (!week) return
 
-      const { data } = await supabase
-        .from('daily_logs')
-        .select('date, weight_kg, sleep_hours, workout_done, sugar_processed, total_calories, carbs_g, protein_g, fat_g')
-        .gte('date', week.start_date)
-        .lte('date', week.end_date)
-        .order('date', { ascending: true })
+      try {
+        const { data } = await supabase
+          .from('daily_logs')
+          .select('date, weight_kg, sleep_hours, workout_done, sugar_processed, total_calories, carbs_g, protein_g, fat_g')
+          .gte('date', week.start_date)
+          .lte('date', week.end_date)
+          .order('date', { ascending: true })
 
-      setLogs(data || [])
+        setLogs(data || [])
+      } catch (err) {
+        console.error('Failed to load logs:', err)
+      }
     }
     loadLogs()
   }, [selectedWeekId, weeks])

@@ -60,15 +60,20 @@ export default function DailyPage() {
     async function load() {
       isLoadedRef.current = false
       setLoading(true)
-      const existing = await getDailyLog(date)
-      if (existing) {
-        setLog(existing)
-        setSugarToggle(existing.sugar_processed === 'X')
-        setCheckedSupps(parseSupplements(existing.supplements))
-      } else {
+      try {
+        const existing = await getDailyLog(date)
+        if (existing) {
+          setLog(existing)
+          setSugarToggle(existing.sugar_processed === 'X')
+          setCheckedSupps(parseSupplements(existing.supplements))
+        } else {
+          setLog(emptyLog(date))
+          setSugarToggle(true)
+          setCheckedSupps(new Set())
+        }
+      } catch (err) {
+        console.error('Load failed:', err)
         setLog(emptyLog(date))
-        setSugarToggle(true)
-        setCheckedSupps(new Set())
       }
       setLoading(false)
       isLoadedRef.current = true
