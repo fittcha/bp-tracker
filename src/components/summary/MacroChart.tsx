@@ -11,8 +11,12 @@ interface MacroChartProps {
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B']
 
 export default function MacroChart({ carbs, protein, fat }: MacroChartProps) {
-  const total = carbs + protein + fat
-  if (total === 0) {
+  // Calorie contribution ratio: carbs*4 : protein*4 : fat*9
+  const carbCal = carbs * 4
+  const protCal = protein * 4
+  const fatCal = fat * 9
+  const totalCal = carbCal + protCal + fatCal
+  if (totalCal === 0) {
     return (
       <div className="bg-surface border border-border rounded-xl p-4">
         <p className="text-sm font-medium mb-2">매크로 비율</p>
@@ -22,9 +26,9 @@ export default function MacroChart({ carbs, protein, fat }: MacroChartProps) {
   }
 
   const data = [
-    { name: '탄수화물', value: carbs, color: COLORS[0] },
-    { name: '단백질', value: protein, color: COLORS[1] },
-    { name: '지방', value: fat, color: COLORS[2] },
+    { name: '탄수화물', value: carbCal, grams: carbs, color: COLORS[0] },
+    { name: '단백질', value: protCal, grams: protein, color: COLORS[1] },
+    { name: '지방', value: fatCal, grams: fat, color: COLORS[2] },
   ]
 
   return (
@@ -52,7 +56,7 @@ export default function MacroChart({ carbs, protein, fat }: MacroChartProps) {
             <div key={d.name} className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }} />
               <span className="text-xs text-text-secondary">{d.name}</span>
-              <span className="text-xs font-medium">{Math.round(d.value)}g ({Math.round((d.value / total) * 100)}%)</span>
+              <span className="text-xs font-medium">{Math.round(d.grams)}g ({Math.round((d.value / totalCal) * 100)}%)</span>
             </div>
           ))}
         </div>

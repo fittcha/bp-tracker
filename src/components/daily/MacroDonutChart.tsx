@@ -17,10 +17,15 @@ export default function MacroDonutChart({ calories, carbs, protein, fat }: Macro
   const c = carbs ?? 0
   const p = protein ?? 0
   const f = fat ?? 0
-  const total = c + p + f
   const kcal = calories ?? 0
 
-  if (total === 0 && kcal === 0) {
+  // Calorie contribution ratio: carbs*4 : protein*4 : fat*9
+  const carbCal = c * 4
+  const protCal = p * 4
+  const fatCal = f * 9
+  const totalCal = carbCal + protCal + fatCal
+
+  if (totalCal === 0 && kcal === 0) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="w-28 h-28 rounded-full border-4 border-border flex items-center justify-center">
@@ -30,10 +35,10 @@ export default function MacroDonutChart({ calories, carbs, protein, fat }: Macro
     )
   }
 
-  const carbPct = total > 0 ? Math.round((c / total) * 100) : 0
-  const protPct = total > 0 ? Math.round((p / total) * 100) : 0
-  const fatPct = total > 0 ? Math.round((f / total) * 100) : 0
-  const displayKcal = kcal > 0 ? kcal : Math.round(c * 4 + p * 4 + f * 9)
+  const carbPct = totalCal > 0 ? Math.round((carbCal / totalCal) * 100) : 0
+  const protPct = totalCal > 0 ? Math.round((protCal / totalCal) * 100) : 0
+  const fatPct = totalCal > 0 ? Math.round((fatCal / totalCal) * 100) : 0
+  const displayKcal = kcal > 0 ? kcal : Math.round(totalCal)
 
   // SVG donut chart
   const size = 140
@@ -42,16 +47,16 @@ export default function MacroDonutChart({ calories, carbs, protein, fat }: Macro
   const outer = 62
   const inner = 38
   const segments = [
-    { value: c, color: COLORS.carbs },
-    { value: p, color: COLORS.protein },
-    { value: f, color: COLORS.fat },
+    { value: carbCal, color: COLORS.carbs },
+    { value: protCal, color: COLORS.protein },
+    { value: fatCal, color: COLORS.fat },
   ].filter(s => s.value > 0)
 
   let cumulative = 0
   const paths = segments.map((seg) => {
-    const startAngle = (cumulative / total) * 360 - 90
+    const startAngle = (cumulative / totalCal) * 360 - 90
     cumulative += seg.value
-    const endAngle = (cumulative / total) * 360 - 90
+    const endAngle = (cumulative / totalCal) * 360 - 90
     const path = describeArc(cx, cy, outer, inner, startAngle, endAngle)
     return { path, color: seg.color }
   })
