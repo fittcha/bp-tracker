@@ -380,7 +380,7 @@ export default function WorkoutPage() {
                         <button
                           onClick={() => handleToggleComplete(log.id!, !log.completed)}
                           className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                            log.completed ? 'bg-text-secondary/50 border-text-secondary/50 text-white' : 'border-border'
+                            log.completed ? 'bg-text-secondary/40 border-text-secondary/40 text-white' : 'border-border'
                           }`}
                         >
                           {log.completed && (
@@ -474,7 +474,7 @@ export default function WorkoutPage() {
                   <button
                     onClick={() => handleToggleComplete(log.id!, !log.completed)}
                     className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                      log.completed ? 'bg-text-secondary/50 border-text-secondary/50 text-white' : 'border-accent/30'
+                      log.completed ? 'bg-text-secondary/40 border-text-secondary/40 text-white' : 'border-accent/30'
                     }`}
                   >
                     {log.completed && (
