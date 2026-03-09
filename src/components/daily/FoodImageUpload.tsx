@@ -14,6 +14,7 @@ interface FoodImageUploadProps {
   imageUrl: string | null
   onUploaded: (url: string) => void
   onOcrResult: (result: OcrResult) => void
+  userId: string
 }
 
 function parseNutrition(text: string): OcrResult {
@@ -99,7 +100,7 @@ function parseNutrition(text: string): OcrResult {
   return result
 }
 
-export default function FoodImageUpload({ imageUrl, onUploaded, onOcrResult }: FoodImageUploadProps) {
+export default function FoodImageUpload({ imageUrl, onUploaded, onOcrResult, userId }: FoodImageUploadProps) {
   const [uploading, setUploading] = useState(false)
   const [ocrLoading, setOcrLoading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -112,7 +113,7 @@ export default function FoodImageUpload({ imageUrl, onUploaded, onOcrResult }: F
 
     // Upload image
     try {
-      const url = await uploadFoodImage(file)
+      const url = await uploadFoodImage(file, userId)
       onUploaded(url)
     } catch (err) {
       console.error('Upload failed:', err)

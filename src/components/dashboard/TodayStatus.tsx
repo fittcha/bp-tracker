@@ -3,11 +3,14 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { toDateString } from '@/lib/utils'
+import { getLoggedInUser } from '@/lib/auth'
 import Link from 'next/link'
 
 type Status = 'none' | 'in-progress' | 'done'
 
 export default function TodayStatus() {
+  const user = getLoggedInUser()
+  const userId = user?.id ?? ''
   const [workoutStatus, setWorkoutStatus] = useState<Status>('none')
   const [dailyStatus, setDailyStatus] = useState<Status>('none')
   const [loading, setLoading] = useState(true)
@@ -17,8 +20,8 @@ export default function TodayStatus() {
 
     async function fetchStatus() {
       const [workoutRes, dailyRes] = await Promise.all([
-        supabase.from('workout_logs').select('completed').eq('date', today),
-        supabase.from('daily_logs').select('weight_kg, sleep_time, wake_time, total_calories, workout_done').eq('date', today).limit(1),
+        supabase.from('workout_logs').select('completed').eq('date', today).eq('user_id', userId),
+        supabase.from('daily_logs').select('weight_kg, sleep_time, wake_time, total_calories, workout_done').eq('date', today).eq('user_id', userId).limit(1),
       ])
 
       // 운동: daily_logs.workout_done=true → 완료, workout_logs에 completed=true 있으면 → 진행중

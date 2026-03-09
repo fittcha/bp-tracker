@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase'
 
 export interface WorkoutLog {
   id?: string
+  user_id?: string
   date: string
   template_id: string | null
   is_custom: boolean
@@ -12,11 +13,12 @@ export interface WorkoutLog {
   memo: string | null
 }
 
-export async function getWorkoutLogs(date: string) {
+export async function getWorkoutLogs(date: string, userId: string) {
   const { data, error } = await supabase
     .from('workout_logs')
     .select('*')
     .eq('date', date)
+    .eq('user_id', userId)
     .order('created_at', { ascending: true })
   if (error) throw error
   return data
@@ -44,11 +46,12 @@ export async function upsertWorkoutLog(log: WorkoutLog) {
   }
 }
 
-export async function addCustomExercise(date: string, exerciseName: string) {
+export async function addCustomExercise(date: string, exerciseName: string, userId: string) {
   const { data, error } = await supabase
     .from('workout_logs')
     .insert({
       date,
+      user_id: userId,
       template_id: null,
       is_custom: true,
       exercise_name: exerciseName,

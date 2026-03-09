@@ -1,44 +1,48 @@
 'use client'
 
-import { useState } from 'react'
-import { authenticate } from '@/lib/auth'
+import { useState, useEffect, useCallback } from 'react'
 
 interface PinInputProps {
-  onSuccess: () => void
+  title: string
+  onComplete: (pin: string) => void
+  error: boolean
+  onErrorReset: () => void
 }
 
-export default function PinInput({ onSuccess }: PinInputProps) {
+export default function PinInput({ title, onComplete, error, onErrorReset }: PinInputProps) {
   const [pin, setPin] = useState('')
-  const [error, setError] = useState(false)
 
-  function handleDigit(digit: string) {
-    if (pin.length >= 4) return
-    const newPin = pin + digit
+  // When error becomes true, show red dots + shake, then reset after 500ms
+  useEffect(() => {
+    if (!error) return
+    const timer = setTimeout(() => {
+      setPin('')
+      onErrorReset()
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [error, onErrorReset])
 
-    setPin(newPin)
-    setError(false)
-
-    if (newPin.length === 4) {
-      if (authenticate(newPin)) {
-        onSuccess()
-      } else {
-        setError(true)
-        setTimeout(() => {
-          setPin('')
-          setError(false)
-        }, 500)
+  const handleDigit = useCallback((digit: string) => {
+    if (error) return
+    setPin(prev => {
+      if (prev.length >= 4) return prev
+      const newPin = prev + digit
+      if (newPin.length === 4) {
+        // Defer onComplete to next tick so state updates first
+        setTimeout(() => onComplete(newPin), 0)
       }
-    }
-  }
+      return newPin
+    })
+  }, [error, onComplete])
 
-  function handleDelete() {
+  const handleDelete = useCallback(() => {
+    if (error) return
     setPin(prev => prev.slice(0, -1))
-  }
+  }, [error])
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background px-4">
-      <h1 className="text-2xl font-bold text-foreground mb-2">BP Tracker</h1>
-      <p className="text-sm text-text-secondary mb-8">PIN을 입력하세요</p>
+    <div className="flex flex-col items-center">
+      <p className="text-sm text-text-secondary mb-8">{title}</p>
 
       {/* PIN dots */}
       <div className={`flex gap-4 mb-8 ${error ? 'animate-shake' : ''}`}>
@@ -58,7 +62,8 @@ export default function PinInput({ onSuccess }: PinInputProps) {
       <div className="grid grid-cols-3 gap-4 max-w-[240px]">
         {['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'].map((key) => (
           <button
-            key={key}
+            key={key || 'empty'}
+            type="button"
             onClick={() => {
               if (key === 'del') handleDelete()
               else if (key) handleDigit(key)

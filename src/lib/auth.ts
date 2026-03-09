@@ -1,21 +1,53 @@
 'use client'
 
-const AUTH_KEY = 'bp-tracker-auth'
+const USER_KEY = 'bp-user'
+const AUTO_LOGIN_KEY = 'bp-auto-login'
+const LAST_USERNAME_KEY = 'bp-last-username'
+const SESSION_KEY = 'bp-session'
 
-export function isAuthenticated(): boolean {
-  if (typeof window === 'undefined') return false
-  return localStorage.getItem(AUTH_KEY) === 'true'
+export interface AuthUser {
+  id: string
+  username: string
 }
 
-export function authenticate(pin: string): boolean {
-  const correctPin = process.env.NEXT_PUBLIC_PIN || '1234'
-  if (pin === correctPin) {
-    localStorage.setItem(AUTH_KEY, 'true')
-    return true
+export function getLoggedInUser(): AuthUser | null {
+  if (typeof window === 'undefined') return null
+
+  const autoLogin = localStorage.getItem(AUTO_LOGIN_KEY) === 'true'
+  if (autoLogin) {
+    const stored = localStorage.getItem(USER_KEY)
+    if (stored) return JSON.parse(stored)
   }
-  return false
+
+  const session = sessionStorage.getItem(SESSION_KEY)
+  if (session) return JSON.parse(session)
+
+  return null
+}
+
+export function setLoggedInUser(user: AuthUser, autoLogin: boolean) {
+  const data = JSON.stringify(user)
+  if (autoLogin) {
+    localStorage.setItem(USER_KEY, data)
+    localStorage.setItem(AUTO_LOGIN_KEY, 'true')
+  } else {
+    sessionStorage.setItem(SESSION_KEY, data)
+    localStorage.removeItem(USER_KEY)
+    localStorage.removeItem(AUTO_LOGIN_KEY)
+  }
+}
+
+export function getLastUsername(): string {
+  if (typeof window === 'undefined') return ''
+  return localStorage.getItem(LAST_USERNAME_KEY) ?? ''
+}
+
+export function setLastUsername(username: string) {
+  localStorage.setItem(LAST_USERNAME_KEY, username)
 }
 
 export function logout() {
-  localStorage.removeItem(AUTH_KEY)
+  localStorage.removeItem(USER_KEY)
+  localStorage.removeItem(AUTO_LOGIN_KEY)
+  sessionStorage.removeItem(SESSION_KEY)
 }

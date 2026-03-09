@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase'
 
 export interface DailyLog {
   id?: string
+  user_id?: string
   date: string
   weight_kg: number | null
   sleep_time: string | null
@@ -19,11 +20,12 @@ export interface DailyLog {
   memo: string | null
 }
 
-export async function getDailyLog(date: string): Promise<DailyLog | null> {
+export async function getDailyLog(date: string, userId: string): Promise<DailyLog | null> {
   const { data, error } = await supabase
     .from('daily_logs')
     .select('*')
     .eq('date', date)
+    .eq('user_id', userId)
     .single()
   if (error && error.code !== 'PGRST116') throw error
   return data
@@ -45,8 +47,8 @@ export async function upsertDailyLog(log: DailyLog) {
   }
 }
 
-export async function uploadFoodImage(file: File): Promise<string> {
-  const fileName = `${Date.now()}-${file.name}`
+export async function uploadFoodImage(file: File, userId: string): Promise<string> {
+  const fileName = `${userId}/${Date.now()}-${file.name}`
   const { error } = await supabase.storage
     .from('food-images')
     .upload(fileName, file)

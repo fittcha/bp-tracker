@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { logout, getLoggedInUser } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
 import { getWeeks } from '@/lib/api/workout-templates'
 import WeightChart from '@/components/summary/WeightChart'
@@ -28,6 +30,9 @@ interface DailyLogRow {
 }
 
 export default function SummaryPage() {
+  const router = useRouter()
+  const user = getLoggedInUser()
+  const userId = user?.id ?? ''
   const [weeks, setWeeks] = useState<Week[]>([])
   const [selectedWeekId, setSelectedWeekId] = useState('')
   const [logs, setLogs] = useState<DailyLogRow[]>([])
@@ -59,6 +64,7 @@ export default function SummaryPage() {
           .select('date, weight_kg, sleep_hours, workout_done, sugar_processed, total_calories, carbs_g, protein_g, fat_g')
           .gte('date', week.start_date)
           .lte('date', week.end_date)
+          .eq('user_id', userId)
           .order('date', { ascending: true })
 
         setLogs(data || [])
@@ -122,6 +128,13 @@ export default function SummaryPage() {
         totalDays={5}
         sugarDays={sugarDays}
       />
+
+      <button
+        onClick={() => { logout(); router.push('/login') }}
+        className="w-full py-3 text-sm text-danger border border-border rounded-xl bg-surface"
+      >
+        로그아웃
+      </button>
     </div>
   )
 }

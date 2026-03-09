@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { getLoggedInUser } from '@/lib/auth'
 
 interface WeeklyData {
   avgCalories: number | null
@@ -12,6 +13,8 @@ interface WeeklyData {
 }
 
 export default function WeeklySummaryCard() {
+  const user = getLoggedInUser()
+  const userId = user?.id ?? ''
   const [data, setData] = useState<WeeklyData | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -32,6 +35,7 @@ export default function WeeklySummaryCard() {
         .select('*')
         .gte('date', startStr)
         .lte('date', endStr)
+        .eq('user_id', userId)
         .order('date', { ascending: true })
 
       if (!logs || logs.length === 0) {

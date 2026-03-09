@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { toDateString } from '@/lib/utils'
 import { getWorkoutLogs, upsertWorkoutLog, addCustomExercise, deleteWorkoutLog, WorkoutLog } from '@/lib/api/workout-logs'
 import { getTemplatesByWeek, getWeeks } from '@/lib/api/workout-templates'
+import { getLoggedInUser } from '@/lib/auth'
 import CustomExerciseForm from '@/components/workout/CustomExerciseForm'
 
 interface TemplateEx {
@@ -29,6 +30,8 @@ interface Week {
 const DAY_LABELS = ['월', '화', '수', '목', '금', '토', '일']
 
 export default function WorkoutPage() {
+  const user = getLoggedInUser()
+  const userId = user?.id ?? ''
   const [date, setDate] = useState(toDateString(new Date()))
   const [selectedDay, setSelectedDay] = useState<number>(1)
   const [templates, setTemplates] = useState<TemplateEx[]>([])
@@ -96,7 +99,7 @@ export default function WorkoutPage() {
 
     const [tmpl, existingLogs] = await Promise.all([
       isWorkoutDay ? getTemplatesByWeek(weekId) : Promise.resolve([]),
-      getWorkoutLogs(date),
+      getWorkoutLogs(date, userId),
     ])
 
     const dayTemplates = (tmpl || []).filter((t: TemplateEx) => t.day_number === selectedDay)
@@ -108,6 +111,7 @@ export default function WorkoutPage() {
         if (!existingTemplateIds.has(t.id)) {
           await upsertWorkoutLog({
             date,
+            user_id: userId,
             template_id: t.id,
             is_custom: false,
             exercise_name: t.exercise_name,
@@ -120,7 +124,7 @@ export default function WorkoutPage() {
       }
     }
 
-    const allLogs = await getWorkoutLogs(date)
+    const allLogs = await getWorkoutLogs(date, userId)
     setLogs(allLogs || [])
     // Auto-open weight input for logs that already have weight
     const openMap: Record<string, boolean> = {}
@@ -129,7 +133,7 @@ export default function WorkoutPage() {
     }
     setWeightOpen(openMap)
     setLoading(false)
-  }, [weekId, selectedDay, date])
+  }, [weekId, selectedDay, date, userId])
 
   useEffect(() => {
     loadData()
@@ -171,7 +175,7 @@ export default function WorkoutPage() {
   }
 
   async function handleAddCustom(name: string) {
-    await addCustomExercise(date, name)
+    await addCustomExercise(date, name, userId)
     loadData()
   }
 

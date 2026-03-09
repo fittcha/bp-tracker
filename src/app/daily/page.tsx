@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { toDateString, calcSleepHours } from '@/lib/utils'
 import { getDailyLog, upsertDailyLog, DailyLog } from '@/lib/api/daily-logs'
 import { getWeeks } from '@/lib/api/workout-templates'
+import { getLoggedInUser } from '@/lib/auth'
 import FoodImageUpload from '@/components/daily/FoodImageUpload'
 import MacroDonutChart from '@/components/daily/MacroDonutChart'
 import KakaoShareText from '@/components/daily/KakaoShareText'
@@ -46,6 +47,8 @@ function serializeSupplements(set: Set<string>): string | null {
 }
 
 export default function DailyPage() {
+  const user = getLoggedInUser()
+  const userId = user?.id ?? ''
   const [date, setDate] = useState(toDateString(new Date()))
   const [log, setLog] = useState<DailyLog>(emptyLog(date))
   const [loading, setLoading] = useState(true)
@@ -61,7 +64,7 @@ export default function DailyPage() {
       isLoadedRef.current = false
       setLoading(true)
       try {
-        const existing = await getDailyLog(date)
+        const existing = await getDailyLog(date, userId)
         if (existing) {
           setLog(existing)
           setSugarToggle(existing.sugar_processed === 'X')
@@ -86,7 +89,7 @@ export default function DailyPage() {
     }
     load()
     loadWeek()
-  }, [date])
+  }, [date, userId])
 
   const autoSave = useCallback((updated: DailyLog) => {
     if (!isLoadedRef.current) return
@@ -94,15 +97,15 @@ export default function DailyPage() {
     debounceRef.current = setTimeout(async () => {
       setSaving(true)
       try {
-        await upsertDailyLog(updated)
-        const saved = await getDailyLog(updated.date)
+        await upsertDailyLog({ ...updated, user_id: userId })
+        const saved = await getDailyLog(updated.date, userId)
         if (saved) setLog(saved)
       } catch (err) {
         console.error('Auto-save failed:', err)
       }
       setSaving(false)
     }, 800)
-  }, [])
+  }, [userId])
 
   function updateField<K extends keyof DailyLog>(field: K, value: DailyLog[K]) {
     setLog(prev => {
@@ -264,6 +267,7 @@ export default function DailyPage() {
           imageUrl={log.food_image_url}
           onUploaded={(url) => updateField('food_image_url', url)}
           onOcrResult={handleOcrResult}
+          userId={userId}
         />
         <div className="flex gap-3 mt-3">
           <div className="w-1/3 space-y-2">
