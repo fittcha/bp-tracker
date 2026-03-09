@@ -42,23 +42,6 @@ export default function WorkoutPage() {
   const [weightOpen, setWeightOpen] = useState<Record<string, boolean>>({})
   const debounceRef = useRef<Record<string, NodeJS.Timeout>>({})
 
-  useEffect(() => {
-    async function findWeek() {
-      const weeks = await getWeeks()
-      if (!weeks) return
-      const week = weeks.find((w: Week) => date >= w.start_date && date <= w.end_date)
-      if (week) {
-        setWeekId(week.id)
-        setWeekInfo(week)
-        const d = new Date(date)
-        const dayOfWeek = d.getDay()
-        const dayNum = dayOfWeek === 0 ? 7 : dayOfWeek
-        setSelectedDay(dayNum)
-      }
-    }
-    findWeek()
-  }, [date])
-
   // Get Monday of the week containing `date`
   function getMondayOfWeek(d: Date) {
     const result = new Date(d)
@@ -92,17 +75,28 @@ export default function WorkoutPage() {
   const weekDates = getWeekDates()
 
   const loadData = useCallback(async () => {
-    if (!weekId) return
     setLoading(true)
 
-    // Derive day number directly from date to avoid race conditions
+    // Find week and derive day number directly from date to avoid race conditions
+    const weeks = await getWeeks()
+    const week = weeks?.find((w: Week) => date >= w.start_date && date <= w.end_date)
+    if (week) {
+      setWeekId(week.id)
+      setWeekInfo(week)
+    } else {
+      setWeekId(null)
+      setWeekInfo(null)
+    }
+
     const d = new Date(date)
     const dow = d.getDay()
     const dayNum = dow === 0 ? 7 : dow
+    setSelectedDay(dayNum)
     const isWorkoutDay = dayNum <= 5
 
+    const currentWeekId = week?.id
     const [tmpl, existingLogs] = await Promise.all([
-      isWorkoutDay ? getTemplatesByWeek(weekId) : Promise.resolve([]),
+      isWorkoutDay && currentWeekId ? getTemplatesByWeek(currentWeekId) : Promise.resolve([]),
       getWorkoutLogs(date, userId),
     ])
 
@@ -137,7 +131,7 @@ export default function WorkoutPage() {
     }
     setWeightOpen(openMap)
     setLoading(false)
-  }, [weekId, date, userId])
+  }, [date, userId])
 
   useEffect(() => {
     loadData()
