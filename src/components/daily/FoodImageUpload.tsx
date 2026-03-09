@@ -73,6 +73,37 @@ function parseFatSecretTable(lines: string[]): OcrResult | null {
         case 'fat': result.fat = val; break
       }
     }
+
+    // Fill missing values from unmatched numbers using FatSecret column order
+    // Korean: 지방, 탄수, 단백질, 권장, 칼로리
+    // English: Sugar, Fat, Carbs, Prot, Calories
+    const isKorean = keywords.some(k => line.includes('칼로리') || line.includes('단백'))
+    const missingFields: ('fat' | 'carbs' | 'protein')[] = []
+    if (!result.fat) missingFields.push('fat')
+    if (!result.carbs) missingFields.push('carbs')
+    if (!result.protein) missingFields.push('protein')
+
+    if (missingFields.length > 0) {
+      // Get unmatched numbers sorted by position (left to right)
+      const unmatchedNums = numberMatches
+        .filter((_, ni) => !usedIndices.has(ni))
+        .map(m => parseFloat(m[1]))
+        .filter(v => v < 1000) // macro values are under 1000g
+
+      // FatSecret column order: fat comes first, then carbs, then protein
+      const fieldOrder: ('fat' | 'carbs' | 'protein')[] = isKorean
+        ? ['fat', 'carbs', 'protein']  // 지방, 탄수, 단백질
+        : ['fat', 'carbs', 'protein']  // (Sugar skipped), Fat, Carbs, Prot
+
+      // Assign unmatched numbers to missing fields in order
+      let numIdx = 0
+      for (const field of fieldOrder) {
+        if (missingFields.includes(field) && numIdx < unmatchedNums.length) {
+          result[field] = unmatchedNums[numIdx++]
+        }
+      }
+    }
+
     return result
   }
   return null
