@@ -133,13 +133,17 @@ export default function DailyPage() {
   }
 
   function handleOcrResult(result: { totalCalories: number | null; carbs: number | null; protein: number | null; fat: number | null }) {
-    setLog(prev => ({
-      ...prev,
-      total_calories: result.totalCalories ?? prev.total_calories,
-      carbs_g: result.carbs ?? prev.carbs_g,
-      protein_g: result.protein ?? prev.protein_g,
-      fat_g: result.fat ?? prev.fat_g,
-    }))
+    setLog(prev => {
+      const updated = {
+        ...prev,
+        total_calories: result.totalCalories ?? prev.total_calories,
+        carbs_g: result.carbs ?? prev.carbs_g,
+        protein_g: result.protein ?? prev.protein_g,
+        fat_g: result.fat ?? prev.fat_g,
+      }
+      autoSave(updated)
+      return updated
+    })
   }
 
   if (loading) {
