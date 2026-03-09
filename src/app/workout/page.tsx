@@ -95,14 +95,18 @@ export default function WorkoutPage() {
     if (!weekId) return
     setLoading(true)
 
-    const isWorkoutDay = selectedDay <= 5
+    // Derive day number directly from date to avoid race conditions
+    const d = new Date(date)
+    const dow = d.getDay()
+    const dayNum = dow === 0 ? 7 : dow
+    const isWorkoutDay = dayNum <= 5
 
     const [tmpl, existingLogs] = await Promise.all([
       isWorkoutDay ? getTemplatesByWeek(weekId) : Promise.resolve([]),
       getWorkoutLogs(date, userId),
     ])
 
-    const dayTemplates = (tmpl || []).filter((t: TemplateEx) => t.day_number === selectedDay)
+    const dayTemplates = (tmpl || []).filter((t: TemplateEx) => t.day_number === dayNum)
     setTemplates(dayTemplates)
 
     if (isWorkoutDay) {
@@ -133,7 +137,7 @@ export default function WorkoutPage() {
     }
     setWeightOpen(openMap)
     setLoading(false)
-  }, [weekId, selectedDay, date, userId])
+  }, [weekId, date, userId])
 
   useEffect(() => {
     loadData()
