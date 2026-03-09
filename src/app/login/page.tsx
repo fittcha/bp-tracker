@@ -95,8 +95,8 @@ export default function LoginPage() {
   // Username screen
   if (step === 'username') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-background px-4">
-        <h1 className="text-2xl font-bold text-foreground mb-8">BP Tracker</h1>
+      <div className="flex flex-col items-center justify-center min-h-dvh bg-background px-4">
+        <h1 className="text-2xl font-bold text-foreground mb-8">2026 ZEST BP Tracker</h1>
 
         <div className="w-full max-w-[320px] space-y-4">
           <input
@@ -127,7 +127,7 @@ export default function LoginPage() {
             disabled={loading || !username.trim()}
             className="w-full py-3 rounded-lg bg-accent text-white font-medium disabled:opacity-50 transition-opacity"
           >
-            {loading ? '확인 중...' : '다음'}
+            {loading ? '확인 중...' : '로그인'}
           </button>
         </div>
       </div>
@@ -150,8 +150,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background px-4">
-      <h1 className="text-2xl font-bold text-foreground mb-2">BP Tracker</h1>
+    <div className="flex flex-col items-center justify-center min-h-dvh bg-background px-4">
+      <h1 className="text-2xl font-bold text-foreground mb-2">2026 ZEST BP Tracker</h1>
       <PinInput
         key={step}
         title={pinTitle}
