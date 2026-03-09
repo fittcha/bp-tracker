@@ -316,14 +316,46 @@ export default function WorkoutPage() {
             const isSuperset = isGroup && firstNotes.toLowerCase().includes('superset')
             const isEmom = isGroup && firstNotes.toLowerCase().includes('emom')
             const isAmrap = isGroup && firstNotes.toLowerCase().includes('amrap')
+            const isSpecial = isEmom || isAmrap
             const groupLabel = isEmom ? firstNotes
               : isAmrap ? firstNotes
               : isSuperset ? `Superset${groupSets ? ` · ${groupSets} Sets` : ''}`
               : isGroup && groupSets ? `${groupSets} Sets` : null
 
+            // Group completion state
+            const allCompleted = items.length > 0 && items.every(i => i.completed)
+            const someCompleted = items.some(i => i.completed)
+
+            function handleGroupToggle() {
+              const newState = !allCompleted
+              for (const item of items) {
+                if (item.completed !== newState) {
+                  handleToggleComplete(item.id!, newState)
+                }
+              }
+            }
+
             return (
               <div key={section} className="bg-surface border border-border rounded-xl overflow-hidden">
                 <div className="px-4 py-2.5 bg-background border-b border-border flex items-center gap-2">
+                  {/* Group completion checkbox */}
+                  <button
+                    onClick={handleGroupToggle}
+                    className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                      allCompleted ? 'bg-success border-success text-white'
+                        : someCompleted ? 'border-success/50 bg-success/10'
+                        : 'border-border'
+                    }`}
+                  >
+                    {allCompleted && (
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                    {someCompleted && !allCompleted && (
+                      <div className="w-2 h-0.5 bg-success rounded" />
+                    )}
+                  </button>
                   <span className="text-xs font-bold text-accent">{section === 'WOD' ? 'WOD' : section}</span>
                   {groupLabel && (
                     <span className="text-xs text-text-secondary font-medium">{groupLabel}</span>
@@ -339,6 +371,8 @@ export default function WorkoutPage() {
                     // For grouped exercises, show reps + rest inline (sets shown in header)
                     // For single exercises, show sets × reps as before
                     const showSetsInline = !isGroup
+                    // For EMOM/AMRAP, don't prepend reps (they are '1' or null)
+                    const showRepsPrefix = isGroup && !isSpecial && tmpl?.reps && tmpl.reps !== '1'
 
                     return (
                       <div key={log.id} className="flex items-center gap-3 px-4 py-3">
@@ -359,7 +393,7 @@ export default function WorkoutPage() {
                         {/* Exercise info */}
                         <div className="flex-1 min-w-0">
                           <p className={`text-sm font-medium ${log.completed ? 'line-through opacity-50' : ''}`}>
-                            {isGroup && tmpl?.reps ? `${tmpl.reps} ` : ''}{log.exercise_name}
+                            {showRepsPrefix ? `${tmpl!.reps} ` : ''}{log.exercise_name}
                           </p>
                           {showSetsInline && (tmpl?.sets || tmpl?.reps) && (
                             <p className="text-xs text-text-secondary">
