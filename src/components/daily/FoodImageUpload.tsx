@@ -172,13 +172,23 @@ export default function FoodImageUpload({ imageUrl, onUploaded, onOcrResult, use
         onChange={handleFile}
         className="hidden"
       />
-      <button
-        onClick={() => fileRef.current?.click()}
-        disabled={uploading || ocrLoading}
-        className="w-full border-2 border-dashed border-border rounded-xl py-3 text-sm text-text-secondary hover:border-accent/30 transition-colors disabled:opacity-50"
-      >
-        {uploading ? '업로드 중...' : ocrLoading ? 'OCR 분석 중...' : imageUrl ? '이미지 변경' : '이미지 업로드'}
-      </button>
+      <div className="flex gap-2">
+        <button
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading || ocrLoading}
+          className="flex-1 border-2 border-dashed border-border rounded-xl py-3 text-sm text-text-secondary hover:border-accent/30 transition-colors disabled:opacity-50"
+        >
+          {uploading ? '업로드 중...' : ocrLoading ? 'OCR 분석 중...' : imageUrl ? '이미지 변경' : '이미지 업로드'}
+        </button>
+        {imageUrl && (
+          <button
+            onClick={() => onUploaded('')}
+            className="w-12 h-12 flex items-center justify-center border-2 border-danger/30 rounded-xl text-danger hover:bg-danger/10 transition-colors"
+          >
+            🗑️
+          </button>
+        )}
+      </div>
       {ocrLoading && (
         <p className="text-xs text-accent mt-1 text-center">이미지에서 칼로리/매크로를 추출하고 있습니다...</p>
       )}
