@@ -37,25 +37,37 @@ function parseNutrition(text: string): OcrResult {
     .replace(/，/g, ',')
     .replace(/．/g, '.')
 
-  // Look for calorie patterns - expanded for various Korean nutrition apps
+  // Look for calorie patterns - find ALL matches, pick the largest (total)
   const calPatterns = [
-    /칼로리\s*[:\s：=]?\s*(\d[\d,\.]+)/i,
-    /(\d[\d,\.]+)\s*칼로리/i,
-    /(\d[\d,\.]+)\s*kcal/i,
-    /kcal\s*[:\s：=]?\s*(\d[\d,\.]+)/i,
-    /cal\s*[:\s：=]?\s*(\d[\d,\.]+)/i,
-    /(\d[\d,\.]+)\s*cal\b/i,
-    /열량\s*[:\s：=]?\s*(\d[\d,\.]+)/i,
-    /(\d[\d,\.]+)\s*열량/i,
-    /총\s*[:\s：=]?\s*(\d{3,5})/,
-    /에너지\s*[:\s：=]?\s*(\d[\d,\.]+)/i,
+    /칼로리\s*[:\s：=]?\s*(\d[\d,\.]+)/gi,
+    /(\d[\d,\.]+)\s*칼로리/gi,
+    /(\d[\d,\.]+)\s*kcal/gi,
+    /kcal\s*[:\s：=]?\s*(\d[\d,\.]+)/gi,
+    /cal\s*[:\s：=]?\s*(\d[\d,\.]+)/gi,
+    /(\d[\d,\.]+)\s*cal\b/gi,
+    /열량\s*[:\s：=]?\s*(\d[\d,\.]+)/gi,
+    /(\d[\d,\.]+)\s*열량/gi,
+    /에너지\s*[:\s：=]?\s*(\d[\d,\.]+)/gi,
   ]
+  const allCalories: number[] = []
   for (const pat of calPatterns) {
-    const m = normalized.match(pat)
-    if (m) {
+    for (const m of normalized.matchAll(pat)) {
       const val = parseFloat(m[1].replace(/,/g, ''))
-      if (val >= 100 && val < 15000) { result.totalCalories = Math.round(val); break }
+      if (val >= 100 && val < 15000) allCalories.push(Math.round(val))
     }
+  }
+  // Also find standalone 3-5 digit numbers near calorie context
+  for (const line of lines) {
+    const nums = line.match(/\b(\d{3,5})\b/g)
+    if (nums && /칼로리|kcal|cal|열량|에너지/i.test(line)) {
+      for (const n of nums) {
+        const val = parseInt(n)
+        if (val >= 100 && val < 15000) allCalories.push(val)
+      }
+    }
+  }
+  if (allCalories.length > 0) {
+    result.totalCalories = Math.max(...allCalories)
   }
 
   // Look for macros with more flexible patterns
