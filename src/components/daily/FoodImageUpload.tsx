@@ -17,17 +17,84 @@ interface FoodImageUploadProps {
   userId: string
 }
 
-function parseNutrition(text: string): OcrResult {
+// FatSecret table parsing: header row with keywords, value row with numbers
+function parseFatSecretTable(lines: string[]): OcrResult | null {
   const result: OcrResult = { totalCalories: null, carbs: null, protein: null, fat: null }
 
-  // Clean up OCR text - normalize whitespace and common OCR errors
+  for (let i = 0; i < lines.length - 1; i++) {
+    const line = lines[i]
+    const keywords: { type: 'calories' | 'carbs' | 'protein' | 'fat' | 'skip'; index: number }[] = []
+
+    // English keywords
+    const enMappings: [RegExp, 'calories' | 'carbs' | 'protein' | 'fat' | 'skip'][] = [
+      [/Calorie/i, 'calories'], [/Carb/i, 'carbs'], [/Prot/i, 'protein'],
+      [/\bFat\b/i, 'fat'], [/Sugar/i, 'skip'],
+    ]
+    // Korean keywords
+    const krMappings: [RegExp, 'calories' | 'carbs' | 'protein' | 'fat' | 'skip'][] = [
+      [/칼로리/, 'calories'], [/탄수/, 'carbs'], [/단백/, 'protein'],
+      [/지방/, 'fat'], [/권장/, 'skip'],
+    ]
+
+    for (const [pat, type] of [...enMappings, ...krMappings]) {
+      const m = pat.exec(line)
+      if (m) keywords.push({ type, index: m.index })
+    }
+
+    // Need at least 3 nutrition keywords on one line to be a header
+    if (keywords.length < 3) continue
+
+    // Sort by position in line
+    keywords.sort((a, b) => a.index - b.index)
+
+    // Extract numbers with their character positions from the next line
+    const nextLine = lines[i + 1]
+    const numberMatches = [...nextLine.matchAll(/(\d+\.?\d*)/g)]
+    if (numberMatches.length < 2) continue
+
+    // Match each keyword to the closest number by character position
+    const usedIndices = new Set<number>()
+    for (const kw of keywords) {
+      let closestIdx = -1
+      let minDist = Infinity
+      for (let ni = 0; ni < numberMatches.length; ni++) {
+        if (usedIndices.has(ni)) continue
+        const dist = Math.abs((numberMatches[ni].index ?? 0) - kw.index)
+        if (dist < minDist) { minDist = dist; closestIdx = ni }
+      }
+      if (closestIdx === -1) continue
+      usedIndices.add(closestIdx)
+      if (kw.type === 'skip') continue
+      const val = parseFloat(numberMatches[closestIdx][1])
+      switch (kw.type) {
+        case 'calories': result.totalCalories = Math.round(val); break
+        case 'carbs': result.carbs = val; break
+        case 'protein': result.protein = val; break
+        case 'fat': result.fat = val; break
+      }
+    }
+    return result
+  }
+  return null
+}
+
+function parseNutrition(text: string): OcrResult {
+  // Clean up OCR text
   const lines = text.replace(/\n+/g, '\n').split('\n').map(l => l.trim()).filter(Boolean)
+
+  // Try FatSecret table parsing first (header + value rows)
+  const tableResult = parseFatSecretTable(lines)
+  if (tableResult && (tableResult.totalCalories || tableResult.carbs || tableResult.protein || tableResult.fat)) {
+    return tableResult
+  }
+
+  // Fallback: keyword-based parsing for other formats
+  const result: OcrResult = { totalCalories: null, carbs: null, protein: null, fat: null }
   const fullText = lines.join(' ')
 
   // Normalize common OCR misreads
   const normalized = fullText
     .replace(/[oO]/g, (m, offset) => {
-      // Only replace 'o'/'O' that appear within number-like contexts
       const before = fullText[offset - 1]
       const after = fullText[offset + 1]
       if (before && /\d/.test(before)) return '0'
@@ -43,8 +110,6 @@ function parseNutrition(text: string): OcrResult {
     /(\d[\d,\.]+)\s*칼로리/gi,
     /(\d[\d,\.]+)\s*kcal/gi,
     /kcal\s*[:\s：=]?\s*(\d[\d,\.]+)/gi,
-    /cal\s*[:\s：=]?\s*(\d[\d,\.]+)/gi,
-    /(\d[\d,\.]+)\s*cal\b/gi,
     /열량\s*[:\s：=]?\s*(\d[\d,\.]+)/gi,
     /(\d[\d,\.]+)\s*열량/gi,
     /에너지\s*[:\s：=]?\s*(\d[\d,\.]+)/gi,
@@ -58,7 +123,7 @@ function parseNutrition(text: string): OcrResult {
   }
   // "칼로리" 헤더가 있는 줄을 찾고, 바로 다음 줄에서 같은 위치의 숫자를 찾기
   for (let i = 0; i < lines.length; i++) {
-    if (/칼로리|kcal|cal|열량/i.test(lines[i]) && i + 1 < lines.length) {
+    if (/칼로리|kcal|열량/i.test(lines[i]) && i + 1 < lines.length) {
       const nextLineNums = lines[i + 1].match(/\b(\d{3,5})\b/g)
       if (nextLineNums) {
         for (const n of nextLineNums) {
@@ -67,8 +132,7 @@ function parseNutrition(text: string): OcrResult {
         }
       }
     }
-    // 같은 줄에 칼로리 키워드와 숫자가 있는 경우
-    if (/칼로리|kcal|cal|열량/i.test(lines[i])) {
+    if (/칼로리|kcal|열량/i.test(lines[i])) {
       const nums = lines[i].match(/\b(\d{3,5})\b/g)
       if (nums) {
         for (const n of nums) {
@@ -83,9 +147,9 @@ function parseNutrition(text: string): OcrResult {
   }
 
   // Look for macros with more flexible patterns
-  const fatPatterns = [/지방\s*[:\s：=]?\s*(\d[\d,\.]+)/]
-  const carbPatterns = [/탄수\s*화?\s*물?\s*[:\s：=]?\s*(\d[\d,\.]+)/, /탄수\s*[:\s：=]?\s*(\d[\d,\.]+)/]
-  const proteinPatterns = [/단백\s*질?\s*[:\s：=]?\s*(\d[\d,\.]+)/]
+  const fatPatterns = [/지방\s*[:\s：=]?\s*(\d[\d,\.]+)/, /\bFat\s*[:\s：=]?\s*(\d[\d,\.]+)/i]
+  const carbPatterns = [/탄수\s*화?\s*물?\s*[:\s：=]?\s*(\d[\d,\.]+)/, /\bCarb\w*\s*[:\s：=]?\s*(\d[\d,\.]+)/i]
+  const proteinPatterns = [/단백\s*질?\s*[:\s：=]?\s*(\d[\d,\.]+)/, /\bProt\w*\s*[:\s：=]?\s*(\d[\d,\.]+)/i]
 
   for (const pat of fatPatterns) {
     const m = normalized.match(pat)
@@ -98,18 +162,6 @@ function parseNutrition(text: string): OcrResult {
   for (const pat of proteinPatterns) {
     const m = normalized.match(pat)
     if (m) { result.protein = parseFloat(m[1].replace(/,/g, '')); break }
-  }
-
-  // Fallback: try to find numbers in a structured row
-  if (!result.fat && !result.carbs && !result.protein) {
-    const numPattern = /(\d+\.?\d*)\s+(\d+\.?\d*)\s+(\d+\.?\d*)\s+\d+%?/g
-    const matches = [...normalized.matchAll(numPattern)]
-    if (matches.length > 0) {
-      const firstMatch = matches[0]
-      result.fat = parseFloat(firstMatch[1])
-      result.carbs = parseFloat(firstMatch[2])
-      result.protein = parseFloat(firstMatch[3])
-    }
   }
 
   // Fallback: 칼로리 키워드로 못 찾으면 매크로에서 역산
