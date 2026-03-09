@@ -100,13 +100,15 @@ function parseNutrition(text: string): OcrResult {
     }
   }
 
-  // If we have macros but no calories, calculate from macros
-  if (!result.totalCalories && (result.carbs || result.protein || result.fat)) {
-    const c = result.carbs ?? 0
-    const p = result.protein ?? 0
-    const f = result.fat ?? 0
-    const calc = Math.round(c * 4 + p * 4 + f * 9)
-    if (calc > 0) result.totalCalories = calc
+  // If still no calories found, look for the largest 3-4 digit number in the text
+  // (식단 앱 이미지에는 칼로리가 키워드 없이 큰 숫자로 표시될 수 있음)
+  if (!result.totalCalories) {
+    const allNums = [...normalized.matchAll(/\b(\d{3,5})\b/g)]
+      .map(m => parseInt(m[1]))
+      .filter(v => v >= 100 && v < 15000)
+    if (allNums.length > 0) {
+      result.totalCalories = Math.max(...allNums)
+    }
   }
 
   return result
