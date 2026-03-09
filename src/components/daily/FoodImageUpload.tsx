@@ -53,16 +53,28 @@ function parseNutrition(text: string): OcrResult {
   for (const pat of calPatterns) {
     for (const m of normalized.matchAll(pat)) {
       const val = parseFloat(m[1].replace(/,/g, ''))
-      if (val >= 100 && val < 15000) allCalories.push(Math.round(val))
+      if (val >= 200 && val < 15000) allCalories.push(Math.round(val))
     }
   }
-  // Also find standalone 3-5 digit numbers near calorie context
-  for (const line of lines) {
-    const nums = line.match(/\b(\d{3,5})\b/g)
-    if (nums && /칼로리|kcal|cal|열량|에너지/i.test(line)) {
-      for (const n of nums) {
-        const val = parseInt(n)
-        if (val >= 100 && val < 15000) allCalories.push(val)
+  // "칼로리" 헤더가 있는 줄을 찾고, 바로 다음 줄에서 같은 위치의 숫자를 찾기
+  for (let i = 0; i < lines.length; i++) {
+    if (/칼로리|kcal|cal|열량/i.test(lines[i]) && i + 1 < lines.length) {
+      const nextLineNums = lines[i + 1].match(/\b(\d{3,5})\b/g)
+      if (nextLineNums) {
+        for (const n of nextLineNums) {
+          const val = parseInt(n)
+          if (val >= 200 && val < 15000) allCalories.push(val)
+        }
+      }
+    }
+    // 같은 줄에 칼로리 키워드와 숫자가 있는 경우
+    if (/칼로리|kcal|cal|열량/i.test(lines[i])) {
+      const nums = lines[i].match(/\b(\d{3,5})\b/g)
+      if (nums) {
+        for (const n of nums) {
+          const val = parseInt(n)
+          if (val >= 200 && val < 15000) allCalories.push(val)
+        }
       }
     }
   }
