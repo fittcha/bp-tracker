@@ -404,23 +404,23 @@ function WaterCups({
   value: number | null
   onChange: (v: number | null) => void
 }) {
-  const cups = Math.round((value ?? 0) / 0.5)
+  const cups = Math.round((value ?? 0) / 0.25)
 
   function toggle(index: number) {
     const clicked = index + 1
     const newCups = cups === clicked ? clicked - 1 : clicked
-    onChange(newCups > 0 ? newCups * 0.5 : null)
+    onChange(newCups > 0 ? newCups * 0.25 : null)
   }
 
   return (
     <div>
       <label className="text-xs text-text-secondary">수분 섭취량</label>
-      <div className="flex items-center gap-3 mt-2">
-        {[0, 1, 2, 3].map(i => {
+      <div className="flex items-center gap-2 mt-2 flex-wrap">
+        {[0, 1, 2, 3, 4, 5, 6, 7].map(i => {
           const filled = i < cups
           return (
             <button key={i} onClick={() => toggle(i)} className="flex flex-col items-center gap-1">
-              <svg width="32" height="38" viewBox="0 0 38 48" fill="none">
+              <svg width="26" height="32" viewBox="0 0 38 48" fill="none">
                 {/* Shadow */}
                 <ellipse cx="19" cy="46" rx="10" ry="2" fill={filled ? '#BFDBFE' : '#E5E7EB'} opacity="0.5" />
                 {/* Cup body - rounded tumbler */}
@@ -453,12 +453,12 @@ function WaterCups({
                 {/* Shine */}
                 <path d="M13 12 L13 30" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />
               </svg>
-              <span className="text-[10px] text-text-secondary">500ml</span>
+              <span className="text-[9px] text-text-secondary">250</span>
             </button>
           )
         })}
         <span className="text-sm font-medium ml-1 text-success">
-          {(cups * 0.5).toFixed(1)}L
+          {(cups * 0.25).toFixed(1)}L
         </span>
       </div>
     </div>
