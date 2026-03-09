@@ -95,7 +95,7 @@ export default function LoginPage() {
   // Username screen
   if (step === 'username') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-dvh bg-background px-4">
+      <div className="flex flex-col items-center justify-center min-h-dvh bg-background px-4 pb-[10vh]">
         <h1 className="text-2xl font-bold text-foreground mb-8">2026 ZEST BP Tracker</h1>
 
         <div className="w-full max-w-[320px] space-y-4">
@@ -150,7 +150,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-dvh bg-background px-4">
+    <div className="flex flex-col items-center justify-center min-h-dvh bg-background px-4 pb-[10vh]">
       <h1 className="text-2xl font-bold text-foreground mb-2">2026 ZEST BP Tracker</h1>
       <PinInput
         key={step}
