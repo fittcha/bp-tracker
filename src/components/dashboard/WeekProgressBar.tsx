@@ -19,9 +19,9 @@ export default function WeekProgressBar() {
               <div
                 className={`h-2 rounded-full transition-colors ${
                   isCompleted
-                    ? 'bg-success'
-                    : isActive
                     ? 'bg-accent'
+                    : isActive
+                    ? 'bg-accent-pop'
                     : 'bg-border'
                 }`}
               />
