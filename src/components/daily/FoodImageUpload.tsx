@@ -17,94 +17,52 @@ interface FoodImageUploadProps {
   userId: string
 }
 
-// FatSecret table parsing: header row with keywords, value row with numbers
+// FatSecret table parsing: detect header row, then map values by fixed column order
 function parseFatSecretTable(lines: string[]): OcrResult | null {
-  const result: OcrResult = { totalCalories: null, carbs: null, protein: null, fat: null }
-
   for (let i = 0; i < lines.length - 1; i++) {
     const line = lines[i]
-    const keywords: { type: 'calories' | 'carbs' | 'protein' | 'fat' | 'skip'; index: number }[] = []
 
-    // English keywords
-    const enMappings: [RegExp, 'calories' | 'carbs' | 'protein' | 'fat' | 'skip'][] = [
-      [/Calorie/i, 'calories'], [/Carb/i, 'carbs'], [/Prot/i, 'protein'],
-      [/\bFat\b/i, 'fat'], [/Sugar/i, 'skip'],
-    ]
-    // Korean keywords
-    const krMappings: [RegExp, 'calories' | 'carbs' | 'protein' | 'fat' | 'skip'][] = [
-      [/칼로리/, 'calories'], [/탄수/, 'carbs'], [/단백/, 'protein'],
-      [/지방/, 'fat'], [/권장/, 'skip'],
-    ]
+    // Detect FatSecret header: need at least 3 nutrition keywords on one line
+    const isEnglish = [/Calorie/i, /Carb/i, /Prot/i, /Fat/i, /Sugar/i]
+      .filter(p => p.test(line)).length >= 3
+    const isKorean = [/칼로리/, /탄수/, /단백/, /지방/, /권장/]
+      .filter(p => p.test(line)).length >= 3
 
-    for (const [pat, type] of [...enMappings, ...krMappings]) {
-      const m = pat.exec(line)
-      if (m) keywords.push({ type, index: m.index })
-    }
+    if (!isEnglish && !isKorean) continue
 
-    // Need at least 3 nutrition keywords on one line to be a header
-    if (keywords.length < 3) continue
-
-    // Sort by position in line
-    keywords.sort((a, b) => a.index - b.index)
-
-    // Extract numbers with their character positions from the next line
+    // Extract numbers from the value line (next line)
     const nextLine = lines[i + 1]
-    const numberMatches = [...nextLine.matchAll(/(\d+\.?\d*)/g)]
-    if (numberMatches.length < 2) continue
+    const numbers = [...nextLine.matchAll(/(\d+\.?\d*)/g)].map(m => parseFloat(m[1]))
+    if (numbers.length < 4) continue
 
-    // Match each keyword to the closest number by character position
-    const usedIndices = new Set<number>()
-    for (const kw of keywords) {
-      let closestIdx = -1
-      let minDist = Infinity
-      for (let ni = 0; ni < numberMatches.length; ni++) {
-        if (usedIndices.has(ni)) continue
-        const dist = Math.abs((numberMatches[ni].index ?? 0) - kw.index)
-        if (dist < minDist) { minDist = dist; closestIdx = ni }
-      }
-      if (closestIdx === -1) continue
-      usedIndices.add(closestIdx)
-      if (kw.type === 'skip') continue
-      const val = parseFloat(numberMatches[closestIdx][1])
-      switch (kw.type) {
-        case 'calories': result.totalCalories = Math.round(val); break
-        case 'carbs': result.carbs = val; break
-        case 'protein': result.protein = val; break
-        case 'fat': result.fat = val; break
+    // Map by fixed FatSecret column order
+    // English: Sugar(skip), Fat, Carbs, Prot, Calories → 5 numbers
+    // Korean:  지방, 탄수, 단백질, 권장(skip), 칼로리 → 5 numbers
+    if (isEnglish && numbers.length >= 5) {
+      return {
+        fat: numbers[1],           // Fat (2nd column)
+        carbs: numbers[2],         // Carbs (3rd column)
+        protein: numbers[3],       // Prot (4th column)
+        totalCalories: Math.round(numbers[4]), // Calories (5th column)
       }
     }
-
-    // Fill missing values from unmatched numbers using FatSecret column order
-    // Korean: 지방, 탄수, 단백질, 권장, 칼로리
-    // English: Sugar, Fat, Carbs, Prot, Calories
-    const isKorean = keywords.some(k => line.includes('칼로리') || line.includes('단백'))
-    const missingFields: ('fat' | 'carbs' | 'protein')[] = []
-    if (!result.fat) missingFields.push('fat')
-    if (!result.carbs) missingFields.push('carbs')
-    if (!result.protein) missingFields.push('protein')
-
-    if (missingFields.length > 0) {
-      // Get unmatched numbers sorted by position (left to right)
-      const unmatchedNums = numberMatches
-        .filter((_, ni) => !usedIndices.has(ni))
-        .map(m => parseFloat(m[1]))
-        .filter(v => v < 1000) // macro values are under 1000g
-
-      // FatSecret column order: fat comes first, then carbs, then protein
-      const fieldOrder: ('fat' | 'carbs' | 'protein')[] = isKorean
-        ? ['fat', 'carbs', 'protein']  // 지방, 탄수, 단백질
-        : ['fat', 'carbs', 'protein']  // (Sugar skipped), Fat, Carbs, Prot
-
-      // Assign unmatched numbers to missing fields in order
-      let numIdx = 0
-      for (const field of fieldOrder) {
-        if (missingFields.includes(field) && numIdx < unmatchedNums.length) {
-          result[field] = unmatchedNums[numIdx++]
-        }
+    if (isKorean && numbers.length >= 5) {
+      return {
+        fat: numbers[0],           // 지방 (1st column)
+        carbs: numbers[1],         // 탄수 (2nd column)
+        protein: numbers[2],       // 단백질 (3rd column)
+        totalCalories: Math.round(numbers[4]), // 칼로리 (5th column)
       }
     }
-
-    return result
+    // Fallback for 4 numbers (no Sugar/권장 column)
+    if (numbers.length === 4) {
+      return {
+        fat: numbers[0],
+        carbs: numbers[1],
+        protein: numbers[2],
+        totalCalories: Math.round(numbers[3]),
+      }
+    }
   }
   return null
 }
