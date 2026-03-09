@@ -373,12 +373,12 @@ function TimeInput24({
 
   return (
     <div>
-      <label className="text-xs text-text-secondary block text-center">{label}</label>
-      <div className="flex items-center gap-1 mt-1">
+      <label className="text-xs text-text-secondary">{label}</label>
+      <div className="flex items-center justify-center gap-1 mt-1">
         <select
           value={hour}
           onChange={(e) => update(e.target.value, min || '00')}
-          className="flex-1 border border-border rounded-lg px-2 py-2 text-sm bg-background text-center appearance-none"
+          className="flex-1 border border-border rounded-lg px-2 py-2 text-sm bg-background text-center appearance-none [text-align-last:center]"
         >
           <option value="">시</option>
           {HOURS.map(h => <option key={h} value={h}>{h}</option>)}
@@ -387,7 +387,7 @@ function TimeInput24({
         <select
           value={min}
           onChange={(e) => update(hour || '00', e.target.value)}
-          className="flex-1 border border-border rounded-lg px-2 py-2 text-sm bg-background text-center appearance-none"
+          className="flex-1 border border-border rounded-lg px-2 py-2 text-sm bg-background text-center appearance-none [text-align-last:center]"
         >
           <option value="">분</option>
           {MINUTES.map(m => <option key={m} value={m}>{m}</option>)}
