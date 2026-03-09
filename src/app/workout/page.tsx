@@ -306,92 +306,123 @@ export default function WorkoutPage() {
       ) : (
         <>
           {/* Coach exercises grouped by section */}
-          {sections.map(({ section, items }) => (
-            <div key={section} className="bg-surface border border-border rounded-xl overflow-hidden">
-              <div className="px-4 py-2.5 bg-background border-b border-border">
-                <span className="text-xs font-bold text-accent">{section === 'WOD' ? 'WOD' : section}</span>
-              </div>
-              <div className="divide-y divide-border">
-                {items.map(log => {
-                  const tmpl = log.template
-                  const isWeightOpen = !!weightOpen[log.id!]
-                  return (
-                    <div key={log.id} className="flex items-center gap-3 px-4 py-3">
-                      {/* Complete checkbox */}
-                      <button
-                        onClick={() => handleToggleComplete(log.id!, !log.completed)}
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                          log.completed ? 'bg-success border-success text-white' : 'border-border'
-                        }`}
-                      >
-                        {log.completed && (
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                        )}
-                      </button>
+          {sections.map(({ section, items }) => {
+            const isGroup = items.length > 1
+            // Detect group label from first item's template
+            const firstTmpl = items[0]?.template
+            const groupSets = isGroup && firstTmpl?.sets ? firstTmpl.sets : null
+            // Detect special type from notes (Superset, EMOM, AMRAP, etc.)
+            const firstNotes = firstTmpl?.notes || ''
+            const isSuperset = isGroup && firstNotes.toLowerCase().includes('superset')
+            const isEmom = isGroup && firstNotes.toLowerCase().includes('emom')
+            const isAmrap = isGroup && firstNotes.toLowerCase().includes('amrap')
+            const groupLabel = isEmom ? firstNotes
+              : isAmrap ? firstNotes
+              : isSuperset ? `Superset${groupSets ? ` · ${groupSets} Sets` : ''}`
+              : isGroup && groupSets ? `${groupSets} Sets` : null
 
-                      {/* Exercise info */}
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium ${log.completed ? 'line-through opacity-50' : ''}`}>
-                          {log.exercise_name}
-                        </p>
-                        {(tmpl?.sets || tmpl?.reps) && (
-                          <p className="text-xs text-text-secondary">
-                            {tmpl.sets && `${tmpl.sets}세트`} {tmpl.reps && `× ${tmpl.reps}`}
-                            {tmpl.rest_seconds && ` / 휴식 ${Math.floor(tmpl.rest_seconds / 60)}:${String(tmpl.rest_seconds % 60).padStart(2, '0')}`}
-                          </p>
-                        )}
-                        {tmpl?.notes && (
-                          <p className="text-[11px] text-text-secondary italic mt-0.5">{tmpl.notes}</p>
-                        )}
-                      </div>
+            return (
+              <div key={section} className="bg-surface border border-border rounded-xl overflow-hidden">
+                <div className="px-4 py-2.5 bg-background border-b border-border flex items-center gap-2">
+                  <span className="text-xs font-bold text-accent">{section === 'WOD' ? 'WOD' : section}</span>
+                  {groupLabel && (
+                    <span className="text-xs text-text-secondary font-medium">{groupLabel}</span>
+                  )}
+                  {!isGroup && firstTmpl?.sets && firstTmpl.sets > 1 && (
+                    <span className="text-xs text-text-secondary font-medium">{firstTmpl.sets} Sets</span>
+                  )}
+                </div>
+                <div className="divide-y divide-border">
+                  {items.map(log => {
+                    const tmpl = log.template
+                    const isWeightOpen = !!weightOpen[log.id!]
+                    // For grouped exercises, show reps + rest inline (sets shown in header)
+                    // For single exercises, show sets × reps as before
+                    const showSetsInline = !isGroup
 
-                      {/* Weight toggle checkbox + input */}
-                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                    return (
+                      <div key={log.id} className="flex items-center gap-3 px-4 py-3">
+                        {/* Complete checkbox */}
                         <button
-                          onClick={() => toggleWeightInput(log.id!)}
-                          className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
-                            isWeightOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/40 bg-surface'
+                          onClick={() => handleToggleComplete(log.id!, !log.completed)}
+                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                            log.completed ? 'bg-success border-success text-white' : 'border-border'
                           }`}
-                          title="무게 입력"
                         >
-                          {isWeightOpen ? (
+                          {log.completed && (
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                               <polyline points="20 6 9 17 4 12" />
                             </svg>
-                          ) : (
-                            <span className="text-[9px] font-bold text-text-secondary">lb</span>
                           )}
                         </button>
-                        {isWeightOpen && (
-                          <>
-                            <button
-                              onClick={() => handleWeightChange(log.id!, Math.max(0, (log.weight_lb ?? 0) - 5))}
-                              className="w-6 h-6 rounded bg-background border border-border flex items-center justify-center text-xs font-bold text-text-secondary active:bg-border"
-                            >−</button>
-                            <input
-                              type="number"
-                              inputMode="decimal"
-                              placeholder="0"
-                              value={log.weight_lb ?? ''}
-                              onChange={(e) => handleWeightChange(log.id!, e.target.value ? parseFloat(e.target.value) : null)}
-                              className="w-14 border border-border rounded-lg px-1 py-1 text-sm text-center bg-background"
-                            />
-                            <span className="text-[10px] text-text-secondary">lb</span>
-                            <button
-                              onClick={() => handleWeightChange(log.id!, (log.weight_lb ?? 0) + 5)}
-                              className="w-6 h-6 rounded bg-background border border-border flex items-center justify-center text-xs font-bold text-text-secondary active:bg-border"
-                            >+</button>
-                          </>
-                        )}
+
+                        {/* Exercise info */}
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-medium ${log.completed ? 'line-through opacity-50' : ''}`}>
+                            {isGroup && tmpl?.reps ? `${tmpl.reps} ` : ''}{log.exercise_name}
+                          </p>
+                          {showSetsInline && (tmpl?.sets || tmpl?.reps) && (
+                            <p className="text-xs text-text-secondary">
+                              {tmpl.sets && `${tmpl.sets}세트`} {tmpl.reps && `× ${tmpl.reps}`}
+                              {tmpl.rest_seconds && ` / 휴식 ${Math.floor(tmpl.rest_seconds / 60)}:${String(tmpl.rest_seconds % 60).padStart(2, '0')}`}
+                            </p>
+                          )}
+                          {isGroup && tmpl?.rest_seconds && (
+                            <p className="text-xs text-text-secondary">
+                              휴식 {Math.floor(tmpl.rest_seconds / 60)}:{String(tmpl.rest_seconds % 60).padStart(2, '0')}
+                            </p>
+                          )}
+                          {tmpl?.notes && !(isGroup && (isSuperset || isEmom || isAmrap) && tmpl === firstTmpl) && (
+                            <p className="text-[11px] text-text-secondary italic mt-0.5">{tmpl.notes}</p>
+                          )}
+                        </div>
+
+                        {/* Weight toggle checkbox + input */}
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <button
+                            onClick={() => toggleWeightInput(log.id!)}
+                            className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+                              isWeightOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/40 bg-surface'
+                            }`}
+                            title="무게 입력"
+                          >
+                            {isWeightOpen ? (
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                            ) : (
+                              <span className="text-[9px] font-bold text-text-secondary">lb</span>
+                            )}
+                          </button>
+                          {isWeightOpen && (
+                            <>
+                              <button
+                                onClick={() => handleWeightChange(log.id!, Math.max(0, (log.weight_lb ?? 0) - 5))}
+                                className="w-6 h-6 rounded bg-background border border-border flex items-center justify-center text-xs font-bold text-text-secondary active:bg-border"
+                              >−</button>
+                              <input
+                                type="number"
+                                inputMode="decimal"
+                                placeholder="0"
+                                value={log.weight_lb ?? ''}
+                                onChange={(e) => handleWeightChange(log.id!, e.target.value ? parseFloat(e.target.value) : null)}
+                                className="w-14 border border-border rounded-lg px-1 py-1 text-sm text-center bg-background"
+                              />
+                              <span className="text-[10px] text-text-secondary">lb</span>
+                              <button
+                                onClick={() => handleWeightChange(log.id!, (log.weight_lb ?? 0) + 5)}
+                                className="w-6 h-6 rounded bg-background border border-border flex items-center justify-center text-xs font-bold text-text-secondary active:bg-border"
+                              >+</button>
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )
-                })}
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </>
       )}
 
