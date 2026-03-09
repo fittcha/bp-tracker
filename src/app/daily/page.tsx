@@ -458,7 +458,7 @@ function WaterCups({
           )
         })}
         <span className="text-sm font-medium ml-1 text-success">
-          {(cups * 0.25).toFixed(1)}L
+          {(cups * 0.25).toFixed(2)}L
         </span>
       </div>
     </div>
