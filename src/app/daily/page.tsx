@@ -373,7 +373,7 @@ function TimeInput24({
 
   return (
     <div>
-      <label className="text-xs text-text-secondary">{label}</label>
+      <label className="text-xs text-text-secondary block text-center">{label}</label>
       <div className="flex items-center gap-1 mt-1">
         <select
           value={hour}
