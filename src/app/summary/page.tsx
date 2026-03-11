@@ -29,13 +29,18 @@ interface DailyLogRow {
   fat_g: number | null
 }
 
+const PROGRAM_START = '2026-03-09'
+const PROGRAM_END = '2026-06-20'
+
 export default function SummaryPage() {
   const router = useRouter()
   const user = getLoggedInUser()
   const userId = user?.id ?? ''
   const [weeks, setWeeks] = useState<Week[]>([])
   const [selectedWeekId, setSelectedWeekId] = useState('')
+  const [chartMode, setChartMode] = useState<'week' | 'all'>('week')
   const [logs, setLogs] = useState<DailyLogRow[]>([])
+  const [allLogs, setAllLogs] = useState<DailyLogRow[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -52,6 +57,7 @@ export default function SummaryPage() {
     load()
   }, [])
 
+  // Load weekly logs
   useEffect(() => {
     async function loadLogs() {
       if (!selectedWeekId) return
@@ -73,16 +79,57 @@ export default function SummaryPage() {
       }
     }
     loadLogs()
-  }, [selectedWeekId, weeks])
+  }, [selectedWeekId, weeks, userId])
+
+  // Load all logs when switching to "all" mode
+  useEffect(() => {
+    async function loadAllLogs() {
+      if (chartMode !== 'all') return
+      try {
+        const { data } = await supabase
+          .from('daily_logs')
+          .select('date, weight_kg, sleep_hours, workout_done, sugar_processed, total_calories, carbs_g, protein_g, fat_g')
+          .gte('date', PROGRAM_START)
+          .lte('date', PROGRAM_END)
+          .eq('user_id', userId)
+          .order('date', { ascending: true })
+
+        setAllLogs(data || [])
+      } catch (err) {
+        console.error('Failed to load all logs:', err)
+      }
+    }
+    loadAllLogs()
+  }, [chartMode, userId])
 
   const selectedWeek = weeks.find(w => w.id === selectedWeekId)
 
   // Weight chart data
-  const weightData = logs
-    .filter(l => l.weight_kg)
-    .map(l => ({ date: l.date, weight: l.weight_kg! }))
+  const weightData = (() => {
+    if (chartMode === 'all') {
+      const logMap = new Map(allLogs.filter(l => l.weight_kg).map(l => [l.date, l.weight_kg!]))
+      const start = new Date(PROGRAM_START)
+      const end = new Date(PROGRAM_END)
+      const days: { date: string; weight: number | null }[] = []
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().slice(0, 10)
+        days.push({ date: dateStr, weight: logMap.get(dateStr) ?? null })
+      }
+      return days
+    } else if (selectedWeek) {
+      const logMap = new Map(logs.filter(l => l.weight_kg).map(l => [l.date, l.weight_kg!]))
+      const start = new Date(selectedWeek.start_date)
+      return Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(start)
+        d.setDate(start.getDate() + i)
+        const dateStr = d.toISOString().slice(0, 10)
+        return { date: dateStr, weight: logMap.get(dateStr) ?? null }
+      })
+    }
+    return []
+  })()
 
-  // Macro averages
+  // Stats use weekly logs (not affected by chart mode)
   const carbLogs = logs.filter(l => l.carbs_g)
   const proteinLogs = logs.filter(l => l.protein_g)
   const fatLogs = logs.filter(l => l.fat_g)
@@ -90,7 +137,6 @@ export default function SummaryPage() {
   const avgProtein = proteinLogs.length ? proteinLogs.reduce((s, l) => s + l.protein_g!, 0) / proteinLogs.length : 0
   const avgFat = fatLogs.length ? fatLogs.reduce((s, l) => s + l.fat_g!, 0) / fatLogs.length : 0
 
-  // Stats
   const calLogs = logs.filter(l => l.total_calories)
   const sleepLogs = logs.filter(l => l.sleep_hours)
   const avgCalories = calLogs.length ? Math.round(calLogs.reduce((s, l) => s + l.total_calories!, 0) / calLogs.length) : null
@@ -113,13 +159,32 @@ export default function SummaryPage() {
         ))}
       </select>
 
-      {selectedWeek && (
-        <p className="text-xs text-text-secondary">
-          {selectedWeek.start_date} ~ {selectedWeek.end_date}
-        </p>
-      )}
+      {/* Date range + chart mode radio */}
+      <div className="flex items-center justify-between">
+        {selectedWeek && (
+          <p className="text-xs text-text-secondary">
+            {selectedWeek.start_date} ~ {selectedWeek.end_date}
+          </p>
+        )}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setChartMode('all')}
+            className="flex items-center gap-1.5"
+          >
+            <span className={`w-2 h-2 rounded-full ${chartMode === 'all' ? 'bg-success' : 'bg-text-secondary/40'}`} />
+            <span className={`text-xs ${chartMode === 'all' ? 'text-success font-medium' : 'text-text-secondary'}`}>전체</span>
+          </button>
+          <button
+            onClick={() => setChartMode('week')}
+            className="flex items-center gap-1.5"
+          >
+            <span className={`w-2 h-2 rounded-full ${chartMode === 'week' ? 'bg-success' : 'bg-text-secondary/40'}`} />
+            <span className={`text-xs ${chartMode === 'week' ? 'text-success font-medium' : 'text-text-secondary'}`}>주차별</span>
+          </button>
+        </div>
+      </div>
 
-      <WeightChart data={weightData} />
+      <WeightChart data={weightData} mode={chartMode} weeks={chartMode === 'all' ? weeks : undefined} />
       <MacroChart carbs={avgCarbs} protein={avgProtein} fat={avgFat} />
       <WeeklyStats
         avgCalories={avgCalories}
