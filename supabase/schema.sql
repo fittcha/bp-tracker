@@ -34,6 +34,7 @@ create table workout_logs (
   section text,
   completed boolean not null default false,
   weight_lb decimal,
+  weight_unit text not null default 'lb',
   memo text,
   created_at timestamp with time zone default now()
 );

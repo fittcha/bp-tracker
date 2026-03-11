@@ -116,6 +116,7 @@ export default function WorkoutPage() {
             section: t.section,
             completed: false,
             weight_lb: null,
+            weight_unit: 'lb' as const,
             memo: null,
           })
         }
@@ -152,8 +153,8 @@ export default function WorkoutPage() {
         // Closing weight input → clear weight and save
         setLogs(p => {
           const log = p.find(l => l.id === id)
-          if (log && log.weight_lb != null) upsertWorkoutLog({ ...log, weight_lb: null })
-          return p.map(l => l.id === id ? { ...l, weight_lb: null } : l)
+          if (log && log.weight_lb != null) upsertWorkoutLog({ ...log, weight_lb: null, weight_unit: 'lb' })
+          return p.map(l => l.id === id ? { ...l, weight_lb: null, weight_unit: 'lb' as const } : l)
         })
       }
       return { ...prev, [id]: !wasOpen }
@@ -170,6 +171,20 @@ export default function WorkoutPage() {
         return prev
       })
     }, 500)
+  }
+
+  function handleUnitToggle(id: string) {
+    setLogs(prev => {
+      const log = prev.find(l => l.id === id)
+      if (!log) return prev
+      const newUnit = log.weight_unit === 'lb' ? 'kg' as const : 'lb' as const
+      const updated = { ...log, weight_unit: newUnit }
+      if (debounceRef.current[id]) clearTimeout(debounceRef.current[id])
+      debounceRef.current[id] = setTimeout(() => {
+        upsertWorkoutLog(updated)
+      }, 500)
+      return prev.map(l => l.id === id ? updated : l)
+    })
   }
 
   async function handleAddCustom(name: string) {
@@ -425,13 +440,13 @@ export default function WorkoutPage() {
                                 <polyline points="20 6 9 17 4 12" />
                               </svg>
                             ) : (
-                              <span className="text-[9px] font-bold text-text-secondary">lb</span>
+                              <span className="text-[9px] font-bold text-text-secondary">{log.weight_unit ?? 'lb'}</span>
                             )}
                           </button>
                           {isWeightOpen && (
                             <>
                               <button
-                                onClick={() => handleWeightChange(log.id!, Math.max(0, (log.weight_lb ?? 0) - 5))}
+                                onClick={() => handleWeightChange(log.id!, Math.max(0, (log.weight_lb ?? 0) - (log.weight_unit === 'kg' ? 5 : 5)))}
                                 className="w-6 h-6 rounded bg-background border border-border flex items-center justify-center text-xs font-bold text-text-secondary active:bg-border"
                               >−</button>
                               <input
@@ -442,9 +457,12 @@ export default function WorkoutPage() {
                                 onChange={(e) => handleWeightChange(log.id!, e.target.value ? parseFloat(e.target.value) : null)}
                                 className="w-14 border border-border rounded-lg px-1 py-1 text-sm text-center bg-background"
                               />
-                              <span className="text-[10px] text-text-secondary">lb</span>
                               <button
-                                onClick={() => handleWeightChange(log.id!, (log.weight_lb ?? 0) + 5)}
+                                onClick={() => handleUnitToggle(log.id!)}
+                                className="text-[10px] text-text-secondary active:text-accent"
+                              >{log.weight_unit ?? 'lb'}</button>
+                              <button
+                                onClick={() => handleWeightChange(log.id!, (log.weight_lb ?? 0) + (log.weight_unit === 'kg' ? 5 : 5))}
                                 className="w-6 h-6 rounded bg-background border border-border flex items-center justify-center text-xs font-bold text-text-secondary active:bg-border"
                               >+</button>
                             </>
@@ -498,13 +516,13 @@ export default function WorkoutPage() {
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                       ) : (
-                        <span className="text-[9px] font-bold text-text-secondary">lb</span>
+                        <span className="text-[9px] font-bold text-text-secondary">{log.weight_unit ?? 'lb'}</span>
                       )}
                     </button>
                     {isWeightOpen && (
                       <>
                         <button
-                          onClick={() => handleWeightChange(log.id!, Math.max(0, (log.weight_lb ?? 0) - 5))}
+                          onClick={() => handleWeightChange(log.id!, Math.max(0, (log.weight_lb ?? 0) - (log.weight_unit === 'kg' ? 5 : 5)))}
                           className="w-6 h-6 rounded bg-background border border-border flex items-center justify-center text-xs font-bold text-text-secondary active:bg-border"
                         >−</button>
                         <input
@@ -515,9 +533,12 @@ export default function WorkoutPage() {
                           onChange={(e) => handleWeightChange(log.id!, e.target.value ? parseFloat(e.target.value) : null)}
                           className="w-14 border border-border rounded-lg px-1 py-1 text-sm text-center bg-background"
                         />
-                        <span className="text-[10px] text-text-secondary">lb</span>
                         <button
-                          onClick={() => handleWeightChange(log.id!, (log.weight_lb ?? 0) + 5)}
+                          onClick={() => handleUnitToggle(log.id!)}
+                          className="text-[10px] text-text-secondary active:text-accent"
+                        >{log.weight_unit ?? 'lb'}</button>
+                        <button
+                          onClick={() => handleWeightChange(log.id!, (log.weight_lb ?? 0) + (log.weight_unit === 'kg' ? 5 : 5))}
                           className="w-6 h-6 rounded bg-background border border-border flex items-center justify-center text-xs font-bold text-text-secondary active:bg-border"
                         >+</button>
                       </>

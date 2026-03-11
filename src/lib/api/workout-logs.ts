@@ -10,6 +10,7 @@ export interface WorkoutLog {
   section: string | null
   completed: boolean
   weight_lb: number | null
+  weight_unit: 'lb' | 'kg'
   memo: string | null
 }
 
@@ -31,6 +32,7 @@ export async function upsertWorkoutLog(log: WorkoutLog) {
       .update({
         completed: log.completed,
         weight_lb: log.weight_lb,
+        weight_unit: log.weight_unit,
         memo: log.memo,
       })
       .eq('id', log.id)
@@ -58,6 +60,7 @@ export async function addCustomExercise(date: string, exerciseName: string, user
       section: null,
       completed: false,
       weight_lb: null,
+      weight_unit: 'lb',
       memo: null,
     })
     .select()
