@@ -8,6 +8,7 @@ import { getWeeks } from '@/lib/api/workout-templates'
 import WeightChart from '@/components/summary/WeightChart'
 import MacroChart from '@/components/summary/MacroChart'
 import WeeklyStats from '@/components/summary/WeeklyStats'
+import OneRMSection from '@/components/summary/OneRMSection'
 
 interface Week {
   id: string
@@ -193,6 +194,8 @@ export default function SummaryPage() {
         totalDays={5}
         sugarDays={sugarDays}
       />
+
+      <OneRMSection userId={userId} />
 
       <button
         onClick={() => { logout(); router.push('/login') }}

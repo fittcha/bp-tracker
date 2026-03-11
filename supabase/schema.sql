@@ -60,6 +60,17 @@ create table daily_logs (
   created_at timestamp with time zone default now()
 );
 
+-- user_1rm: 사용자별 1RM 기록
+create table user_1rm (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references users(id) not null,
+  exercise_name text not null,
+  weight decimal not null,
+  weight_unit text not null default 'lb',
+  updated_at timestamp with time zone default now(),
+  unique(user_id, exercise_name)
+);
+
 -- weeks 시드 데이터
 insert into weeks (week_number, phase, start_date, end_date) values
   (1, 'Reset Block', '2026-03-09', '2026-03-15'),

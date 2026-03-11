@@ -6,6 +6,7 @@ import { getWorkoutLogs, upsertWorkoutLog, addCustomExercise, deleteWorkoutLog, 
 import { getTemplatesByWeek, getWeeks } from '@/lib/api/workout-templates'
 import { getLoggedInUser } from '@/lib/auth'
 import CustomExerciseForm from '@/components/workout/CustomExerciseForm'
+import Calculator from '@/components/workout/Calculator'
 
 interface TemplateEx {
   id: string
@@ -41,6 +42,7 @@ export default function WorkoutPage() {
   const [weekInfo, setWeekInfo] = useState<Week | null>(null)
   const [weightOpen, setWeightOpen] = useState<Record<string, boolean>>({})
   const debounceRef = useRef<Record<string, NodeJS.Timeout>>({})
+  const [calcOpen, setCalcOpen] = useState(false)
 
   // Get Monday of the week containing `date`
   function getMondayOfWeek(d: Date) {
@@ -214,7 +216,8 @@ export default function WorkoutPage() {
     sectionMap.get(sec)!.push({ ...log, template: tmpl })
   }
 
-  const completedCount = logs.filter(l => l.completed).length
+  const totalSections = sections.length + (customLogs.length > 0 ? 1 : 0)
+  const completedSections = sections.filter(s => s.items.every(i => i.completed)).length + (customLogs.length > 0 && customLogs.every(l => l.completed) ? 1 : 0)
   const isWorkoutDay = selectedDay <= 5
 
   function handleDaySelect(dayNum: number, dayDate: string) {
@@ -224,6 +227,25 @@ export default function WorkoutPage() {
 
   return (
     <div className="space-y-4">
+      {/* Fixed bottom calculator bar */}
+      {calcOpen && (
+        <div className="fixed bottom-[4rem] left-3 right-3 z-[60] bg-surface border border-border rounded-2xl shadow-lg">
+          <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-1">
+            <div className="flex-1 min-w-0">
+              <Calculator userId={userId} />
+            </div>
+            <button
+              onClick={() => setCalcOpen(false)}
+              className="w-6 h-6 flex items-center justify-center text-text-secondary flex-shrink-0"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Date + week info */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1">
@@ -295,9 +317,9 @@ export default function WorkoutPage() {
       </div>
 
       {/* Progress */}
-      {logs.length > 0 && (
+      {totalSections > 0 && (
         <div className="text-xs text-text-secondary text-right">
-          {completedCount}/{logs.length} 완료
+          {completedSections}/{totalSections} 완료
         </div>
       )}
 
@@ -555,6 +577,28 @@ export default function WorkoutPage() {
       )}
 
       <CustomExerciseForm onAdd={handleAddCustom} />
+
+      {/* Floating calculator button */}
+      {!calcOpen && (
+        <button
+          onClick={() => setCalcOpen(true)}
+          className="fixed bottom-20 right-4 w-10 h-10 rounded-full bg-transparent border-2 border-accent text-accent shadow-lg flex items-center justify-center z-40 active:bg-accent/10"
+          title="계산기"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="4" y="2" width="16" height="20" rx="2" />
+            <line x1="8" y1="6" x2="16" y2="6" />
+            <line x1="8" y1="10" x2="8" y2="10.01" />
+            <line x1="12" y1="10" x2="12" y2="10.01" />
+            <line x1="16" y1="10" x2="16" y2="10.01" />
+            <line x1="8" y1="14" x2="8" y2="14.01" />
+            <line x1="12" y1="14" x2="12" y2="14.01" />
+            <line x1="16" y1="14" x2="16" y2="14.01" />
+            <line x1="8" y1="18" x2="8" y2="18.01" />
+            <line x1="12" y1="18" x2="16" y2="18" />
+          </svg>
+        </button>
+      )}
     </div>
   )
 }

@@ -27,15 +27,15 @@ export default function WeightChart({ data, mode, weeks }: WeightChartProps) {
     )
   }
 
+  const isAll = mode === 'all'
   const weights = data.filter(d => d.weight != null).map(d => d.weight!)
-  const minWeight = Math.floor(Math.min(...weights) - 2)
-  const maxWeight = Math.ceil(Math.max(...weights) + 2)
+  const padding = isAll ? 1 : 1.5
+  const minWeight = Math.min(...weights) - padding
+  const maxWeight = Math.max(...weights) + padding
 
   // Find the last data point index
   let lastDataIndex = -1
   data.forEach((d, i) => { if (d.weight != null) lastDataIndex = i })
-
-  const isAll = mode === 'all'
 
   // For "all" mode: build a set of week start dates for X-axis ticks
   const weekStartSet = new Set(weeks?.map(w => w.start_date) ?? [])
@@ -108,8 +108,8 @@ export default function WeightChart({ data, mode, weeks }: WeightChartProps) {
   return (
     <div className="bg-surface border border-border rounded-xl p-4">
       <p className="text-sm font-medium mb-4">체중 변화 (kg)</p>
-      <ResponsiveContainer width="100%" height={isAll ? 220 : 180}>
-        <LineChart data={data} margin={{ top: 24, right: 20, bottom: 4, left: 20 }}>
+      <ResponsiveContainer width="100%" height={140}>
+        <LineChart data={data} margin={{ top: 24, right: 20, bottom: -8, left: 20 }}>
           <XAxis
             dataKey="date"
             tick={{ fontSize: isAll ? 9 : 10, fill: '#9CA3AF' }}
