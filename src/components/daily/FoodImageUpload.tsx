@@ -165,32 +165,61 @@ function parseNutrition(text: string): OcrResult {
   return result
 }
 
+function compressImage(file: File, maxSize = 1200, quality = 0.8): Promise<File> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      let { width, height } = img
+      if (width <= maxSize && height <= maxSize) {
+        URL.revokeObjectURL(img.src)
+        resolve(file)
+        return
+      }
+      const ratio = Math.min(maxSize / width, maxSize / height)
+      width = Math.round(width * ratio)
+      height = Math.round(height * ratio)
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
+      URL.revokeObjectURL(img.src)
+      canvas.toBlob(
+        (blob) => resolve(new File([blob!], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' })),
+        'image/jpeg',
+        quality
+      )
+    }
+    img.src = URL.createObjectURL(file)
+  })
+}
+
 export default function FoodImageUpload({ imageUrl, onUploaded, onOcrResult, userId }: FoodImageUploadProps) {
   const [uploading, setUploading] = useState(false)
   const [ocrLoading, setOcrLoading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const rawFile = e.target.files?.[0]
+    if (!rawFile) return
 
     setUploading(true)
+    const compressed = await compressImage(rawFile)
 
-    // Upload image
+    // Upload compressed image
     try {
-      const url = await uploadFoodImage(file, userId)
+      const url = await uploadFoodImage(compressed, userId)
       onUploaded(url)
     } catch (err) {
       console.error('Upload failed:', err)
     }
     setUploading(false)
 
-    // Run OCR
+    // Run OCR on original for better accuracy
     setOcrLoading(true)
     try {
       const { createWorker } = await import('tesseract.js')
       const worker = await createWorker('kor+eng')
-      const imageUrl = URL.createObjectURL(file)
+      const imageUrl = URL.createObjectURL(rawFile)
       const { data: { text } } = await worker.recognize(imageUrl)
       URL.revokeObjectURL(imageUrl)
       await worker.terminate()
