@@ -146,7 +146,7 @@ SELECT w.id, 5, 'WOD', '박스 와드', NULL, NULL, NULL, NULL, 0 FROM weeks w W
 -- A. 6 Sets: 6 Deadlift, Climbing / 12 Feet Elevated Push ups *Rest 1:30 between sets
 -- * Strict Push up 안되시는 분들은 Box Push up or Hand-release Push up 으로 진행하세요.
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 5, 'A', 'Deadlift, Climbing', 6, '6', 90, '* Rest 1:30 between sets', 1 FROM weeks w WHERE w.week_number = 1;
+SELECT w.id, 5, 'A', 'Deadlift, Climbing', 6, '6', NULL, NULL, 1 FROM weeks w WHERE w.week_number = 1;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
 SELECT w.id, 5, 'A', 'Feet Elevated Push ups', 6, '12', 90, '* Strict Push up 안되시는 분들은 Box Push up or Hand-release Push up 으로 진행하세요.', 2 FROM weeks w WHERE w.week_number = 1;
 
