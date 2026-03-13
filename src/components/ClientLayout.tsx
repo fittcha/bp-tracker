@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Header from '@/components/Header'
 import BottomNav from '@/components/BottomNav'
@@ -9,6 +10,13 @@ import AnnouncementPopup from '@/components/AnnouncementPopup'
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isLogin = pathname === '/login'
+  const [overlayVisible, setOverlayVisible] = useState(false)
+
+  useEffect(() => {
+    const handler = (e: Event) => setOverlayVisible((e as CustomEvent).detail)
+    window.addEventListener('calc-open', handler)
+    return () => window.removeEventListener('calc-open', handler)
+  }, [])
 
   return (
     <AuthGuard>
@@ -18,6 +26,15 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       </main>
       {!isLogin && <BottomNav />}
       {!isLogin && <AnnouncementPopup />}
+      {overlayVisible && (
+        <div
+          className="fixed inset-0 bg-black/40 z-[55]"
+          onClick={() => {
+            setOverlayVisible(false)
+            window.dispatchEvent(new CustomEvent('calc-close'))
+          }}
+        />
+      )}
     </AuthGuard>
   )
 }

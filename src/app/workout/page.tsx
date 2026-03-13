@@ -42,7 +42,17 @@ export default function WorkoutPage() {
   const [weekInfo, setWeekInfo] = useState<Week | null>(null)
   const [weightOpen, setWeightOpen] = useState<Record<string, boolean>>({})
   const debounceRef = useRef<Record<string, NodeJS.Timeout>>({})
-  const [calcOpen, setCalcOpen] = useState(false)
+  const [calcOpen, _setCalcOpen] = useState(false)
+  const setCalcOpen = useCallback((open: boolean) => {
+    _setCalcOpen(open)
+    window.dispatchEvent(new CustomEvent('calc-open', { detail: open }))
+  }, [])
+
+  useEffect(() => {
+    const handler = () => setCalcOpen(false)
+    window.addEventListener('calc-close', handler)
+    return () => window.removeEventListener('calc-close', handler)
+  }, [setCalcOpen])
 
   // Get Monday of the week containing `date`
   function getMondayOfWeek(d: Date) {
@@ -227,24 +237,6 @@ export default function WorkoutPage() {
 
   return (
     <div className="space-y-4">
-      {/* Fixed bottom calculator bar */}
-      {calcOpen && (
-        <div className="fixed bottom-[4rem] left-3 right-3 z-[60] bg-surface border border-border rounded-2xl shadow-lg">
-          <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-1">
-            <div className="flex-1 min-w-0">
-              <Calculator userId={userId} />
-            </div>
-            <button
-              onClick={() => setCalcOpen(false)}
-              className="w-6 h-6 flex items-center justify-center text-text-secondary flex-shrink-0"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Date + week info */}
       <div className="flex items-center justify-between">
@@ -577,6 +569,25 @@ export default function WorkoutPage() {
       )}
 
       <CustomExerciseForm onAdd={handleAddCustom} />
+
+      {/* Calculator panel */}
+      {calcOpen && (
+        <div className="fixed bottom-[4rem] left-3 right-3 z-[60] bg-surface border border-border rounded-2xl shadow-lg">
+          <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-1">
+            <div className="flex-1 min-w-0">
+              <Calculator userId={userId} />
+            </div>
+            <button
+              onClick={() => setCalcOpen(false)}
+              className="w-6 h-6 flex items-center justify-center text-text-secondary flex-shrink-0"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Floating calculator button */}
       {!calcOpen && (
