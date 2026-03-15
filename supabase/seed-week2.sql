@@ -87,15 +87,15 @@ SELECT w.id, 3, 'B', 'Barbell Curl', '3', '8', 120, '@ Heavier than Last Week / 
 
 -- C. AMRAP 12: 4-6-8-10... reps Bench Tricep Dips / DB Hammer Curls Rest 3:00
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 3, 'C', 'Bench Tricep Dips', NULL, '4-6-8-10...', NULL, 'AMRAP 12', 4 FROM weeks w WHERE w.week_number = 2;
+SELECT w.id, 3, 'C', 'Bench Tricep Dips', NULL, '4-6-8-10...', NULL, 'AMRAP 12 · 4-6-8-10... reps', 4 FROM weeks w WHERE w.week_number = 2;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
 SELECT w.id, 3, 'C', 'DB Hammer Curls', NULL, '4-6-8-10...', NULL, 'AMRAP 12 / Rest 3:00 after AMRAP', 5 FROM weeks w WHERE w.week_number = 2;
 
 -- Superset 3 sets: 20 DB Bench Fly / 20 DB Bent Fly *Rest 2:00 b/w sets
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 3, 'C', 'DB Bench Fly', '3', '20', NULL, 'Superset', 6 FROM weeks w WHERE w.week_number = 2;
+SELECT w.id, 3, 'C', '20 DB Bench Fly', '3', '20', NULL, 'Superset', 6 FROM weeks w WHERE w.week_number = 2;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 3, 'C', 'DB Bent Fly', '3', '20', 120, '* Rest 2:00 b/w sets', 7 FROM weeks w WHERE w.week_number = 2;
+SELECT w.id, 3, 'C', '20 DB Bent Fly', '3', '20', 120, '* Rest 2:00 b/w sets', 7 FROM weeks w WHERE w.week_number = 2;
 
 -- D. 5 sets of: 10 Right Arm Seated DB Press / 10 Left Arm Seated DB Press / 45's Right Arm Waiter Hold / 45's Left Arm Waiter Hold / 15/15 SA Lateral Raises
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
