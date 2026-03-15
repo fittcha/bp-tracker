@@ -30,7 +30,7 @@ SELECT w.id, 1, 'D', 'Full Plank Hold', '5', '0:30', 60, '* Rest 1:00 b/w sets',
 
 -- E. 3~5 sets 1,000m Row *Rest 2:00 between sets
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 1, 'E', '1,000m Row', '3~5', '1', 120, NULL, 7 FROM weeks w WHERE w.week_number = 2;
+SELECT w.id, 1, 'E', '1,000m Row', '3~5', '1', 120, '* Rest 2:00 between sets', 7 FROM weeks w WHERE w.week_number = 2;
 
 
 -- ============ Day 2 ============
