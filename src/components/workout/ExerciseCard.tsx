@@ -4,7 +4,7 @@ interface ExerciseCardProps {
   id: string
   section: string | null
   exerciseName: string
-  sets?: number | null
+  sets?: string | null
   reps?: string | null
   restSeconds?: number | null
   notes?: string | null
@@ -73,9 +73,9 @@ export default function ExerciseCard({
           </div>
 
           {/* Meta info */}
-          {(sets || reps || restSeconds) && (
+          {(sets || reps) && (
             <p className="text-xs text-text-secondary mt-1">
-              {sets && `${sets}세트`} {reps && `× ${reps}`} {restSeconds && `/ 휴식 ${Math.floor(restSeconds / 60)}:${String(restSeconds % 60).padStart(2, '0')}`}
+              {sets && `${sets}세트`} {reps && `× ${reps}`}
             </p>
           )}
           {notes && (

@@ -12,7 +12,7 @@ interface TemplateEx {
   id: string
   section: string
   exercise_name: string
-  sets: number | null
+  sets: string | null
   reps: string | null
   rest_seconds: number | null
   notes: string | null
@@ -345,9 +345,11 @@ export default function WorkoutPage() {
             const isSuperset = isGroup && firstNotes.toLowerCase().includes('superset')
             const isEmom = isGroup && firstNotes.toLowerCase().includes('emom')
             const isAmrap = isGroup && firstNotes.toLowerCase().includes('amrap')
-            const isSpecial = isEmom || isAmrap
+            const isEvery = isGroup && firstNotes.toLowerCase().includes('every')
+            const isSpecial = isEmom || isAmrap || isEvery
             const groupLabel = isEmom ? firstNotes
               : isAmrap ? firstNotes
+              : isEvery ? firstNotes
               : isSuperset ? `Superset${groupSets ? ` · ${groupSets} Sets` : ''}`
               : isGroup && groupSets ? `${groupSets} Sets` : null
 
@@ -389,12 +391,12 @@ export default function WorkoutPage() {
                   {groupLabel && (
                     <span className="text-xs text-text-secondary font-medium">{groupLabel}</span>
                   )}
-                  {!isGroup && firstTmpl?.sets && firstTmpl.sets > 1 && (
+                  {!isGroup && firstTmpl?.sets && (
                     <span className="text-xs text-text-secondary font-medium">{firstTmpl.sets} Sets</span>
                   )}
                 </div>
                 <div className="divide-y divide-border">
-                  {items.map(log => {
+                  {items.map((log, logIndex) => {
                     const tmpl = log.template
                     const isWeightOpen = !!weightOpen[log.id!]
                     // For grouped exercises, show reps + rest inline (sets shown in header)
@@ -403,8 +405,26 @@ export default function WorkoutPage() {
                     // For EMOM/AMRAP, don't prepend reps (they are '1' or null)
                     const showRepsPrefix = isGroup && !isSpecial && tmpl?.reps && tmpl.reps !== '1'
 
+                    // Sub-group detection: insert divider when notes type changes within a section
+                    const getSubType = (n: string) =>
+                      n.includes('superset') ? 'superset' : n.includes('amrap') ? 'amrap' : n.includes('emom') ? 'emom' : n.includes('every') ? 'every' : null
+                    const curNotes = (tmpl?.notes || '').toLowerCase()
+                    const prevNotes = (items[logIndex - 1]?.template?.notes || '').toLowerCase()
+                    const curSubType = getSubType(curNotes)
+                    const prevSubType = getSubType(prevNotes)
+                    const isNewSubGroup = logIndex > 0 && curSubType && curSubType !== prevSubType
+                    const subGroupLabel = isNewSubGroup
+                      ? curSubType === 'superset' ? `Superset${tmpl?.sets ? ` · ${tmpl.sets} Sets` : ''}` : tmpl?.notes
+                      : null
+
                     return (
-                      <div key={log.id} className="flex items-center gap-3 px-4 py-3">
+                      <div key={log.id}>
+                      {isNewSubGroup && (
+                        <div className="px-4 py-1.5 bg-background border-t border-border">
+                          <span className="text-xs text-text-secondary font-medium">{subGroupLabel}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-3 px-4 py-3">
                         {/* Complete checkbox */}
                         <button
                           onClick={() => handleToggleComplete(log.id!, !log.completed)}
@@ -427,15 +447,9 @@ export default function WorkoutPage() {
                           {showSetsInline && (tmpl?.sets || tmpl?.reps) && (
                             <p className="text-xs text-text-secondary">
                               {tmpl.sets && `${tmpl.sets}세트`} {tmpl.reps && `× ${tmpl.reps}`}
-                              {tmpl.rest_seconds && ` / 휴식 ${Math.floor(tmpl.rest_seconds / 60)}:${String(tmpl.rest_seconds % 60).padStart(2, '0')}`}
                             </p>
                           )}
-                          {isGroup && tmpl?.rest_seconds && (
-                            <p className="text-xs text-text-secondary">
-                              휴식 {Math.floor(tmpl.rest_seconds / 60)}:{String(tmpl.rest_seconds % 60).padStart(2, '0')}
-                            </p>
-                          )}
-                          {tmpl?.notes && !(isGroup && (isSuperset || isEmom || isAmrap) && tmpl === firstTmpl) && (
+                          {tmpl?.notes && !(isGroup && (isSuperset || isEmom || isAmrap || isEvery) && tmpl === firstTmpl) && !isNewSubGroup && (
                             <p className="text-[11px] text-text-secondary italic mt-0.5">{tmpl.notes}</p>
                           )}
                         </div>
@@ -482,6 +496,7 @@ export default function WorkoutPage() {
                             </>
                           )}
                         </div>
+                      </div>
                       </div>
                     )
                   })}

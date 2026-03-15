@@ -6,7 +6,7 @@ export interface WorkoutTemplate {
   day_number: number
   section: string
   exercise_name: string
-  sets: number | null
+  sets: string | null
   reps: string | null
   rest_seconds: number | null
   notes: string | null

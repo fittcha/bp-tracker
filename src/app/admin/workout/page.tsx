@@ -68,7 +68,7 @@ export default function AdminWorkoutPage() {
       day_number: selectedDay,
       section: newExercise.section,
       exercise_name: newExercise.exercise_name,
-      sets: newExercise.sets ? parseInt(newExercise.sets) : null,
+      sets: newExercise.sets || null,
       reps: newExercise.reps || null,
       rest_seconds: newExercise.rest_seconds ? parseInt(newExercise.rest_seconds) : null,
       notes: newExercise.notes || null,
