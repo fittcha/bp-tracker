@@ -163,7 +163,7 @@ SELECT w.id, 5, 'A', 'Good Morning w/ Barbell', '6', '10', NULL, '* Rest as need
 
 -- B. 4 sets: 30's Wall Sit / 16 Weighted Alternating DB Lunges *Rest as needed between sets
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 5, 'B', 'Wall Sit', '4', '30s', NULL, NULL, 3 FROM weeks w WHERE w.week_number = 2;
+SELECT w.id, 5, 'B', 'Wall Sit', '4', '30''s', NULL, NULL, 3 FROM weeks w WHERE w.week_number = 2;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
 SELECT w.id, 5, 'B', 'Weighted Alternating DB Lunges', '4', '16', NULL, '* Rest as needed between sets', 4 FROM weeks w WHERE w.week_number = 2;
 
