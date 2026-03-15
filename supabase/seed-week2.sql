@@ -59,11 +59,11 @@ SELECT w.id, 2, 'D', '3/4 Air Squats', '3', '12', 60, 'Rest 1:00 b/w sets / * ìŠ
 
 -- E. Every 1:30 for 5~8 Sets: 6 Strict Pull ups / 9 Push Ups / 12 DB Bent Row
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 2, 'E', 'Strict Pull ups', NULL, '6', NULL, 'Every 1:30 for 5~8 Sets', 6 FROM weeks w WHERE w.week_number = 2;
+SELECT w.id, 2, 'E', '6 Strict Pull ups', NULL, '6', NULL, 'Every 1:30 for 5~8 Sets', 6 FROM weeks w WHERE w.week_number = 2;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 2, 'E', 'Push Ups', NULL, '9', NULL, NULL, 7 FROM weeks w WHERE w.week_number = 2;
+SELECT w.id, 2, 'E', '9 Push Ups', NULL, '9', NULL, NULL, 7 FROM weeks w WHERE w.week_number = 2;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 2, 'E', 'DB Bent Row', NULL, '12', NULL, NULL, 8 FROM weeks w WHERE w.week_number = 2;
+SELECT w.id, 2, 'E', '12 DB Bent Row', NULL, '12', NULL, NULL, 8 FROM weeks w WHERE w.week_number = 2;
 
 -- F. 15~45 Minute Easy Run
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
