@@ -147,7 +147,7 @@ SELECT w.id, 4, 'D', 'Slow Knee Tucks', '3', '20', 60, 'Rest 1:00 b/w sets', 6 F
 
 -- E. 4 Sets: 5:00 Run @ Moderate (Faster) / 1:30 Recovery Jog * Faster than Last Week
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 4, 'E', 'Run @ Moderate (Faster)', '4', '5:00', NULL, '1:30 Recovery Jog / * Faster than Last Week', 7 FROM weeks w WHERE w.week_number = 2;
+SELECT w.id, 4, 'E', '5:00 Run @ Moderate (Faster)', '4', '5:00', NULL, '1:30 Recovery Jog / * Faster than Last Week', 7 FROM weeks w WHERE w.week_number = 2;
 
 
 -- ============ Day 5 ============
@@ -181,14 +181,14 @@ SELECT w.id, 5, 'D', 'Alter DB Hammer Curls', '3', '20', 60, '* Rest 1:00 b/w se
 
 -- E. EMOM 15 (5 Sets): 0:30 Max Cal Ski-erg / 0:30 Max Bent Over Plate Row / 0:30 Max DB Lateral Raises
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 5, 'E', 'Max Cal Ski-erg', '5', '0:30', NULL, 'EMOM 15 (5 Sets)', 9 FROM weeks w WHERE w.week_number = 2;
+SELECT w.id, 5, 'E', '0:30 Max Cal Ski-erg', '5', '0:30', NULL, 'EMOM 15 (5 Sets)', 9 FROM weeks w WHERE w.week_number = 2;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 5, 'E', 'Max Bent Over Plate Row', '5', '0:30', NULL, NULL, 10 FROM weeks w WHERE w.week_number = 2;
+SELECT w.id, 5, 'E', '0:30 Max Bent Over Plate Row', '5', '0:30', NULL, NULL, 10 FROM weeks w WHERE w.week_number = 2;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 5, 'E', 'Max DB Lateral Raises', '5', '0:30', NULL, NULL, 11 FROM weeks w WHERE w.week_number = 2;
+SELECT w.id, 5, 'E', '0:30 Max DB Lateral Raises', '5', '0:30', NULL, NULL, 11 FROM weeks w WHERE w.week_number = 2;
 
 -- F. EMOM 10 (5 Sets): 0:20 Hollow Rock Hold / 10/10 Side Plank Hip Touch
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 5, 'F', 'Hollow Rock Hold', '5', '0:20', NULL, 'EMOM 10 (5 Sets)', 12 FROM weeks w WHERE w.week_number = 2;
+SELECT w.id, 5, 'F', '0:20 Hollow Rock Hold', '5', '0:20', NULL, 'EMOM 10 (5 Sets)', 12 FROM weeks w WHERE w.week_number = 2;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 5, 'F', 'Side Plank Hip Touch', '5', '10/10', NULL, NULL, 13 FROM weeks w WHERE w.week_number = 2;
+SELECT w.id, 5, 'F', '10/10 Side Plank Hip Touch', '5', '10/10', NULL, NULL, 13 FROM weeks w WHERE w.week_number = 2;
