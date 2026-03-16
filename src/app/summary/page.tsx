@@ -49,7 +49,11 @@ export default function SummaryPage() {
       try {
         const data = await getWeeks()
         setWeeks(data || [])
-        if (data?.length) setSelectedWeekId(data[0].id)
+        if (data?.length) {
+          const today = new Date().toISOString().slice(0, 10)
+          const currentWeek = data.find((w: Week) => w.start_date <= today && today <= w.end_date)
+          setSelectedWeekId(currentWeek ? currentWeek.id : data[0].id)
+        }
       } catch (err) {
         console.error('Failed to load weeks:', err)
       }
