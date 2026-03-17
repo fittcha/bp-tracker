@@ -48,6 +48,16 @@ export async function upsertWorkoutLog(log: WorkoutLog) {
   }
 }
 
+export async function batchInsertWorkoutLogs(logs: Omit<WorkoutLog, 'id'>[]) {
+  if (logs.length === 0) return []
+  const { data, error } = await supabase
+    .from('workout_logs')
+    .insert(logs)
+    .select()
+  if (error) throw error
+  return data
+}
+
 export async function addCustomExercise(date: string, exerciseName: string, userId: string) {
   const { data, error } = await supabase
     .from('workout_logs')

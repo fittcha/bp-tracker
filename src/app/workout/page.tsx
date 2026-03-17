@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { toDateString } from '@/lib/utils'
-import { getWorkoutLogs, upsertWorkoutLog, addCustomExercise, deleteWorkoutLog, WorkoutLog } from '@/lib/api/workout-logs'
+import { getWorkoutLogs, upsertWorkoutLog, batchInsertWorkoutLogs, addCustomExercise, deleteWorkoutLog, WorkoutLog } from '@/lib/api/workout-logs'
 import { getTemplatesByWeek, getWeeks } from '@/lib/api/workout-templates'
 import { getLoggedInUser } from '@/lib/auth'
 import CustomExerciseForm from '@/components/workout/CustomExerciseForm'
@@ -41,6 +41,7 @@ export default function WorkoutPage() {
   const [weekId, setWeekId] = useState<string | null>(null)
   const [weekInfo, setWeekInfo] = useState<Week | null>(null)
   const [weightOpen, setWeightOpen] = useState<Record<string, boolean>>({})
+  const [memoOpen, setMemoOpen] = useState<Record<string, boolean>>({})
   const debounceRef = useRef<Record<string, NodeJS.Timeout>>({})
   const [calcOpen, _setCalcOpen] = useState(false)
   const setCalcOpen = useCallback((open: boolean) => {
@@ -64,9 +65,9 @@ export default function WorkoutPage() {
   }
 
   function shiftWeek(delta: number) {
-    const monday = getMondayOfWeek(new Date(date))
-    monday.setDate(monday.getDate() + delta * 7)
-    setDate(toDateString(monday))
+    const current = new Date(date)
+    current.setDate(current.getDate() + delta * 7)
+    setDate(toDateString(current))
   }
 
   const getWeekDates = () => {
@@ -115,34 +116,41 @@ export default function WorkoutPage() {
     const dayTemplates = (tmpl || []).filter((t: TemplateEx) => t.day_number === dayNum)
     setTemplates(dayTemplates)
 
+    let allLogs = existingLogs || []
+
     if (isWorkoutDay) {
-      const existingTemplateIds = new Set((existingLogs || []).map(l => l.template_id).filter(Boolean))
-      for (const t of dayTemplates) {
-        if (!existingTemplateIds.has(t.id)) {
-          await upsertWorkoutLog({
-            date,
-            user_id: userId,
-            template_id: t.id,
-            is_custom: false,
-            exercise_name: t.exercise_name,
-            section: t.section,
-            completed: false,
-            weight_lb: null,
-            weight_unit: 'lb' as const,
-            memo: null,
-          })
-        }
+      const existingTemplateIds = new Set(allLogs.map(l => l.template_id).filter(Boolean))
+      const missing = dayTemplates.filter(t => !existingTemplateIds.has(t.id))
+      if (missing.length > 0) {
+        const newLogs = await batchInsertWorkoutLogs(missing.map(t => ({
+          date,
+          user_id: userId,
+          template_id: t.id,
+          is_custom: false,
+          exercise_name: t.exercise_name,
+          section: t.section,
+          completed: false,
+          weight_lb: null,
+          weight_unit: 'lb' as const,
+          memo: null,
+        })))
+        allLogs = [...allLogs, ...(newLogs || [])]
       }
     }
 
-    const allLogs = await getWorkoutLogs(date, userId)
-    setLogs(allLogs || [])
+    setLogs(allLogs)
     // Auto-open weight input for logs that already have weight
     const openMap: Record<string, boolean> = {}
     for (const l of allLogs || []) {
       if (l.weight_lb != null) openMap[l.id] = true
     }
     setWeightOpen(openMap)
+    // Auto-open memo for logs that already have memo
+    const memoMap: Record<string, boolean> = {}
+    for (const l of allLogs || []) {
+      if (l.memo) memoMap[l.id] = true
+    }
+    setMemoOpen(memoMap)
     setLoading(false)
   }, [date, userId])
 
@@ -197,6 +205,19 @@ export default function WorkoutPage() {
       }, 500)
       return prev.map(l => l.id === id ? updated : l)
     })
+  }
+
+  function handleMemoChange(logId: string, memo: string) {
+    setLogs(prev => prev.map(l => l.id === logId ? { ...l, memo } : l))
+    const key = `memo_${logId}`
+    if (debounceRef.current[key]) clearTimeout(debounceRef.current[key])
+    debounceRef.current[key] = setTimeout(() => {
+      setLogs(prev => {
+        const log = prev.find(l => l.id === logId)
+        if (log) upsertWorkoutLog({ ...log, memo: memo || null })
+        return prev
+      })
+    }, 800)
   }
 
   async function handleAddCustom(name: string) {
@@ -394,6 +415,21 @@ export default function WorkoutPage() {
                   {!isGroup && firstTmpl?.sets && (
                     <span className="text-xs text-text-secondary font-medium">{firstTmpl.sets} Sets</span>
                   )}
+                  <div className="flex-1" />
+                  <button
+                    onClick={() => setMemoOpen(prev => ({ ...prev, [items[0].id!]: !prev[items[0].id!] }))}
+                    className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${
+                      memoOpen[items[0].id!] ? 'text-accent' : items[0].memo ? 'text-accent/60' : 'text-text-secondary/40'
+                    }`}
+                    title="메모"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
+                    </svg>
+                  </button>
                 </div>
                 <div className="divide-y divide-border">
                   {items.map((log, logIndex) => {
@@ -501,6 +537,17 @@ export default function WorkoutPage() {
                     )
                   })}
                 </div>
+                {memoOpen[items[0].id!] && (
+                  <div className="px-4 py-2.5 border-t border-border bg-background/50">
+                    <textarea
+                      placeholder="메모 입력..."
+                      value={items[0].memo || ''}
+                      onChange={(e) => handleMemoChange(items[0].id!, e.target.value)}
+                      className="w-full text-xs bg-transparent resize-none outline-none text-foreground placeholder:text-text-secondary/50 min-h-[3rem]"
+                      rows={2}
+                    />
+                  </div>
+                )}
               </div>
             )
           })}

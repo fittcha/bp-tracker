@@ -13,12 +13,17 @@ export interface WorkoutTemplate {
   sort_order: number
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let weeksCache: any[] | null = null
+
 export async function getWeeks() {
+  if (weeksCache) return weeksCache
   const { data, error } = await supabase
     .from('weeks')
     .select('*')
     .order('week_number', { ascending: true })
   if (error) throw error
+  weeksCache = data
   return data
 }
 
