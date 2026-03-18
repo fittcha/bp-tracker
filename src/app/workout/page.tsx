@@ -230,7 +230,11 @@ export default function WorkoutPage() {
     setLogs(prev => prev.filter(l => l.id !== id))
   }
 
-  const coachLogs = logs.filter(l => !l.is_custom)
+  const coachLogs = logs.filter(l => !l.is_custom).sort((a, b) => {
+    const tmplA = templates.find(t => t.id === a.template_id)
+    const tmplB = templates.find(t => t.id === b.template_id)
+    return (tmplA?.sort_order ?? 999) - (tmplB?.sort_order ?? 999)
+  })
   const customLogs = logs.filter(l => l.is_custom)
 
   // Group coach logs by section (preserve order)
