@@ -16,9 +16,21 @@ export default function WeekProgressBar() {
 
   return (
     <div className="bg-surface rounded-2xl p-5 border border-border">
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-xs text-text-secondary font-medium">프로그램 진행</p>
-        <p className="text-xs text-accent font-semibold">{programDay}일차</p>
+      <p className="text-xs text-text-secondary font-medium mb-3">프로그램 진행</p>
+      <div className="flex gap-1 mb-1">
+        {phases.map((phase) => {
+          const totalWeeks = phase.endWeek - phase.startWeek + 1
+          const isActive = currentWeek >= phase.startWeek && currentWeek <= phase.endWeek
+          return (
+            <div key={phase.name} className="flex-1 text-center" style={{ flex: totalWeeks }}>
+              {isActive ? (
+                <p className="text-[10px] text-accent font-semibold">{programDay}일차</p>
+              ) : (
+                <p className="text-[10px] invisible">-</p>
+              )}
+            </div>
+          )
+        })}
       </div>
       <div className="flex gap-1">
         {phases.map((phase) => {
