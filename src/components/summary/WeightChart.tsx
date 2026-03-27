@@ -29,9 +29,8 @@ export default function WeightChart({ data, mode, weeks }: WeightChartProps) {
 
   const isAll = mode === 'all'
   const weights = data.filter(d => d.weight != null).map(d => d.weight!)
-  const padding = isAll ? 1 : 1.5
-  const minWeight = Math.min(...weights) - padding
-  const maxWeight = Math.max(...weights) + padding
+  const minWeight = Math.min(...weights) - (isAll ? 1 : 1.5)
+  const maxWeight = Math.max(...weights) + (isAll ? 0.5 : 1.5)
 
   // Find the last data point index
   let lastDataIndex = -1
@@ -52,10 +51,10 @@ export default function WeightChart({ data, mode, weeks }: WeightChartProps) {
         key={index}
         cx={cx}
         cy={cy}
-        r={isLast ? 5 : (isAll ? 3 : 4)}
+        r={isLast ? (isAll ? 3 : 5) : (isAll ? 1.5 : 4)}
         fill={isLast ? '#3B82F6' : '#6B7280'}
-        stroke="white"
-        strokeWidth={isAll ? 1.5 : 2}
+        stroke={isAll ? 'none' : 'white'}
+        strokeWidth={isAll ? 0 : 2}
       />
     )
   }
