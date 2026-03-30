@@ -164,7 +164,7 @@ export async function getExerciseGif(exerciseName: string): Promise<ExerciseGif 
 
   // 2. Normalize and check again
   const normalized = exerciseName
-    .replace(/^(\d+\s)/, '')
+    .replace(/^[\d:~]+\s*(Max\s+)?/i, '') // "0:30 Max DB Bench Press" → "DB Bench Press", "10 V ups" → "V ups"
     .replace(/\s*\(.*?\)\s*/g, ' ')
     .replace(/\s*[-–]\s*(Full|Bottom|Half|Top).*$/i, '')
     .replace(/\s*(w\/|@)\s*/g, ' ')
