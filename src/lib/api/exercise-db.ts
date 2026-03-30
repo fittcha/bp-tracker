@@ -9,7 +9,6 @@ export interface ExerciseGif {
 }
 
 // Pre-verified exercise ID → GIF mappings
-// Only includes exercises with confirmed correct IDs
 const KNOWN_EXERCISES: Record<string, ExerciseGif> = {
   // === Bench Press ===
   'DB Bench Press': { exerciseId: 'SpYC0Kp', name: 'dumbbell bench press', gifUrl: `${GIF}/SpYC0Kp.gif`, targetMuscles: ['pectorals'] },
@@ -28,6 +27,7 @@ const KNOWN_EXERCISES: Record<string, ExerciseGif> = {
   // === Deadlift ===
   'DB Romanian Deadlift': { exerciseId: 'rR0LJzx', name: 'dumbbell romanian deadlift', gifUrl: `${GIF}/rR0LJzx.gif`, targetMuscles: ['glutes'] },
   '데드리프트': { exerciseId: 'wQ2c4XD', name: 'barbell romanian deadlift', gifUrl: `${GIF}/wQ2c4XD.gif`, targetMuscles: ['glutes'] },
+  'Sumo Deadlift High Pulls': { exerciseId: 'KgI0tqW', name: 'barbell sumo deadlift', gifUrl: `${GIF}/KgI0tqW.gif`, targetMuscles: ['glutes'] },
 
   // === Curl ===
   'Barbell Curl': { exerciseId: '25GPyDY', name: 'barbell curl', gifUrl: `${GIF}/25GPyDY.gif`, targetMuscles: ['biceps'] },
@@ -36,6 +36,9 @@ const KNOWN_EXERCISES: Record<string, ExerciseGif> = {
   'Alternating DB Curls': { exerciseId: 'BU15nH4', name: 'dumbbell alternate biceps curl', gifUrl: `${GIF}/BU15nH4.gif`, targetMuscles: ['biceps'] },
   'DB Curls': { exerciseId: 'BU15nH4', name: 'dumbbell alternate biceps curl', gifUrl: `${GIF}/BU15nH4.gif`, targetMuscles: ['biceps'] },
   'Alter Seated DB Curl': { exerciseId: 'BU15nH4', name: 'dumbbell alternate biceps curl', gifUrl: `${GIF}/BU15nH4.gif`, targetMuscles: ['biceps'] },
+  'Empty Barbell Curls - Full reps': { exerciseId: '25GPyDY', name: 'barbell curl', gifUrl: `${GIF}/25GPyDY.gif`, targetMuscles: ['biceps'] },
+  'Empty Barbell Curls - Bottom to Half reps': { exerciseId: '25GPyDY', name: 'barbell curl', gifUrl: `${GIF}/25GPyDY.gif`, targetMuscles: ['biceps'] },
+  'Empty Barbell Curls - Half to Top reps': { exerciseId: '25GPyDY', name: 'barbell curl', gifUrl: `${GIF}/25GPyDY.gif`, targetMuscles: ['biceps'] },
 
   // === Shoulder / Lateral ===
   'DB Lateral Raises': { exerciseId: 'DsgkuIt', name: 'dumbbell lateral raise', gifUrl: `${GIF}/DsgkuIt.gif`, targetMuscles: ['deltoids'] },
@@ -57,19 +60,27 @@ const KNOWN_EXERCISES: Record<string, ExerciseGif> = {
   'Barbell Back Rack Lunges': { exerciseId: 't8iSghb', name: 'barbell lunge', gifUrl: `${GIF}/t8iSghb.gif`, targetMuscles: ['glutes', 'quadriceps'] },
   'Barbell Reverse Lunges': { exerciseId: 'VaP75jl', name: 'barbell rear lunge', gifUrl: `${GIF}/VaP75jl.gif`, targetMuscles: ['glutes', 'quadriceps'] },
 
-  // === Hip Thrust (ExerciseDB에 벤치 hip thrust 없음) ===
-  'Hip Thrust': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
-
   // === Split Squat ===
   'Bulgarian Split Squat': { exerciseId: '9E25EOx', name: 'split squats', gifUrl: `${GIF}/9E25EOx.gif`, targetMuscles: ['glutes', 'quadriceps'] },
   'Bulgarian Split Squats': { exerciseId: '9E25EOx', name: 'split squats', gifUrl: `${GIF}/9E25EOx.gif`, targetMuscles: ['glutes', 'quadriceps'] },
 
   // === Abs / Core ===
   'V ups': { exerciseId: 'mbkgB44', name: 'jackknife sit-up', gifUrl: `${GIF}/mbkgB44.gif`, targetMuscles: ['abs'] },
+  'Russian Twist': { exerciseId: 'XVDdcoj', name: 'russian twist', gifUrl: `${GIF}/XVDdcoj.gif`, targetMuscles: ['abs'] },
+  'DB Side Bend': { exerciseId: 'IpONWYv', name: 'dumbbell side bend', gifUrl: `${GIF}/IpONWYv.gif`, targetMuscles: ['abs'] },
+  'DB Side Bent': { exerciseId: 'IpONWYv', name: 'dumbbell side bend', gifUrl: `${GIF}/IpONWYv.gif`, targetMuscles: ['abs'] },
+  'Hanging Knee Raises (No Kipping)': { exerciseId: '03lzqwk', name: 'hanging knee raise', gifUrl: `${GIF}/03lzqwk.gif`, targetMuscles: ['abs'] },
+  'Weighted Hanging Knee Raises (No Kipping)': { exerciseId: '03lzqwk', name: 'hanging knee raise', gifUrl: `${GIF}/03lzqwk.gif`, targetMuscles: ['abs'] },
+  'Flutter Kick w/ Hollow Rock Hold': { exerciseId: 'UVo2Qs2', name: 'flutter kicks', gifUrl: `${GIF}/UVo2Qs2.gif`, targetMuscles: ['abs'] },
 
   // === Press ===
   'Seated DB Press': { exerciseId: 'znQUdHY', name: 'dumbbell seated shoulder press', gifUrl: `${GIF}/znQUdHY.gif`, targetMuscles: ['deltoids'] },
   '숄더프레스': { exerciseId: 'A6wtbuL', name: 'dumbbell standing overhead press', gifUrl: `${GIF}/A6wtbuL.gif`, targetMuscles: ['deltoids'] },
+  '8 Standing DB Press': { exerciseId: 'A6wtbuL', name: 'dumbbell standing overhead press', gifUrl: `${GIF}/A6wtbuL.gif`, targetMuscles: ['deltoids'] },
+
+  // === Pull Up ===
+  'Strict Pull Ups': { exerciseId: '0V2YQjW', name: 'pull up (neutral grip)', gifUrl: `${GIF}/0V2YQjW.gif`, targetMuscles: ['lats'] },
+  'Banded Strict Pull ups': { exerciseId: '0V2YQjW', name: 'pull up (neutral grip)', gifUrl: `${GIF}/0V2YQjW.gif`, targetMuscles: ['lats'] },
 
   // === Tricep ===
   'Behind the Neck Overhead DB Tricep Extension': { exerciseId: 'kont8Ut', name: 'dumbbell seated triceps extension', gifUrl: `${GIF}/kont8Ut.gif`, targetMuscles: ['triceps'] },
@@ -79,14 +90,60 @@ const KNOWN_EXERCISES: Record<string, ExerciseGif> = {
   'DB Skull Crusher': { exerciseId: 'kont8Ut', name: 'dumbbell seated triceps extension', gifUrl: `${GIF}/kont8Ut.gif`, targetMuscles: ['triceps'] },
   'Bench Tricep Dips': { exerciseId: 'gAwDzB3', name: 'cable triceps pushdown (v-bar)', gifUrl: `${GIF}/gAwDzB3.gif`, targetMuscles: ['triceps'] },
 
-  // === No GIF (ExerciseDB에 없음) ===
+  // === Other ===
+  'Good Morning w/ Barbell': { exerciseId: 'XlZ4lAC', name: 'barbell good morning', gifUrl: `${GIF}/XlZ4lAC.gif`, targetMuscles: ['hamstrings'] },
+  'DB Burpees': { exerciseId: '0JtKWum', name: 'dumbbell burpee', gifUrl: `${GIF}/0JtKWum.gif`, targetMuscles: ['full body'] },
+  'Target Burpees': { exerciseId: 'dK9394r', name: 'burpee', gifUrl: `${GIF}/dK9394r.gif`, targetMuscles: ['full body'] },
+
+  // === No GIF (ExerciseDB에 없음 → Google fallback) ===
+  'Hip Thrust': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
   'Row': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
   'Band Pull Apart': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
   '박스 와드': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
+  '15~45 Minute Easy Run': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
+  '200m Run @ Fast': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
+  '400m Recovery Run': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
 }
 
-// In-memory cache for API search fallback
-const gifCache = new Map<string, ExerciseGif | null>()
+const CACHE_KEY = 'exercisedb-gif-cache'
+const CACHE_VERSION = 1
+
+interface CacheEntry {
+  v: number
+  data: Record<string, ExerciseGif | null>
+}
+
+function loadCache(): Map<string, ExerciseGif | null> {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY)
+    if (!raw) return new Map()
+    const parsed: CacheEntry = JSON.parse(raw)
+    if (parsed.v !== CACHE_VERSION) return new Map()
+    return new Map(Object.entries(parsed.data))
+  } catch {
+    return new Map()
+  }
+}
+
+function saveCache(cache: Map<string, ExerciseGif | null>) {
+  try {
+    const obj: CacheEntry = {
+      v: CACHE_VERSION,
+      data: Object.fromEntries(cache),
+    }
+    localStorage.setItem(CACHE_KEY, JSON.stringify(obj))
+  } catch {
+    // localStorage full or unavailable
+  }
+}
+
+// Lazy-initialized localStorage cache
+let gifCache: Map<string, ExerciseGif | null> | null = null
+
+function getCache(): Map<string, ExerciseGif | null> {
+  if (!gifCache) gifCache = loadCache()
+  return gifCache
+}
 
 export async function getExerciseGif(exerciseName: string): Promise<ExerciseGif | null> {
   // 1. Exact match in known exercises
@@ -110,26 +167,29 @@ export async function getExerciseGif(exerciseName: string): Promise<ExerciseGif 
     return known
   }
 
-  // 3. Fallback: API search with cache
+  // 3. Fallback: API search with localStorage cache
+  const cache = getCache()
   const key = normalized.toLowerCase()
-  if (gifCache.has(key)) return gifCache.get(key)!
+  if (cache.has(key)) return cache.get(key)!
 
   try {
     const res = await fetch(`${EXERCISEDB_BASE}/exercises/search?q=${encodeURIComponent(key)}&limit=1`)
-    if (!res.ok) { gifCache.set(key, null); return null }
+    if (!res.ok) { cache.set(key, null); saveCache(cache); return null }
     const json = await res.json()
     const ex = json.data?.[0]
-    if (!ex) { gifCache.set(key, null); return null }
+    if (!ex) { cache.set(key, null); saveCache(cache); return null }
     const result: ExerciseGif = {
       exerciseId: ex.exerciseId,
       name: ex.name,
       gifUrl: ex.gifUrl,
       targetMuscles: ex.targetMuscles || [],
     }
-    gifCache.set(key, result)
+    cache.set(key, result)
+    saveCache(cache)
     return result
   } catch {
-    gifCache.set(key, null)
+    cache.set(key, null)
+    saveCache(cache)
     return null
   }
 }
