@@ -95,6 +95,9 @@ const KNOWN_EXERCISES: Record<string, ExerciseGif> = {
   'DB Burpees': { exerciseId: '0JtKWum', name: 'dumbbell burpee', gifUrl: `${GIF}/0JtKWum.gif`, targetMuscles: ['full body'] },
   'Target Burpees': { exerciseId: 'dK9394r', name: 'burpee', gifUrl: `${GIF}/dK9394r.gif`, targetMuscles: ['full body'] },
 
+  // === Lunge (DB) ===
+  'Alternating DB(2) Lunges (Holding DB in Each Hand)': { exerciseId: 'RRWFUcw', name: 'dumbbell lunge', gifUrl: `${GIF}/RRWFUcw.gif`, targetMuscles: ['glutes', 'quadriceps'] },
+
   // === No GIF (ExerciseDB에 없음 → Google fallback) ===
   'Hip Thrust': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
   'Row': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
