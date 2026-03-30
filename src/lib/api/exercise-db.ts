@@ -99,6 +99,7 @@ const KNOWN_EXERCISES: Record<string, ExerciseGif> = {
   'Alternating DB(2) Lunges (Holding DB in Each Hand)': { exerciseId: 'RRWFUcw', name: 'dumbbell lunge', gifUrl: `${GIF}/RRWFUcw.gif`, targetMuscles: ['glutes', 'quadriceps'] },
 
   'Plank Pull Through': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
+  'Side V ups': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
 
   // === No GIF (ExerciseDB에 없음 → Google fallback) ===
   'Hip Thrust': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
