@@ -27,7 +27,7 @@ const KNOWN_EXERCISES: Record<string, ExerciseGif> = {
   // === Deadlift ===
   'DB Romanian Deadlift': { exerciseId: 'rR0LJzx', name: 'dumbbell romanian deadlift', gifUrl: `${GIF}/rR0LJzx.gif`, targetMuscles: ['glutes'] },
   '데드리프트': { exerciseId: 'wQ2c4XD', name: 'barbell romanian deadlift', gifUrl: `${GIF}/wQ2c4XD.gif`, targetMuscles: ['glutes'] },
-  'Sumo Deadlift High Pulls': { exerciseId: 'KgI0tqW', name: 'barbell sumo deadlift', gifUrl: `${GIF}/KgI0tqW.gif`, targetMuscles: ['glutes'] },
+  'Sumo Deadlift High Pulls': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
 
   // === Curl ===
   'Barbell Curl': { exerciseId: '25GPyDY', name: 'barbell curl', gifUrl: `${GIF}/25GPyDY.gif`, targetMuscles: ['biceps'] },
