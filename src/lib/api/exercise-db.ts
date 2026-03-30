@@ -51,6 +51,21 @@ const KNOWN_EXERCISES: Record<string, ExerciseGif> = {
   // === Row ===
   'DB Bent Row': { exerciseId: 'BJ0Hz5L', name: 'dumbbell bent over row', gifUrl: `${GIF}/BJ0Hz5L.gif`, targetMuscles: ['lats'] },
   'Bent Over Barbell Row': { exerciseId: 'eZyBC3j', name: 'barbell bent over row', gifUrl: `${GIF}/eZyBC3j.gif`, targetMuscles: ['lats'] },
+  'Chest Supported DB Row': { exerciseId: 'BJ0Hz5L', name: 'dumbbell bent over row', gifUrl: `${GIF}/BJ0Hz5L.gif`, targetMuscles: ['lats'] },
+
+  // === Lunge ===
+  'Barbell Back Rack Lunges': { exerciseId: 't8iSghb', name: 'barbell lunge', gifUrl: `${GIF}/t8iSghb.gif`, targetMuscles: ['glutes', 'quadriceps'] },
+  'Barbell Reverse Lunges': { exerciseId: 'VaP75jl', name: 'barbell rear lunge', gifUrl: `${GIF}/VaP75jl.gif`, targetMuscles: ['glutes', 'quadriceps'] },
+
+  // === Hip Thrust ===
+  'Hip Thrust': { exerciseId: 'qg2PGl6', name: 'barbell glute bridge two legs on bench', gifUrl: `${GIF}/qg2PGl6.gif`, targetMuscles: ['glutes'] },
+
+  // === Split Squat ===
+  'Bulgarian Split Squat': { exerciseId: '9E25EOx', name: 'split squats', gifUrl: `${GIF}/9E25EOx.gif`, targetMuscles: ['glutes', 'quadriceps'] },
+  'Bulgarian Split Squats': { exerciseId: '9E25EOx', name: 'split squats', gifUrl: `${GIF}/9E25EOx.gif`, targetMuscles: ['glutes', 'quadriceps'] },
+
+  // === Abs / Core ===
+  'V ups': { exerciseId: 'mbkgB44', name: 'jackknife sit-up', gifUrl: `${GIF}/mbkgB44.gif`, targetMuscles: ['abs'] },
 
   // === Press ===
   'Seated DB Press': { exerciseId: 'znQUdHY', name: 'dumbbell seated shoulder press', gifUrl: `${GIF}/znQUdHY.gif`, targetMuscles: ['deltoids'] },
@@ -64,8 +79,9 @@ const KNOWN_EXERCISES: Record<string, ExerciseGif> = {
   'DB Skull Crusher': { exerciseId: 'kont8Ut', name: 'dumbbell seated triceps extension', gifUrl: `${GIF}/kont8Ut.gif`, targetMuscles: ['triceps'] },
   'Bench Tricep Dips': { exerciseId: 'gAwDzB3', name: 'cable triceps pushdown (v-bar)', gifUrl: `${GIF}/gAwDzB3.gif`, targetMuscles: ['triceps'] },
 
-  // === Cardio / No GIF ===
-  'Row': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] }, // 로잉 머신
+  // === No GIF (ExerciseDB에 없음) ===
+  'Row': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
+  'Band Pull Apart': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
   '박스 와드': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
 }
 
