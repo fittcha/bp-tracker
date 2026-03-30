@@ -48,8 +48,16 @@ export default function ExerciseGifModal({ exerciseName, onClose }: Props) {
             </div>
           )}
           {error && !loading && (
-            <div className="flex items-center justify-center h-48 text-text-secondary text-sm">
-              GIF를 찾을 수 없습니다
+            <div className="flex flex-col items-center justify-center h-48 gap-3">
+              <p className="text-text-secondary text-sm">GIF를 찾을 수 없습니다</p>
+              <a
+                href={`https://www.google.com/search?q=${encodeURIComponent(exerciseName + ' exercise form')}&tbm=isch`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-accent underline"
+              >
+                Google에서 검색
+              </a>
             </div>
           )}
           {gif && !loading && (
