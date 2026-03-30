@@ -57,8 +57,8 @@ const KNOWN_EXERCISES: Record<string, ExerciseGif> = {
   'Barbell Back Rack Lunges': { exerciseId: 't8iSghb', name: 'barbell lunge', gifUrl: `${GIF}/t8iSghb.gif`, targetMuscles: ['glutes', 'quadriceps'] },
   'Barbell Reverse Lunges': { exerciseId: 'VaP75jl', name: 'barbell rear lunge', gifUrl: `${GIF}/VaP75jl.gif`, targetMuscles: ['glutes', 'quadriceps'] },
 
-  // === Hip Thrust ===
-  'Hip Thrust': { exerciseId: 'qg2PGl6', name: 'barbell glute bridge two legs on bench', gifUrl: `${GIF}/qg2PGl6.gif`, targetMuscles: ['glutes'] },
+  // === Hip Thrust (ExerciseDB에 벤치 hip thrust 없음) ===
+  'Hip Thrust': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
 
   // === Split Squat ===
   'Bulgarian Split Squat': { exerciseId: '9E25EOx', name: 'split squats', gifUrl: `${GIF}/9E25EOx.gif`, targetMuscles: ['glutes', 'quadriceps'] },
