@@ -53,10 +53,19 @@ const KNOWN_EXERCISES: Record<string, ExerciseGif> = {
   'Bent Over Barbell Row': { exerciseId: 'eZyBC3j', name: 'barbell bent over row', gifUrl: `${GIF}/eZyBC3j.gif`, targetMuscles: ['lats'] },
 
   // === Press ===
-  'Seated DB Press': { exerciseId: 'kTbSH9h', name: 'barbell seated overhead press', gifUrl: `${GIF}/kTbSH9h.gif`, targetMuscles: ['deltoids'] },
+  'Seated DB Press': { exerciseId: 'znQUdHY', name: 'dumbbell seated shoulder press', gifUrl: `${GIF}/znQUdHY.gif`, targetMuscles: ['deltoids'] },
   '숄더프레스': { exerciseId: 'A6wtbuL', name: 'dumbbell standing overhead press', gifUrl: `${GIF}/A6wtbuL.gif`, targetMuscles: ['deltoids'] },
 
-  // === No GIF ===
+  // === Tricep ===
+  'Behind the Neck Overhead DB Tricep Extension': { exerciseId: 'kont8Ut', name: 'dumbbell seated triceps extension', gifUrl: `${GIF}/kont8Ut.gif`, targetMuscles: ['triceps'] },
+  'Banded Tricep Extension': { exerciseId: 'gAwDzB3', name: 'cable triceps pushdown (v-bar)', gifUrl: `${GIF}/gAwDzB3.gif`, targetMuscles: ['triceps'] },
+  'Banded Tricep Push Down': { exerciseId: 'gAwDzB3', name: 'cable triceps pushdown (v-bar)', gifUrl: `${GIF}/gAwDzB3.gif`, targetMuscles: ['triceps'] },
+  'Banded Tricep Pushdown': { exerciseId: 'gAwDzB3', name: 'cable triceps pushdown (v-bar)', gifUrl: `${GIF}/gAwDzB3.gif`, targetMuscles: ['triceps'] },
+  'DB Skull Crusher': { exerciseId: 'kont8Ut', name: 'dumbbell seated triceps extension', gifUrl: `${GIF}/kont8Ut.gif`, targetMuscles: ['triceps'] },
+  'Bench Tricep Dips': { exerciseId: 'gAwDzB3', name: 'cable triceps pushdown (v-bar)', gifUrl: `${GIF}/gAwDzB3.gif`, targetMuscles: ['triceps'] },
+
+  // === Cardio / No GIF ===
+  'Row': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] }, // 로잉 머신
   '박스 와드': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
 }
 
