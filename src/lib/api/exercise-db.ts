@@ -55,6 +55,8 @@ const KNOWN_EXERCISES: Record<string, ExerciseGif> = {
   'DB Bent Row': { exerciseId: 'BJ0Hz5L', name: 'dumbbell bent over row', gifUrl: `${GIF}/BJ0Hz5L.gif`, targetMuscles: ['lats'] },
   'Bent Over Barbell Row': { exerciseId: 'eZyBC3j', name: 'barbell bent over row', gifUrl: `${GIF}/eZyBC3j.gif`, targetMuscles: ['lats'] },
   'Chest Supported DB Row': { exerciseId: 'BJ0Hz5L', name: 'dumbbell bent over row', gifUrl: `${GIF}/BJ0Hz5L.gif`, targetMuscles: ['lats'] },
+  'Bent Over DB Row': { exerciseId: 'BJ0Hz5L', name: 'dumbbell bent over row', gifUrl: `${GIF}/BJ0Hz5L.gif`, targetMuscles: ['lats'] },
+  'Cal Row': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
 
   // === Lunge ===
   'Barbell Back Rack Lunges': { exerciseId: 't8iSghb', name: 'barbell lunge', gifUrl: `${GIF}/t8iSghb.gif`, targetMuscles: ['glutes', 'quadriceps'] },
