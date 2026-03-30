@@ -79,7 +79,7 @@ export default function ExerciseGifModal({ exerciseName, onClose }: Props) {
                   href={`https://www.google.com/search?q=${encodeURIComponent(exerciseName)}&tbm=isch`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block text-xs text-text-secondary/50 underline mt-1"
+                  className="inline-block text-xs text-accent underline mt-1"
                 >
                   Google에서 검색
                 </a>
