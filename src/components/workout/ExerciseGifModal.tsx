@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { searchExerciseGif, getSearchTerm, type ExerciseGif } from '@/lib/api/exercise-db'
+import { getExerciseGif, type ExerciseGif } from '@/lib/api/exercise-db'
 
 interface Props {
   exerciseName: string
@@ -14,10 +14,7 @@ export default function ExerciseGifModal({ exerciseName, onClose }: Props) {
   const [error, setError] = useState(false)
 
   useEffect(() => {
-    const term = getSearchTerm(exerciseName)
-    if (!term) { setLoading(false); setError(true); return }
-
-    searchExerciseGif(term).then(result => {
+    getExerciseGif(exerciseName).then(result => {
       if (result) setGif(result)
       else setError(true)
       setLoading(false)
