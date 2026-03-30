@@ -7,6 +7,7 @@ import { getTemplatesByWeek, getWeeks } from '@/lib/api/workout-templates'
 import { getLoggedInUser } from '@/lib/auth'
 import CustomExerciseForm from '@/components/workout/CustomExerciseForm'
 import Calculator from '@/components/workout/Calculator'
+import ExerciseGifModal from '@/components/workout/ExerciseGifModal'
 
 interface TemplateEx {
   id: string
@@ -43,6 +44,22 @@ export default function WorkoutPage() {
   const [weightOpen, setWeightOpen] = useState<Record<string, boolean>>({})
   const [memoOpen, setMemoOpen] = useState<Record<string, boolean>>({})
   const debounceRef = useRef<Record<string, NodeJS.Timeout>>({})
+  const [gifModalExercise, setGifModalExercise] = useState<string | null>(null)
+  const longPressRef = useRef<Record<string, NodeJS.Timeout>>({})
+
+  function handleLongPressStart(exerciseName: string) {
+    longPressRef.current[exerciseName] = setTimeout(() => {
+      setGifModalExercise(exerciseName)
+    }, 1000)
+  }
+
+  function handleLongPressEnd(exerciseName: string) {
+    if (longPressRef.current[exerciseName]) {
+      clearTimeout(longPressRef.current[exerciseName])
+      delete longPressRef.current[exerciseName]
+    }
+  }
+
   const [calcOpen, _setCalcOpen] = useState(false)
   const setCalcOpen = useCallback((open: boolean) => {
     _setCalcOpen(open)
@@ -482,7 +499,16 @@ export default function WorkoutPage() {
 
                         {/* Exercise info */}
                         <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-medium ${log.completed ? 'line-through opacity-50' : ''}`}>
+                          <p
+                            className={`text-sm font-medium select-none ${log.completed ? 'line-through opacity-50' : ''}`}
+                            onTouchStart={() => handleLongPressStart(log.exercise_name)}
+                            onTouchEnd={() => handleLongPressEnd(log.exercise_name)}
+                            onTouchCancel={() => handleLongPressEnd(log.exercise_name)}
+                            onMouseDown={() => handleLongPressStart(log.exercise_name)}
+                            onMouseUp={() => handleLongPressEnd(log.exercise_name)}
+                            onMouseLeave={() => handleLongPressEnd(log.exercise_name)}
+                            onContextMenu={(e) => e.preventDefault()}
+                          >
                             {showRepsPrefix ? `${tmpl!.reps} ` : ''}{log.exercise_name}
                           </p>
                           {showSetsInline && (tmpl?.sets || tmpl?.reps) && (
@@ -582,7 +608,16 @@ export default function WorkoutPage() {
                       </svg>
                     )}
                   </button>
-                  <p className={`flex-1 text-sm font-medium text-accent ${log.completed ? 'line-through opacity-50' : ''}`}>
+                  <p
+                    className={`flex-1 text-sm font-medium text-accent select-none ${log.completed ? 'line-through opacity-50' : ''}`}
+                    onTouchStart={() => handleLongPressStart(log.exercise_name)}
+                    onTouchEnd={() => handleLongPressEnd(log.exercise_name)}
+                    onTouchCancel={() => handleLongPressEnd(log.exercise_name)}
+                    onMouseDown={() => handleLongPressStart(log.exercise_name)}
+                    onMouseUp={() => handleLongPressEnd(log.exercise_name)}
+                    onMouseLeave={() => handleLongPressEnd(log.exercise_name)}
+                    onContextMenu={(e) => e.preventDefault()}
+                  >
                     {log.exercise_name}
                   </p>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -676,6 +711,13 @@ export default function WorkoutPage() {
             <line x1="12" y1="18" x2="16" y2="18" />
           </svg>
         </button>
+      )}
+
+      {gifModalExercise && (
+        <ExerciseGifModal
+          exerciseName={gifModalExercise}
+          onClose={() => setGifModalExercise(null)}
+        />
       )}
     </div>
   )
