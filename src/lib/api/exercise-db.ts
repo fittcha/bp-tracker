@@ -18,11 +18,11 @@ const KNOWN_EXERCISES: Record<string, ExerciseGif> = {
 
   // === Squat ===
   'Back Squat': { exerciseId: 'qXTaZnJ', name: 'barbell full squat', gifUrl: `${GIF}/qXTaZnJ.gif`, targetMuscles: ['glutes'] },
-  'Front Squat': { exerciseId: 'qXTaZnJ', name: 'barbell full squat', gifUrl: `${GIF}/qXTaZnJ.gif`, targetMuscles: ['glutes', 'quadriceps'] },
-  'Goblet Squats': { exerciseId: 'HsvHqgf', name: 'dumbbell squat', gifUrl: `${GIF}/HsvHqgf.gif`, targetMuscles: ['glutes'] },
-  'DB Goblet Squats': { exerciseId: 'HsvHqgf', name: 'dumbbell squat', gifUrl: `${GIF}/HsvHqgf.gif`, targetMuscles: ['glutes'] },
+  'Front Squat': { exerciseId: 'zG0zs85', name: 'barbell front squat', gifUrl: `${GIF}/zG0zs85.gif`, targetMuscles: ['glutes', 'quadriceps'] },
+  'Goblet Squats': { exerciseId: 'yn8yg1r', name: 'dumbbell goblet squat', gifUrl: `${GIF}/yn8yg1r.gif`, targetMuscles: ['quads'] },
+  'DB Goblet Squats': { exerciseId: 'yn8yg1r', name: 'dumbbell goblet squat', gifUrl: `${GIF}/yn8yg1r.gif`, targetMuscles: ['quads'] },
   '백스쿼트': { exerciseId: 'qXTaZnJ', name: 'barbell full squat', gifUrl: `${GIF}/qXTaZnJ.gif`, targetMuscles: ['glutes'] },
-  '프론트스쿼트': { exerciseId: 'qXTaZnJ', name: 'barbell full squat', gifUrl: `${GIF}/qXTaZnJ.gif`, targetMuscles: ['glutes', 'quadriceps'] },
+  '프론트스쿼트': { exerciseId: 'zG0zs85', name: 'barbell front squat', gifUrl: `${GIF}/zG0zs85.gif`, targetMuscles: ['glutes', 'quadriceps'] },
 
   // === Deadlift ===
   'DB Romanian Deadlift': { exerciseId: 'rR0LJzx', name: 'dumbbell romanian deadlift', gifUrl: `${GIF}/rR0LJzx.gif`, targetMuscles: ['glutes'] },
@@ -54,7 +54,7 @@ const KNOWN_EXERCISES: Record<string, ExerciseGif> = {
   // === Row ===
   'DB Bent Row': { exerciseId: 'BJ0Hz5L', name: 'dumbbell bent over row', gifUrl: `${GIF}/BJ0Hz5L.gif`, targetMuscles: ['lats'] },
   'Bent Over Barbell Row': { exerciseId: 'eZyBC3j', name: 'barbell bent over row', gifUrl: `${GIF}/eZyBC3j.gif`, targetMuscles: ['lats'] },
-  'Chest Supported DB Row': { exerciseId: 'BJ0Hz5L', name: 'dumbbell bent over row', gifUrl: `${GIF}/BJ0Hz5L.gif`, targetMuscles: ['lats'] },
+  'Chest Supported DB Row': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
   'Bent Over DB Row': { exerciseId: 'BJ0Hz5L', name: 'dumbbell bent over row', gifUrl: `${GIF}/BJ0Hz5L.gif`, targetMuscles: ['lats'] },
   'Cal Row': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
 
@@ -105,6 +105,9 @@ const KNOWN_EXERCISES: Record<string, ExerciseGif> = {
   'Side V ups': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
   'Air Squats': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
   'Wall Sit': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
+
+  // === Ring Row (Google fallback) ===
+  'Ring Row': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
 
   // === No GIF (ExerciseDB에 없음 → Google fallback) ===
   'Hip Thrust': { exerciseId: '', name: '', gifUrl: '', targetMuscles: [] },
