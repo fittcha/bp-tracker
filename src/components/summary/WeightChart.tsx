@@ -1,6 +1,6 @@
 'use client'
 
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, LabelList } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList } from 'recharts'
 
 interface WeekInfo {
   start_date: string
@@ -29,8 +29,19 @@ export default function WeightChart({ data, mode, weeks }: WeightChartProps) {
 
   const isAll = mode === 'all'
   const weights = data.filter(d => d.weight != null).map(d => d.weight!)
-  const minWeight = Math.min(...weights) - (isAll ? 1 : 1.5)
-  const maxWeight = Math.max(...weights) + (isAll ? 0.5 : 1.5)
+  // For "all" mode: snap domain to 0.5 boundaries
+  const rawMin = Math.min(...weights) - (isAll ? 1 : 1.5)
+  const rawMax = Math.max(...weights) + (isAll ? 0.5 : 1.5)
+  const minWeight = isAll ? Math.floor(rawMin * 2) / 2 : rawMin   // snap down to 0.5
+  const maxWeight = isAll ? Math.ceil(rawMax * 2) / 2 : rawMax    // snap up to 0.5
+
+  // Y-axis ticks: 0.5kg grid lines, 1kg labels
+  const yTicks05: number[] = []
+  if (isAll) {
+    for (let v = minWeight; v <= maxWeight + 0.01; v += 0.5) {
+      yTicks05.push(Math.round(v * 2) / 2)
+    }
+  }
 
   // Find the last data point index
   let lastDataIndex = -1
@@ -107,8 +118,27 @@ export default function WeightChart({ data, mode, weeks }: WeightChartProps) {
   return (
     <div className="bg-surface border border-border rounded-xl p-4">
       <p className="text-sm font-medium mb-4">체중 변화 (kg)</p>
-      <ResponsiveContainer width="100%" height={140}>
-        <LineChart data={data} margin={{ top: 24, right: 20, bottom: -8, left: 20 }}>
+      <ResponsiveContainer width="100%" height={isAll ? 180 : 140}>
+        <LineChart data={data} margin={isAll ? { top: 16, right: 8, bottom: 0, left: -4 } : { top: 24, right: 20, bottom: -8, left: 20 }}>
+          {isAll && (
+            <CartesianGrid
+              horizontal={true}
+              vertical={true}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              horizontalCoordinatesGenerator={({ yAxis }: any) => {
+                if (!yAxis?.scale) return []
+                return yTicks05.map((v: number) => yAxis.scale(v) as number).filter((v: number) => !isNaN(v))
+              }}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              verticalCoordinatesGenerator={({ xAxis }: any) => {
+                if (!xAxis?.scale || !ticks) return []
+                return ticks.map((t: string) => xAxis.scale(t) as number).filter((v: number) => !isNaN(v))
+              }}
+              stroke="#E5E7EB"
+              strokeDasharray="none"
+              strokeOpacity={0.5}
+            />
+          )}
           <XAxis
             dataKey="date"
             tick={{ fontSize: isAll ? 9 : 10, fill: '#9CA3AF' }}
@@ -120,7 +150,12 @@ export default function WeightChart({ data, mode, weeks }: WeightChartProps) {
           />
           <YAxis
             domain={[minWeight, maxWeight]}
-            hide
+            hide={!isAll}
+            ticks={isAll ? yTicks05.filter(v => v % 1 === 0) : undefined}
+            tick={isAll ? { fontSize: 9, fill: '#9CA3AF' } : undefined}
+            axisLine={false}
+            tickLine={false}
+            width={isAll ? 28 : 0}
           />
           <Line
             type="monotone"
