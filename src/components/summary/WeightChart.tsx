@@ -103,7 +103,7 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
   // X-axis tick formatter
   const formatTick = (value: string, index: number) => {
     if (isAll) {
-      if (dday && value === dday) return '🖤'
+      if (dday && value === dday) return '✌🏻'
       if (weekStartSet.has(value)) {
         const wn = weekStartMap.get(value)
         return `${wn}주`
