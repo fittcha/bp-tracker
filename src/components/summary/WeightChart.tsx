@@ -122,20 +122,7 @@ export default function WeightChart({ data, mode, weeks }: WeightChartProps) {
         <LineChart data={data} margin={isAll ? { top: 16, right: 8, bottom: 0, left: -4 } : { top: 24, right: 20, bottom: -8, left: 20 }}>
           {isAll && (
             <CartesianGrid
-              horizontal={true}
-              vertical={true}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              horizontalCoordinatesGenerator={({ yAxis }: any) => {
-                if (!yAxis?.scale) return []
-                return yTicks05.map((v: number) => yAxis.scale(v) as number).filter((v: number) => !isNaN(v))
-              }}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              verticalCoordinatesGenerator={({ xAxis }: any) => {
-                if (!xAxis?.scale || !ticks) return []
-                return ticks.map((t: string) => xAxis.scale(t) as number).filter((v: number) => !isNaN(v))
-              }}
               stroke="#E5E7EB"
-              strokeDasharray="none"
               strokeOpacity={0.5}
             />
           )}
@@ -151,7 +138,8 @@ export default function WeightChart({ data, mode, weeks }: WeightChartProps) {
           <YAxis
             domain={[minWeight, maxWeight]}
             hide={!isAll}
-            ticks={isAll ? yTicks05.filter(v => v % 1 === 0) : undefined}
+            ticks={isAll ? yTicks05 : undefined}
+            tickFormatter={isAll ? (v: number) => (v % 1 === 0 ? `${v}` : '') : undefined}
             tick={isAll ? { fontSize: 9, fill: '#9CA3AF' } : undefined}
             axisLine={false}
             tickLine={false}
