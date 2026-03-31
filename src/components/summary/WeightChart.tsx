@@ -11,11 +11,12 @@ interface WeightChartProps {
   data: { date: string; weight: number | null }[]
   mode: 'week' | 'all'
   weeks?: WeekInfo[]
+  dday?: string  // e.g. '2026-06-20'
 }
 
 const DAY_LABELS = ['월', '화', '수', '목', '금', '토', '일']
 
-export default function WeightChart({ data, mode, weeks }: WeightChartProps) {
+export default function WeightChart({ data, mode, weeks, dday }: WeightChartProps) {
   const hasData = data.some(d => d.weight != null)
 
   if (!hasData) {
@@ -31,7 +32,7 @@ export default function WeightChart({ data, mode, weeks }: WeightChartProps) {
   const weights = data.filter(d => d.weight != null).map(d => d.weight!)
   // For "all" mode: snap domain to 0.5 boundaries
   const rawMin = Math.min(...weights) - (isAll ? 1 : 1.5)
-  const rawMax = Math.max(...weights) + (isAll ? 0.5 : 1.5)
+  const rawMax = Math.max(...weights) + (isAll ? 1 : 1.5)
   const minWeight = isAll ? Math.floor(rawMin * 2) / 2 : rawMin   // snap down to 0.5
   const maxWeight = isAll ? Math.ceil(rawMax * 2) / 2 : rawMax    // snap up to 0.5
 
@@ -102,7 +103,7 @@ export default function WeightChart({ data, mode, weeks }: WeightChartProps) {
   // X-axis tick formatter
   const formatTick = (value: string, index: number) => {
     if (isAll) {
-      // Show week number labels at week start dates
+      if (dday && value === dday) return 'D-day'
       if (weekStartSet.has(value)) {
         const wn = weekStartMap.get(value)
         return `${wn}주`
@@ -112,14 +113,19 @@ export default function WeightChart({ data, mode, weeks }: WeightChartProps) {
     return DAY_LABELS[index] ?? ''
   }
 
-  // For "all" mode, only show ticks at week start dates
-  const ticks = isAll ? data.filter(d => weekStartSet.has(d.date)).map(d => d.date) : undefined
+  // For "all" mode, show ticks at week start dates + D-day
+  const ticks = isAll
+    ? [
+        ...data.filter(d => weekStartSet.has(d.date)).map(d => d.date),
+        ...(dday && data.some(d => d.date === dday) ? [dday] : []),
+      ]
+    : undefined
 
   return (
     <div className="bg-surface border border-border rounded-xl p-4">
-      <p className="text-sm font-medium mb-4">체중 변화 (kg)</p>
+      <p className="text-sm font-medium mb-2">체중 변화 (kg)</p>
       <ResponsiveContainer width="100%" height={isAll ? 180 : 140}>
-        <LineChart data={data} margin={isAll ? { top: 16, right: 8, bottom: 0, left: -4 } : { top: 24, right: 20, bottom: -8, left: 20 }}>
+        <LineChart data={data} margin={isAll ? { top: 14, right: 4, bottom: 0, left: -8 } : { top: 24, right: 20, bottom: -8, left: 20 }}>
           {isAll && (
             <CartesianGrid
               stroke="#E5E7EB"

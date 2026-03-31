@@ -189,7 +189,7 @@ export default function SummaryPage() {
         </div>
       </div>
 
-      <WeightChart data={weightData} mode={chartMode} weeks={chartMode === 'all' ? weeks : undefined} />
+      <WeightChart data={weightData} mode={chartMode} weeks={chartMode === 'all' ? weeks : undefined} dday={chartMode === 'all' ? PROGRAM_END : undefined} />
       <MacroChart carbs={avgCarbs} protein={avgProtein} fat={avgFat} />
       <WeeklyStats
         avgCalories={avgCalories}
