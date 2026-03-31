@@ -50,14 +50,24 @@ export default function ExerciseGifModal({ exerciseName, onClose }: Props) {
           {error && !loading && (
             <div className="flex flex-col items-center justify-center h-48 gap-3">
               <p className="text-text-secondary text-sm">GIF를 찾을 수 없습니다</p>
-              <a
-                href={`https://www.google.com/search?q=${encodeURIComponent(exerciseName)}&tbm=isch`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-accent underline"
-              >
-                Google에서 검색
-              </a>
+              <div className="flex gap-3">
+                <a
+                  href={`https://www.youtube.com/results?search_query=${encodeURIComponent(exerciseName + ' exercise form')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-xs text-red-500 underline"
+                >
+                  YouTube
+                </a>
+                <a
+                  href={`https://www.google.com/search?q=${encodeURIComponent(exerciseName + ' exercise form')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-xs text-accent underline"
+                >
+                  Google
+                </a>
+              </div>
             </div>
           )}
           {gif && !loading && (
@@ -75,14 +85,24 @@ export default function ExerciseGifModal({ exerciseName, onClose }: Props) {
                 {gif.targetMuscles.length > 0 && (
                   <p className="text-xs text-accent">{gif.targetMuscles.join(', ')}</p>
                 )}
-                <a
-                  href={`https://www.google.com/search?q=${encodeURIComponent(exerciseName)}&tbm=isch`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block text-xs text-accent underline mt-1"
-                >
-                  Google에서 검색
-                </a>
+                <div className="flex justify-center gap-3 mt-1">
+                  <a
+                    href={`https://www.youtube.com/results?search_query=${encodeURIComponent(exerciseName + ' exercise form')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-red-500 underline"
+                  >
+                    YouTube
+                  </a>
+                  <a
+                    href={`https://www.google.com/search?q=${encodeURIComponent(exerciseName + ' exercise form')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-accent underline"
+                  >
+                    Google
+                  </a>
+                </div>
               </div>
             </div>
           )}
