@@ -31,8 +31,8 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
   const isAll = mode === 'all'
   const weights = data.filter(d => d.weight != null).map(d => d.weight!)
   // For "all" mode: snap domain to 0.5 boundaries
-  const rawMin = Math.min(...weights) - (isAll ? 1 : 1.5)
-  const rawMax = Math.max(...weights) + (isAll ? 1 : 1.5)
+  const rawMin = Math.min(...weights) - (isAll ? 1.5 : 1.5)
+  const rawMax = Math.max(...weights) + (isAll ? 0.5 : 1.5)
   const minWeight = isAll ? Math.floor(rawMin * 2) / 2 : rawMin   // snap down to 0.5
   const maxWeight = isAll ? Math.ceil(rawMax * 2) / 2 : rawMax    // snap up to 0.5
 
@@ -103,7 +103,7 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
   // X-axis tick formatter
   const formatTick = (value: string, index: number) => {
     if (isAll) {
-      if (dday && value === dday) return 'D-day'
+      if (dday && value === dday) return '🖤'
       if (weekStartSet.has(value)) {
         const wn = weekStartMap.get(value)
         return `${wn}주`
