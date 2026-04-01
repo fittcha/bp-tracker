@@ -8,6 +8,7 @@ import { getLoggedInUser } from '@/lib/auth'
 import CustomExerciseForm from '@/components/workout/CustomExerciseForm'
 import Calculator from '@/components/workout/Calculator'
 import ExerciseGifModal from '@/components/workout/ExerciseGifModal'
+import ExerciseSearchModal from '@/components/workout/ExerciseSearchModal'
 
 interface TemplateEx {
   id: string
@@ -45,6 +46,7 @@ export default function WorkoutPage() {
   const [memoOpen, setMemoOpen] = useState<Record<string, boolean>>({})
   const debounceRef = useRef<Record<string, NodeJS.Timeout>>({})
   const [gifModalExercise, setGifModalExercise] = useState<string | null>(null)
+  const [searchOpen, setSearchOpen] = useState(false)
   const longPressRef = useRef<Record<string, NodeJS.Timeout>>({})
 
   function handleLongPressStart(exerciseName: string) {
@@ -350,10 +352,21 @@ export default function WorkoutPage() {
         </button>
       </div>
 
-      {/* Progress */}
+      {/* Progress + Search */}
       {totalSections > 0 && (
-        <div className="text-xs text-text-secondary text-right">
-          {completedSections}/{totalSections} 완료
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-text-secondary">
+            {completedSections}/{totalSections} 완료
+          </span>
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-text-secondary hover:text-accent transition-colors"
+            title="운동 이력 검색"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </button>
         </div>
       )}
 
@@ -717,6 +730,13 @@ export default function WorkoutPage() {
         <ExerciseGifModal
           exerciseName={gifModalExercise}
           onClose={() => setGifModalExercise(null)}
+        />
+      )}
+
+      {searchOpen && (
+        <ExerciseSearchModal
+          userId={userId}
+          onClose={() => setSearchOpen(false)}
         />
       )}
     </div>
