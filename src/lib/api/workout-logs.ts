@@ -86,3 +86,23 @@ export async function deleteWorkoutLog(id: string) {
     .eq('id', id)
   if (error) throw error
 }
+
+export async function searchWorkoutLogs(
+  query: string,
+  userId: string,
+  completedOnly: boolean = true
+) {
+  let q = supabase
+    .from('workout_logs')
+    .select('*')
+    .eq('user_id', userId)
+    .ilike('exercise_name', `%${query}%`)
+
+  if (completedOnly) {
+    q = q.eq('completed', true)
+  }
+
+  const { data, error } = await q.order('date', { ascending: false })
+  if (error) throw error
+  return data
+}
