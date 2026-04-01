@@ -535,27 +535,27 @@ export default function WorkoutPage() {
                         </div>
 
                         {/* Weight toggle checkbox + input */}
-                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <div className="flex items-center gap-1 flex-shrink-0">
                           <button
                             onClick={() => toggleWeightInput(log.id!)}
-                            className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+                            className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
                               isWeightOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/40 bg-surface'
                             }`}
                             title="무게 입력"
                           >
                             {isWeightOpen ? (
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                                 <polyline points="20 6 9 17 4 12" />
                               </svg>
                             ) : (
-                              <span className="text-[9px] font-bold text-text-secondary">{log.weight_unit ?? 'lb'}</span>
+                              <span className="text-[8px] font-bold text-text-secondary">{log.weight_unit ?? 'lb'}</span>
                             )}
                           </button>
                           {isWeightOpen && (
                             <>
                               <button
                                 onClick={() => handleWeightChange(log.id!, Math.max(0, (log.weight_lb ?? 0) - (log.weight_unit === 'kg' ? 5 : 5)))}
-                                className="w-6 h-6 rounded bg-background border border-border flex items-center justify-center text-xs font-bold text-text-secondary active:bg-border"
+                                className="w-5 h-5 rounded bg-background border border-border flex items-center justify-center text-[10px] font-bold text-text-secondary active:bg-border"
                               >−</button>
                               <input
                                 type="number"
@@ -563,15 +563,15 @@ export default function WorkoutPage() {
                                 placeholder="0"
                                 value={log.weight_lb ?? ''}
                                 onChange={(e) => handleWeightChange(log.id!, e.target.value ? parseFloat(e.target.value) : null)}
-                                className="w-14 border border-border rounded-lg px-1 py-1 text-sm text-center bg-background"
+                                className="w-12 border border-border rounded-lg px-1 py-0.5 text-xs text-center bg-background"
                               />
                               <button
                                 onClick={() => handleUnitToggle(log.id!)}
-                                className="text-[10px] text-text-secondary active:text-accent"
+                                className="text-[9px] text-text-secondary active:text-accent"
                               >{log.weight_unit ?? 'lb'}</button>
                               <button
                                 onClick={() => handleWeightChange(log.id!, (log.weight_lb ?? 0) + (log.weight_unit === 'kg' ? 5 : 5))}
-                                className="w-6 h-6 rounded bg-background border border-border flex items-center justify-center text-xs font-bold text-text-secondary active:bg-border"
+                                className="w-5 h-5 rounded bg-background border border-border flex items-center justify-center text-[10px] font-bold text-text-secondary active:bg-border"
                               >+</button>
                             </>
                           )}
@@ -643,26 +643,26 @@ export default function WorkoutPage() {
                   >
                     {log.exercise_name}
                   </p>
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <div className="flex items-center gap-1 flex-shrink-0">
                     <button
                       onClick={() => toggleWeightInput(log.id!)}
-                      className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+                      className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
                         isWeightOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/40 bg-surface'
                       }`}
                     >
                       {isWeightOpen ? (
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                       ) : (
-                        <span className="text-[9px] font-bold text-text-secondary">{log.weight_unit ?? 'lb'}</span>
+                        <span className="text-[8px] font-bold text-text-secondary">{log.weight_unit ?? 'lb'}</span>
                       )}
                     </button>
                     {isWeightOpen && (
                       <>
                         <button
                           onClick={() => handleWeightChange(log.id!, Math.max(0, (log.weight_lb ?? 0) - (log.weight_unit === 'kg' ? 5 : 5)))}
-                          className="w-6 h-6 rounded bg-background border border-border flex items-center justify-center text-xs font-bold text-text-secondary active:bg-border"
+                          className="w-5 h-5 rounded bg-background border border-border flex items-center justify-center text-[10px] font-bold text-text-secondary active:bg-border"
                         >−</button>
                         <input
                           type="number"
@@ -670,15 +670,15 @@ export default function WorkoutPage() {
                           placeholder="0"
                           value={log.weight_lb ?? ''}
                           onChange={(e) => handleWeightChange(log.id!, e.target.value ? parseFloat(e.target.value) : null)}
-                          className="w-14 border border-border rounded-lg px-1 py-1 text-sm text-center bg-background"
+                          className="w-12 border border-border rounded-lg px-1 py-0.5 text-xs text-center bg-background"
                         />
                         <button
                           onClick={() => handleUnitToggle(log.id!)}
-                          className="text-[10px] text-text-secondary active:text-accent"
+                          className="text-[9px] text-text-secondary active:text-accent"
                         >{log.weight_unit ?? 'lb'}</button>
                         <button
                           onClick={() => handleWeightChange(log.id!, (log.weight_lb ?? 0) + (log.weight_unit === 'kg' ? 5 : 5))}
-                          className="w-6 h-6 rounded bg-background border border-border flex items-center justify-center text-xs font-bold text-text-secondary active:bg-border"
+                          className="w-5 h-5 rounded bg-background border border-border flex items-center justify-center text-[10px] font-bold text-text-secondary active:bg-border"
                         >+</button>
                       </>
                     )}

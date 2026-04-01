@@ -275,7 +275,7 @@ export default function ExerciseSearchModal({ userId, onClose }: Props) {
                   {log.weight_lb != null && (
                     <>
                       <span className="text-text-secondary text-xs">·</span>
-                      <span className="text-sm font-semibold">
+                      <span className="text-sm font-semibold whitespace-nowrap">
                         {log.weight_lb} {log.weight_unit}
                       </span>
                     </>
