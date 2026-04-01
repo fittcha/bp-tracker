@@ -354,7 +354,7 @@ export default function WorkoutPage() {
 
       {/* Progress + Search */}
       {totalSections > 0 && (
-        <div className="flex items-center justify-between -mt-1 -mb-1">
+        <div className="flex items-center justify-between">
           <span className="text-xs text-text-secondary">
             {completedSections}/{totalSections} 완료
           </span>
