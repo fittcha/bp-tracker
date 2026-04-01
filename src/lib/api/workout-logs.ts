@@ -102,7 +102,10 @@ export async function searchWorkoutLogs(
     q = q.eq('completed', true)
   }
 
-  const { data, error } = await q.order('date', { ascending: false })
+  const { data, error } = await q
+    .order('date', { ascending: false })
+    .order('section', { ascending: true })
+    .order('created_at', { ascending: true })
   if (error) throw error
   return data
 }
