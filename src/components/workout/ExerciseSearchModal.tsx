@@ -149,7 +149,8 @@ export default function ExerciseSearchModal({ userId, onClose }: Props) {
   }, [onClose])
 
   return (
-    <div className="fixed inset-0 z-[100] bg-background flex flex-col">
+    <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-3">
+    <div className="bg-background rounded-2xl flex flex-col w-full h-full overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
         <div className="flex-1 relative">
@@ -206,7 +207,7 @@ export default function ExerciseSearchModal({ userId, onClose }: Props) {
               : 'bg-surface border border-border text-text-secondary'
           }`}
         >
-          완료만
+          완료
         </button>
       </div>
 
@@ -247,9 +248,6 @@ export default function ExerciseSearchModal({ userId, onClose }: Props) {
             subParts.push(`${log.templateSets}세트`)
           } else if (log.templateReps) {
             subParts.push(`x${log.templateReps}`)
-          }
-          if (log.templateRest) {
-            subParts.push(`rest ${log.templateRest}s`)
           }
 
           return (
@@ -305,6 +303,7 @@ export default function ExerciseSearchModal({ userId, onClose }: Props) {
           )
         })}
       </div>
+    </div>
     </div>
   )
 }
