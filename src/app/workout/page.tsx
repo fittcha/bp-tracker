@@ -513,7 +513,7 @@ export default function WorkoutPage() {
                         {/* Exercise info */}
                         <div className="flex-1 min-w-0">
                           <p
-                            className={`text-sm font-medium select-none ${log.completed ? 'line-through opacity-50' : ''}`}
+                            className={`text-sm font-medium select-none whitespace-pre-line ${log.completed ? 'line-through opacity-50' : ''}`}
                             onTouchStart={() => handleLongPressStart(log.exercise_name)}
                             onTouchEnd={() => handleLongPressEnd(log.exercise_name)}
                             onTouchCancel={() => handleLongPressEnd(log.exercise_name)}
@@ -586,9 +586,19 @@ export default function WorkoutPage() {
                     <textarea
                       placeholder="메모 입력..."
                       value={items[0].memo || ''}
-                      onChange={(e) => handleMemoChange(items[0].id!, e.target.value)}
-                      className="w-full text-xs bg-transparent resize-none outline-none text-foreground placeholder:text-text-secondary/50 min-h-[3rem]"
-                      rows={2}
+                      onChange={(e) => {
+                        handleMemoChange(items[0].id!, e.target.value)
+                        e.target.style.height = 'auto'
+                        e.target.style.height = e.target.scrollHeight + 'px'
+                      }}
+                      ref={(el) => {
+                        if (el) {
+                          el.style.height = 'auto'
+                          el.style.height = el.scrollHeight + 'px'
+                        }
+                      }}
+                      className="w-full text-xs bg-transparent resize-none outline-none text-foreground placeholder:text-text-secondary/50"
+                      rows={1}
                     />
                   </div>
                 )}
