@@ -538,8 +538,8 @@ export default function WorkoutPage() {
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <button
                             onClick={() => toggleWeightInput(log.id!)}
-                            className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                              isWeightOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/40 bg-surface'
+                            className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                              isWeightOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/30 bg-surface'
                             }`}
                             title="무게 입력"
                           >
@@ -646,8 +646,8 @@ export default function WorkoutPage() {
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <button
                       onClick={() => toggleWeightInput(log.id!)}
-                      className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                        isWeightOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/40 bg-surface'
+                      className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                        isWeightOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/30 bg-surface'
                       }`}
                     >
                       {isWeightOpen ? (

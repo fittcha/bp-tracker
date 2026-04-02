@@ -20,13 +20,13 @@ export default function WeekProgressBar() {
         <p className="text-xs text-text-secondary font-medium">프로그램 진행</p>
         <p className="text-xs text-accent font-semibold">{programDay}일차</p>
       </div>
-      <div className="flex gap-1">
+      <div className="flex gap-1 mb-1">
         {phases.map((phase) => {
           const totalWeeks = phase.endWeek - phase.startWeek + 1
           const isActive = currentWeek >= phase.startWeek && currentWeek <= phase.endWeek
           const isCompleted = currentWeek > phase.endWeek
           return (
-            <div key={phase.name} className="flex-1" style={{ flex: totalWeeks }}>
+            <div key={phase.name} style={{ flex: totalWeeks }}>
               <div
                 className={`h-2 rounded-full transition-colors ${
                   isCompleted
@@ -36,11 +36,16 @@ export default function WeekProgressBar() {
                     : 'bg-border'
                 }`}
               />
-              <p className={`text-[10px] mt-1.5 truncate ${
-                isActive ? 'text-accent font-semibold' : 'text-text-secondary'
-              }`}>
-                {phase.name}
-              </p>
+              <div className="relative h-12">
+                <p
+                  className={`absolute left-0 top-1.5 origin-top-left text-[10px] whitespace-nowrap ${
+                    isActive ? 'text-accent font-semibold' : 'text-text-secondary'
+                  }`}
+                  style={{ transform: 'rotate(45deg)' }}
+                >
+                  {phase.name}
+                </p>
+              </div>
             </div>
           )
         })}
