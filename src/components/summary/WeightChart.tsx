@@ -52,9 +52,12 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
     }
   }
 
-  // Find the last data point index
+  // Find today's data point index (fallback to last data point)
+  const todayStr = new Date().toISOString().split('T')[0]
+  const todayDataIndex = data.findIndex(d => d.date === todayStr && d.weight != null)
   let lastDataIndex = -1
   data.forEach((d, i) => { if (d.weight != null) lastDataIndex = i })
+  const highlightIndex = todayDataIndex >= 0 ? todayDataIndex : lastDataIndex
 
   // For "all" mode: build a set of week start dates for X-axis ticks
   const weekStartSet = new Set(weeks?.map(w => w.start_date) ?? [])
@@ -65,14 +68,14 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
   const renderDot = (props: any) => {
     const { cx, cy, index, payload } = props
     if (payload.weight == null) return <g key={index} />
-    const isLast = index === lastDataIndex
+    const isHighlight = index === highlightIndex
     return (
       <circle
         key={index}
         cx={cx}
         cy={cy}
-        r={isLast ? (isAll ? 3 : 5) : (isAll ? 1.5 : 4)}
-        fill={isLast ? '#3B82F6' : '#6B7280'}
+        r={isHighlight ? (isAll ? 3 : 5) : (isAll ? 1.5 : 4)}
+        fill={isHighlight ? '#3B82F6' : '#6B7280'}
         stroke={isAll ? 'none' : 'white'}
         strokeWidth={isAll ? 0 : 2}
       />
@@ -87,12 +90,12 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
     if (!entry || entry.weight == null) return <g key={index} />
 
     if (isAll) {
-      // Only label first and last data points
+      // Only label first data point and highlighted (today / last) point
       const firstDataIndex = data.findIndex(d => d.weight != null)
-      if (index !== firstDataIndex && index !== lastDataIndex) return <g key={index} />
+      if (index !== firstDataIndex && index !== highlightIndex) return <g key={index} />
     }
 
-    const isLast = index === lastDataIndex
+    const isHighlight = index === highlightIndex
     return (
       <text
         key={index}
@@ -100,8 +103,8 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
         y={y - (isAll ? 10 : 14)}
         textAnchor="middle"
         fontSize={isAll ? 10 : 11}
-        fontWeight={isLast ? 700 : 500}
-        fill={isLast ? '#3B82F6' : '#6B7280'}
+        fontWeight={isHighlight ? 700 : 500}
+        fill={isHighlight ? '#3B82F6' : '#6B7280'}
       >
         {entry.weight.toFixed(1)}
       </text>
