@@ -18,6 +18,8 @@ export interface DailyLog {
   supplements: string | null
   water_liters: number | null
   memo: string | null
+  meal_completed: number | null
+  meal_total: number | null
 }
 
 export async function getDailyLog(date: string, userId: string): Promise<DailyLog | null> {
