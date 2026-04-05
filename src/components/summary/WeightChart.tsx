@@ -127,7 +127,7 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
   return (
     <div className="bg-surface border border-border rounded-xl p-4">
       <p className="text-sm font-medium mb-2">체중 변화 (kg)</p>
-      <ResponsiveContainer width="100%" height={isAll ? (range > 8 ? 280 : range > 4 ? 220 : 180) : 140}>
+      <ResponsiveContainer width="100%" height={isAll ? Math.max(180, Math.ceil(range) * 20 + 40) : 140}>
         <LineChart data={data} margin={isAll ? { top: 14, right: 4, bottom: 0, left: -8 } : { top: 24, right: 20, bottom: -8, left: 20 }}>
           {isAll && (
             <CartesianGrid
