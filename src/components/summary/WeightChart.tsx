@@ -36,19 +36,13 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
   const minWeight = isAll ? Math.floor(rawMin * 2) / 2 : rawMin   // snap down to 0.5
   const maxWeight = isAll ? Math.ceil(rawMax * 2) / 2 : rawMax    // snap up to 0.5
 
-  // Y-axis ticks: dynamic interval based on range
+  // Y-axis ticks: 1kg intervals
   const range = maxWeight - minWeight
-  const tickStep = range > 4 ? 1 : 0.5
   const yTicks: number[] = []
-  const yGridTicks: number[] = []  // 0.5kg grid lines
   if (isAll) {
-    const start = Math.ceil(minWeight / tickStep) * tickStep
-    for (let v = start; v <= maxWeight + 0.01; v += tickStep) {
-      yTicks.push(Math.round(v * 10) / 10)
-    }
-    const gridStart = Math.ceil(minWeight * 2) / 2
-    for (let v = gridStart; v <= maxWeight + 0.01; v += 0.5) {
-      yGridTicks.push(Math.round(v * 2) / 2)
+    const start = Math.ceil(minWeight)
+    for (let v = start; v <= maxWeight + 0.01; v += 1) {
+      yTicks.push(v)
     }
   }
 
@@ -135,7 +129,7 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
   return (
     <div className="bg-surface border border-border rounded-xl p-4">
       <p className="text-sm font-medium mb-2">체중 변화 (kg)</p>
-      <ResponsiveContainer width="100%" height={isAll ? Math.max(180, Math.ceil(range) * 18 + 40) : 140}>
+      <ResponsiveContainer width="100%" height={isAll ? Math.max(180, Math.ceil(range) * 20 + 40) : 140}>
         <LineChart data={data} margin={isAll ? { top: 14, right: 4, bottom: 0, left: -8 } : { top: 24, right: 20, bottom: -8, left: 20 }}>
           {isAll && (
             <CartesianGrid
@@ -155,8 +149,8 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
           <YAxis
             domain={[minWeight, maxWeight]}
             hide={!isAll}
-            ticks={isAll ? yGridTicks : undefined}
-            tickFormatter={isAll ? (v: number) => (v % tickStep === 0 ? `${v}` : '') : undefined}
+            ticks={isAll ? yTicks : undefined}
+            tickFormatter={isAll ? (v: number) => `${v}` : undefined}
             tick={isAll ? { fontSize: 9, fill: '#9CA3AF' } : undefined}
             axisLine={false}
             tickLine={false}
