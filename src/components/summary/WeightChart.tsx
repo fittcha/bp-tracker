@@ -38,7 +38,7 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
 
   // Y-axis ticks: dynamic interval based on range
   const range = maxWeight - minWeight
-  const tickStep = range > 8 ? 2 : range > 4 ? 1 : 0.5
+  const tickStep = range > 4 ? 1 : 0.5
   const yTicks: number[] = []
   if (isAll) {
     const start = Math.ceil(minWeight / tickStep) * tickStep
