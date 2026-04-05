@@ -395,17 +395,14 @@ export default function WorkoutPage() {
             // Detect group label from first item's template
             const firstTmpl = items[0]?.template
             const groupSets = isGroup && firstTmpl?.sets ? firstTmpl.sets : null
-            // Detect special type from notes (Superset, EMOM, AMRAP, etc.)
+            // Detect special type from notes (Superset, EMOM, AMRAP, or any setInfo string)
             const firstNotes = firstTmpl?.notes || ''
             const isSuperset = isGroup && firstNotes.toLowerCase().includes('superset')
-            const isEmom = isGroup && firstNotes.toLowerCase().includes('emom')
-            const isAmrap = isGroup && firstNotes.toLowerCase().includes('amrap')
-            const isEvery = isGroup && firstNotes.toLowerCase().includes('every')
-            const isSpecial = isEmom || isAmrap || isEvery
-            const groupLabel = isEmom ? firstNotes
-              : isAmrap ? firstNotes
-              : isEvery ? firstNotes
-              : isSuperset ? `Superset${groupSets ? ` · ${groupSets} Sets` : ''}`
+            // Notes starting with @, *, Rest, Climbing are exercise-specific, not setInfo
+            const isExerciseNote = /^[@*]|^Rest\b|^Climbing\b/i.test(firstNotes)
+            const isSetInfo = isGroup && firstNotes && !isExerciseNote && !isSuperset
+            const groupLabel = isSuperset ? `Superset${groupSets ? ` · ${groupSets} Sets` : ''}`
+              : isSetInfo ? `${groupSets ? `${groupSets} Sets · ` : ''}${firstNotes}`
               : isGroup && groupSets ? `${groupSets} Sets` : null
 
             // Group completion state
@@ -474,7 +471,7 @@ export default function WorkoutPage() {
                     const showSetsInline = !isGroup
                     // For EMOM/AMRAP, don't prepend reps (they are '1' or null)
                     // For "Every X minutes" style, still show reps if available
-                    const showRepsPrefix = isGroup && !(isEmom || isAmrap) && tmpl?.reps && tmpl.reps !== '1'
+                    const showRepsPrefix = isGroup && !isSetInfo && tmpl?.reps && tmpl.reps !== '1'
 
                     // Sub-group detection: insert divider when notes type changes within a section
                     const getSubType = (n: string) =>
@@ -529,7 +526,7 @@ export default function WorkoutPage() {
                               {tmpl.sets && `${tmpl.sets}세트`} {tmpl.reps && `× ${tmpl.reps}`}
                             </p>
                           )}
-                          {tmpl?.notes && !(isGroup && (isSuperset || isEmom || isAmrap || isEvery) && tmpl === firstTmpl) && !isNewSubGroup && (
+                          {tmpl?.notes && !(isGroup && (isSuperset || isSetInfo) && tmpl === firstTmpl) && !isNewSubGroup && (
                             <p className="text-[11px] text-text-secondary italic mt-0.5">{tmpl.notes}</p>
                           )}
                         </div>
