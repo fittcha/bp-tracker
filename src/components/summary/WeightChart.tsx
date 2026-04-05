@@ -31,10 +31,14 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
   const isAll = mode === 'all'
   const weights = data.filter(d => d.weight != null).map(d => d.weight!)
   // For "all" mode: snap domain to 0.5 boundaries
-  const rawMin = Math.min(...weights) - (isAll ? 1.5 : 1.5)
-  const rawMax = Math.max(...weights) + (isAll ? 1.5 : 1.5)
-  const minWeight = isAll ? Math.floor(rawMin * 2) / 2 : rawMin   // snap down to 0.5
-  const maxWeight = isAll ? Math.ceil(rawMax * 2) / 2 : rawMax    // snap up to 0.5
+  const rawMin = Math.min(...weights)
+  const rawMax = Math.max(...weights)
+  // All mode: min snaps down 1.5kg, max snaps up based on decimal
+  // decimal >= 0.5 → ceil + 1, < 0.5 → ceil (integer → +1)
+  const maxFrac = rawMax % 1
+  const allMax = maxFrac >= 0.5 ? Math.ceil(rawMax) + 1 : maxFrac === 0 ? rawMax + 1 : Math.ceil(rawMax)
+  const minWeight = isAll ? Math.floor((rawMin - 1.5) * 2) / 2 : rawMin - 1.5
+  const maxWeight = isAll ? allMax : rawMax + 1.5
 
   // Y-axis ticks: 1kg intervals
   const range = maxWeight - minWeight
