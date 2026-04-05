@@ -384,9 +384,6 @@ export default function DailyPage() {
                   )
                 })}
               </div>
-              <p className="text-xs text-text-secondary mt-2">
-                {mealCheckedSet.size} / {mealSlotNames.length}
-              </p>
             </>
           ) : (
             <p className="text-xs text-text-secondary">+추가 버튼으로 식사 루틴을 추가하세요</p>
