@@ -375,8 +375,8 @@ export default function DailyPage() {
                       key={name}
                       onClick={() => toggleMealSlot(name)}
                       onContextMenu={(e) => { e.preventDefault(); if (confirm(`'${name}' 삭제?`)) handleRemoveMealSlot(name) }}
-                      className={`px-3 h-10 rounded-lg border-2 flex items-center justify-center transition-colors text-sm ${
-                        checked ? 'border-blue-400 bg-blue-50 text-blue-500' : 'border-border bg-surface text-text-secondary'
+                      className={`px-3 h-10 rounded-lg border flex items-center justify-center transition-colors text-sm ${
+                        checked ? 'border-accent bg-accent/10 text-accent' : 'border-border bg-surface text-text-secondary'
                       }`}
                     >
                       {name}
