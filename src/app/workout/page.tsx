@@ -435,8 +435,8 @@ export default function WorkoutPage() {
         <>
           {/* 저강도 유산소 (5주차~, 평일만) */}
           {weekInfo?.week_number !== undefined && weekInfo.week_number >= 5 && selectedDay <= 5 && (
-            <div className="bg-surface rounded-xl overflow-hidden">
-              <div className="px-4 py-2.5 bg-background flex items-center gap-2">
+            <div className="bg-surface border border-border rounded-xl overflow-hidden">
+              <div className="px-4 py-2.5 flex items-center gap-2">
                 <button
                   onClick={handleCardioToggle}
                   className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
