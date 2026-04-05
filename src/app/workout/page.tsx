@@ -435,36 +435,58 @@ export default function WorkoutPage() {
         <>
           {/* 저강도 유산소 (5주차~, 평일만) */}
           {weekInfo?.week_number !== undefined && weekInfo.week_number >= 5 && selectedDay <= 5 && (
-            <div className="bg-surface border border-border rounded-xl p-3 mb-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">저강도 유산소</span>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setShowCardioMemo(!showCardioMemo)}
-                    className="text-xs text-text-secondary"
-                  >
-                    메모
-                  </button>
-                  <button
-                    onClick={handleCardioToggle}
-                    className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center text-sm transition-colors ${
-                      cardioLog?.completed
-                        ? 'border-accent bg-accent/10 text-accent font-bold'
-                        : 'border-border bg-surface'
-                    }`}
-                  >
-                    {cardioLog?.completed ? '✓' : ''}
-                  </button>
-                </div>
+            <div className="bg-surface border border-border rounded-xl overflow-hidden">
+              <div className="px-4 py-2.5 bg-background border-b border-border flex items-center gap-2">
+                <button
+                  onClick={handleCardioToggle}
+                  className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                    cardioLog?.completed ? 'bg-success border-success text-white' : 'border-border'
+                  }`}
+                >
+                  {cardioLog?.completed && (
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </button>
+                <span className="text-xs font-bold text-accent">저강도 유산소</span>
+                <span className="text-xs text-text-secondary font-medium">45분+</span>
+                <div className="flex-1" />
+                <button
+                  onClick={() => setShowCardioMemo(!showCardioMemo)}
+                  className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${
+                    showCardioMemo ? 'text-accent' : cardioMemo ? 'text-accent/60' : 'text-text-secondary/40'
+                  }`}
+                  title="메모"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                  </svg>
+                </button>
               </div>
               {showCardioMemo && (
-                <textarea
-                  value={cardioMemo}
-                  onChange={(e) => handleCardioMemoChange(e.target.value)}
-                  placeholder="머신 종류, 시간 등"
-                  className="w-full mt-2 p-2 text-sm bg-background border border-border rounded-lg resize-none"
-                  rows={1}
-                />
+                <div className="px-4 py-2.5 border-t border-border bg-background/50">
+                  <textarea
+                    value={cardioMemo}
+                    onChange={(e) => {
+                      handleCardioMemoChange(e.target.value)
+                      e.target.style.height = 'auto'
+                      e.target.style.height = e.target.scrollHeight + 'px'
+                    }}
+                    ref={(el) => {
+                      if (el) {
+                        el.style.height = 'auto'
+                        el.style.height = el.scrollHeight + 'px'
+                      }
+                    }}
+                    placeholder="머신 종류, 시간 등"
+                    className="w-full text-xs bg-transparent resize-none outline-none text-foreground placeholder:text-text-secondary/50"
+                    rows={1}
+                  />
+                </div>
               )}
             </div>
           )}
