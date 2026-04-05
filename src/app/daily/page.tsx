@@ -8,6 +8,7 @@ import { getLoggedInUser } from '@/lib/auth'
 import FoodImageUpload from '@/components/daily/FoodImageUpload'
 import MacroDonutChart from '@/components/daily/MacroDonutChart'
 import KakaoShareText from '@/components/daily/KakaoShareText'
+import { getMealSlotCount, upsertMealSlotConfig } from '@/lib/api/meal-slots'
 
 const SUPPLEMENTS = [
   '비타민B',
@@ -34,6 +35,8 @@ const emptyLog = (date: string): DailyLog => ({
   supplements: null,
   water_liters: null,
   memo: null,
+  meal_completed: null,
+  meal_total: null,
 })
 
 function parseSupplements(str: string | null): Set<string> {
@@ -56,6 +59,9 @@ export default function DailyPage() {
   const [sugarToggle, setSugarToggle] = useState(true)
   const [checkedSupps, setCheckedSupps] = useState<Set<string>>(new Set())
   const [weekLabel, setWeekLabel] = useState<string | null>(null)
+  const [weekNumber, setWeekNumber] = useState<number | null>(null)
+  const [mealSlotCount, setMealSlotCount] = useState(0)
+  const [mealChecked, setMealChecked] = useState<boolean[]>([])
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
   const isLoadedRef = useRef(false)
 
@@ -86,6 +92,22 @@ export default function DailyPage() {
       if (!weeks) return
       const week = weeks.find((w: { start_date: string; end_date: string }) => date >= w.start_date && date <= w.end_date)
       setWeekLabel(week ? `${week.week_number}주차 · ${week.phase}` : null)
+      const wn = week?.week_number ?? null
+      setWeekNumber(wn)
+      if (wn !== null && wn >= 5) {
+        const [slotCount, fetchedLog] = await Promise.all([
+          getMealSlotCount(date, userId),
+          getDailyLog(date, userId),
+        ])
+        setMealSlotCount(slotCount)
+        const completed = fetchedLog?.meal_completed ?? 0
+        setMealChecked(
+          Array.from({ length: slotCount }, (_, i) => i < completed)
+        )
+      } else {
+        setMealSlotCount(0)
+        setMealChecked([])
+      }
     }
     load()
     loadWeek()
@@ -143,6 +165,24 @@ export default function DailyPage() {
       }
       autoSave(updated)
       return updated
+    })
+  }
+
+  async function handleAddMealSlot() {
+    const newCount = mealSlotCount + 1
+    await upsertMealSlotConfig(userId, date, newCount)
+    setMealSlotCount(newCount)
+    setMealChecked(prev => [...prev, false])
+  }
+
+  function toggleMealSlot(index: number) {
+    setMealChecked(prev => {
+      const next = [...prev]
+      next[index] = !next[index]
+      const completed = next.filter(Boolean).length
+      updateField('meal_completed', completed)
+      updateField('meal_total', mealSlotCount)
+      return next
     })
   }
 
@@ -265,6 +305,36 @@ export default function DailyPage() {
         )}
       </Section>
 
+      {/* 식단 횟수 (5주차~) */}
+      {weekNumber !== null && weekNumber >= 5 && (
+        <Section title="식단 횟수" right={
+          <button onClick={handleAddMealSlot} className="text-xs text-accent font-medium">+추가</button>
+        }>
+          {mealSlotCount > 0 ? (
+            <>
+              <div className="flex flex-wrap gap-2">
+                {mealChecked.map((checked, i) => (
+                  <button
+                    key={i}
+                    onClick={() => toggleMealSlot(i)}
+                    className={`w-12 h-10 rounded-lg border-2 flex items-center justify-center transition-colors text-sm ${
+                      checked ? 'border-accent bg-accent/10 text-accent font-bold' : 'border-border bg-surface text-text-secondary'
+                    }`}
+                  >
+                    {checked ? '\u2713' : i + 1}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-text-secondary mt-2">
+                {mealChecked.filter(Boolean).length} / {mealSlotCount}
+              </p>
+            </>
+          ) : (
+            <p className="text-xs text-text-secondary">+추가 버튼으로 식사 루틴을 추가하세요</p>
+          )}
+        </Section>
+      )}
+
       {/* 식단 이미지 + OCR */}
       <Section title="식단">
         <FoodImageUpload
@@ -342,10 +412,15 @@ export default function DailyPage() {
   )
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, right, children }: { title: string; right?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="bg-surface border border-border rounded-xl p-4">
-      {title && <p className="text-sm font-medium mb-3">{title}</p>}
+      {title && (
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-medium">{title}</p>
+          {right}
+        </div>
+      )}
       {children}
     </div>
   )
