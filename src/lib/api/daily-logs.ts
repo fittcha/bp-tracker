@@ -20,6 +20,7 @@ export interface DailyLog {
   memo: string | null
   meal_completed: number | null
   meal_total: number | null
+  meal_checked: string[] | null
 }
 
 export async function getDailyLog(date: string, userId: string): Promise<DailyLog | null> {

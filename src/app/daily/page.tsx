@@ -8,7 +8,7 @@ import { getLoggedInUser } from '@/lib/auth'
 import FoodImageUpload from '@/components/daily/FoodImageUpload'
 import MacroDonutChart from '@/components/daily/MacroDonutChart'
 import KakaoShareText from '@/components/daily/KakaoShareText'
-import { getMealSlotCount, upsertMealSlotConfig } from '@/lib/api/meal-slots'
+import { getMealSlotNames, upsertMealSlotConfig } from '@/lib/api/meal-slots'
 import { getWeeklyCardioCount } from '@/lib/api/cardio-logs'
 
 const SUPPLEMENTS = [
@@ -38,6 +38,7 @@ const emptyLog = (date: string): DailyLog => ({
   memo: null,
   meal_completed: null,
   meal_total: null,
+  meal_checked: null,
 })
 
 function parseSupplements(str: string | null): Set<string> {
@@ -61,9 +62,11 @@ export default function DailyPage() {
   const [checkedSupps, setCheckedSupps] = useState<Set<string>>(new Set())
   const [weekLabel, setWeekLabel] = useState<string | null>(null)
   const [weekNumber, setWeekNumber] = useState<number | null>(null)
-  const [mealSlotCount, setMealSlotCount] = useState(0)
-  const [mealChecked, setMealChecked] = useState<boolean[]>([])
+  const [mealSlotNames, setMealSlotNames] = useState<string[]>([])
+  const [mealCheckedSet, setMealCheckedSet] = useState<Set<string>>(new Set())
   const [weeklyCardioCount, setWeeklyCardioCount] = useState(0)
+  const [showMealInput, setShowMealInput] = useState(false)
+  const [newMealName, setNewMealName] = useState('')
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
   const isLoadedRef = useRef(false)
 
@@ -108,20 +111,18 @@ export default function DailyPage() {
         const startDate = monday.toISOString().split('T')[0]
         const endDate = sunday.toISOString().split('T')[0]
 
-        const [slotCount, fetchedLog, cardioCount] = await Promise.all([
-          getMealSlotCount(date, userId),
+        const [slotNames, fetchedLog, cardioCount] = await Promise.all([
+          getMealSlotNames(date, userId),
           getDailyLog(date, userId),
           getWeeklyCardioCount(startDate, endDate, userId),
         ])
-        setMealSlotCount(slotCount)
-        const completed = fetchedLog?.meal_completed ?? 0
-        setMealChecked(
-          Array.from({ length: slotCount }, (_, i) => i < completed)
-        )
+        setMealSlotNames(slotNames)
+        const checked = (fetchedLog?.meal_checked as string[]) ?? []
+        setMealCheckedSet(new Set(checked))
         setWeeklyCardioCount(cardioCount)
       } else {
-        setMealSlotCount(0)
-        setMealChecked([])
+        setMealSlotNames([])
+        setMealCheckedSet(new Set())
         setWeeklyCardioCount(0)
       }
     }
@@ -185,19 +186,38 @@ export default function DailyPage() {
   }
 
   async function handleAddMealSlot() {
-    const newCount = mealSlotCount + 1
-    await upsertMealSlotConfig(userId, date, newCount)
-    setMealSlotCount(newCount)
-    setMealChecked(prev => [...prev, false])
+    const name = newMealName.trim()
+    if (!name) return
+    if (mealSlotNames.includes(name)) return
+    const newNames = [...mealSlotNames, name]
+    await upsertMealSlotConfig(userId, date, newNames)
+    setMealSlotNames(newNames)
+    setNewMealName('')
+    setShowMealInput(false)
   }
 
-  function toggleMealSlot(index: number) {
-    setMealChecked(prev => {
-      const next = [...prev]
-      next[index] = !next[index]
-      const completed = next.filter(Boolean).length
-      updateField('meal_completed', completed)
-      updateField('meal_total', mealSlotCount)
+  function toggleMealSlot(name: string) {
+    setMealCheckedSet(prev => {
+      const next = new Set(prev)
+      if (next.has(name)) next.delete(name)
+      else next.add(name)
+      const checkedArr = Array.from(next)
+      setLog(l => {
+        const updated = { ...l, meal_completed: checkedArr.length, meal_total: mealSlotNames.length, meal_checked: checkedArr }
+        autoSave(updated)
+        return updated
+      })
+      return next
+    })
+  }
+
+  async function handleRemoveMealSlot(name: string) {
+    const newNames = mealSlotNames.filter(n => n !== name)
+    await upsertMealSlotConfig(userId, date, newNames)
+    setMealSlotNames(newNames)
+    setMealCheckedSet(prev => {
+      const next = new Set(prev)
+      next.delete(name)
       return next
     })
   }
@@ -324,25 +344,48 @@ export default function DailyPage() {
       {/* 식단 횟수 (5주차~) */}
       {weekNumber !== null && weekNumber >= 5 && (
         <Section title="식단 횟수" right={
-          <button onClick={handleAddMealSlot} className="text-xs text-accent font-medium">+추가</button>
+          <button onClick={() => setShowMealInput(!showMealInput)} className="text-xs text-accent font-medium">+추가</button>
         }>
-          {mealSlotCount > 0 ? (
+          {showMealInput && (
+            <div className="flex gap-2 mb-3">
+              <input
+                type="text"
+                placeholder="식사 이름 (예: 아침, 간식)"
+                value={newMealName}
+                onChange={(e) => setNewMealName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleAddMealSlot() }}
+                className="flex-1 border border-border rounded-lg px-3 py-2 text-sm bg-background"
+                autoFocus
+              />
+              <button
+                onClick={handleAddMealSlot}
+                className="px-3 py-2 rounded-lg text-sm font-medium bg-accent text-white"
+              >
+                추가
+              </button>
+            </div>
+          )}
+          {mealSlotNames.length > 0 ? (
             <>
               <div className="flex flex-wrap gap-2">
-                {mealChecked.map((checked, i) => (
-                  <button
-                    key={i}
-                    onClick={() => toggleMealSlot(i)}
-                    className={`w-12 h-10 rounded-lg border-2 flex items-center justify-center transition-colors text-sm ${
-                      checked ? 'border-accent bg-accent/10 text-accent font-bold' : 'border-border bg-surface text-text-secondary'
-                    }`}
-                  >
-                    {checked ? '\u2713' : i + 1}
-                  </button>
-                ))}
+                {mealSlotNames.map(name => {
+                  const checked = mealCheckedSet.has(name)
+                  return (
+                    <button
+                      key={name}
+                      onClick={() => toggleMealSlot(name)}
+                      onContextMenu={(e) => { e.preventDefault(); if (confirm(`'${name}' 삭제?`)) handleRemoveMealSlot(name) }}
+                      className={`px-3 h-10 rounded-lg border-2 flex items-center justify-center transition-colors text-sm ${
+                        checked ? 'border-accent bg-accent/10 text-accent font-bold' : 'border-border bg-surface text-text-secondary'
+                      }`}
+                    >
+                      {checked ? `✓ ${name}` : name}
+                    </button>
+                  )
+                })}
               </div>
               <p className="text-xs text-text-secondary mt-2">
-                {mealChecked.filter(Boolean).length} / {mealSlotCount}
+                {mealCheckedSet.size} / {mealSlotNames.length}
               </p>
             </>
           ) : (
@@ -378,7 +421,7 @@ export default function DailyPage() {
       </Section>
 
       {/* 영양제 체크리스트 */}
-      <Section title="영양제">
+      <Section title="영양제" collapsible defaultOpen={false} badge={`${checkedSupps.size}/${SUPPLEMENTS.length}`}>
         <div className="grid grid-cols-2 gap-2">
           {SUPPLEMENTS.map(name => (
             <button
@@ -406,7 +449,7 @@ export default function DailyPage() {
       </Section>
 
       {/* 수분 + 메모 */}
-      <Section title="추가">
+      <Section title="추가" collapsible defaultOpen={false} badge={log.water_liters ? `${(log.water_liters).toFixed(2)}L` : undefined}>
         <div className="space-y-3">
           <WaterCups value={log.water_liters} onChange={(v) => updateField('water_liters', v)} />
           <div>
@@ -428,16 +471,33 @@ export default function DailyPage() {
   )
 }
 
-function Section({ title, right, children }: { title: string; right?: React.ReactNode; children: React.ReactNode }) {
+function Section({ title, right, children, collapsible, defaultOpen = true, badge }: {
+  title: string; right?: React.ReactNode; children: React.ReactNode
+  collapsible?: boolean; defaultOpen?: boolean; badge?: string
+}) {
+  const [open, setOpen] = useState(defaultOpen)
   return (
     <div className="bg-surface border border-border rounded-xl p-4">
       {title && (
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-medium">{title}</p>
+        <div
+          className={`flex items-center justify-between ${open ? 'mb-3' : ''}`}
+          onClick={collapsible ? () => setOpen(!open) : undefined}
+          style={collapsible ? { cursor: 'pointer' } : undefined}
+        >
+          <div className="flex items-center gap-2">
+            {collapsible && (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                className={`text-text-secondary transition-transform ${open ? 'rotate-90' : ''}`}>
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            )}
+            <p className="text-sm font-medium">{title}</p>
+            {badge && !open && <span className="text-xs text-text-secondary">{badge}</span>}
+          </div>
           {right}
         </div>
       )}
-      {children}
+      {open && children}
     </div>
   )
 }
