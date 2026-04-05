@@ -34,10 +34,12 @@ export default function KakaoShareText({ log, weekNumber, weeklyCardioCount }: K
     dateStr,
     `총 수면 시간 : ${sleepDisplay} (${sleepTimeShort} / ${wakeTimeShort})`,
     `운동 여부 : ${log.workout_done ? 'O' : 'X'}`,
-    `당/가공식품 섭취 여부 : ${log.sugar_processed || 'X'}`,
   ]
   if (weekNumber && weekNumber >= 5) {
     lines.push(`식단 : ${log.meal_completed ?? 0}/${log.meal_total ?? 0}`)
+  }
+  lines.push(`당/가공식품 섭취 여부 : ${log.sugar_processed || 'X'}`)
+  if (weekNumber && weekNumber >= 5) {
     lines.push(`저강도 유산소 : ${weeklyCardioCount ?? 0}/2`)
   }
   const text = lines.join('\n')
