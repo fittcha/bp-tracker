@@ -5,6 +5,7 @@ import { toDateString } from '@/lib/utils'
 import { getWorkoutLogs, upsertWorkoutLog, batchInsertWorkoutLogs, addCustomExercise, deleteWorkoutLog, WorkoutLog } from '@/lib/api/workout-logs'
 import { getTemplatesByWeek, getWeeks } from '@/lib/api/workout-templates'
 import { getLoggedInUser } from '@/lib/auth'
+import { getCardioLog, upsertCardioLog, CardioLog } from '@/lib/api/cardio-logs'
 import CustomExerciseForm from '@/components/workout/CustomExerciseForm'
 import Calculator from '@/components/workout/Calculator'
 import ExerciseGifModal from '@/components/workout/ExerciseGifModal'
@@ -47,6 +48,9 @@ export default function WorkoutPage() {
   const debounceRef = useRef<Record<string, NodeJS.Timeout>>({})
   const [gifModalExercise, setGifModalExercise] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [cardioLog, setCardioLog] = useState<CardioLog | null>(null)
+  const [cardioMemo, setCardioMemo] = useState('')
+  const [showCardioMemo, setShowCardioMemo] = useState(false)
   const longPressRef = useRef<Record<string, NodeJS.Timeout>>({})
 
   function handleLongPressStart(exerciseName: string) {
@@ -118,6 +122,17 @@ export default function WorkoutPage() {
     } else {
       setWeekId(null)
       setWeekInfo(null)
+    }
+
+    if (week?.week_number && week.week_number >= 5) {
+      const cLog = await getCardioLog(date, userId)
+      setCardioLog(cLog)
+      setCardioMemo(cLog?.memo || '')
+      setShowCardioMemo(!!cLog?.memo)
+    } else {
+      setCardioLog(null)
+      setCardioMemo('')
+      setShowCardioMemo(false)
     }
 
     const d = new Date(date)
@@ -247,6 +262,35 @@ export default function WorkoutPage() {
   async function handleDeleteLog(id: string) {
     await deleteWorkoutLog(id)
     setLogs(prev => prev.filter(l => l.id !== id))
+  }
+
+  const cardioDebounceRef = useRef<NodeJS.Timeout>(undefined)
+
+  async function handleCardioToggle() {
+    const newCompleted = !cardioLog?.completed
+    const updated = await upsertCardioLog({
+      user_id: userId,
+      date,
+      completed: newCompleted,
+      memo: cardioMemo || null,
+      ...(cardioLog?.id ? { id: cardioLog.id } : {}),
+    })
+    setCardioLog(updated)
+  }
+
+  function handleCardioMemoChange(value: string) {
+    setCardioMemo(value)
+    if (cardioDebounceRef.current) clearTimeout(cardioDebounceRef.current)
+    cardioDebounceRef.current = setTimeout(async () => {
+      const updated = await upsertCardioLog({
+        user_id: userId,
+        date,
+        completed: cardioLog?.completed ?? false,
+        memo: value || null,
+        ...(cardioLog?.id ? { id: cardioLog.id } : {}),
+      })
+      setCardioLog(updated)
+    }, 800)
   }
 
   const coachLogs = logs.filter(l => !l.is_custom).sort((a, b) => {
@@ -389,6 +433,42 @@ export default function WorkoutPage() {
         </div>
       ) : (
         <>
+          {/* 저강도 유산소 (5주차~, 평일만) */}
+          {weekInfo?.week_number !== undefined && weekInfo.week_number >= 5 && selectedDay <= 5 && (
+            <div className="bg-surface border border-border rounded-xl p-3 mb-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">저강도 유산소</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowCardioMemo(!showCardioMemo)}
+                    className="text-xs text-text-secondary"
+                  >
+                    메모
+                  </button>
+                  <button
+                    onClick={handleCardioToggle}
+                    className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center text-sm transition-colors ${
+                      cardioLog?.completed
+                        ? 'border-accent bg-accent/10 text-accent font-bold'
+                        : 'border-border bg-surface'
+                    }`}
+                  >
+                    {cardioLog?.completed ? '✓' : ''}
+                  </button>
+                </div>
+              </div>
+              {showCardioMemo && (
+                <textarea
+                  value={cardioMemo}
+                  onChange={(e) => handleCardioMemoChange(e.target.value)}
+                  placeholder="머신 종류, 시간 등"
+                  className="w-full mt-2 p-2 text-sm bg-background border border-border rounded-lg resize-none"
+                  rows={1}
+                />
+              )}
+            </div>
+          )}
+
           {/* Coach exercises grouped by section */}
           {sections.map(({ section, items }) => {
             const isGroup = items.length > 1
