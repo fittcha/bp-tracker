@@ -9,6 +9,7 @@ import FoodImageUpload from '@/components/daily/FoodImageUpload'
 import MacroDonutChart from '@/components/daily/MacroDonutChart'
 import KakaoShareText from '@/components/daily/KakaoShareText'
 import { getMealSlotCount, upsertMealSlotConfig } from '@/lib/api/meal-slots'
+import { getWeeklyCardioCount } from '@/lib/api/cardio-logs'
 
 const SUPPLEMENTS = [
   '비타민B',
@@ -62,6 +63,7 @@ export default function DailyPage() {
   const [weekNumber, setWeekNumber] = useState<number | null>(null)
   const [mealSlotCount, setMealSlotCount] = useState(0)
   const [mealChecked, setMealChecked] = useState<boolean[]>([])
+  const [weeklyCardioCount, setWeeklyCardioCount] = useState(0)
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
   const isLoadedRef = useRef(false)
 
@@ -95,18 +97,32 @@ export default function DailyPage() {
       const wn = week?.week_number ?? null
       setWeekNumber(wn)
       if (wn !== null && wn >= 5) {
-        const [slotCount, fetchedLog] = await Promise.all([
+        // Calculate week range (Mon-Sun) for cardio count
+        const d = new Date(date + 'T00:00:00')
+        const dayOfWeek = d.getDay() // 0=Sun, 1=Mon...
+        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+        const monday = new Date(d)
+        monday.setDate(d.getDate() + mondayOffset)
+        const sunday = new Date(monday)
+        sunday.setDate(monday.getDate() + 6)
+        const startDate = monday.toISOString().split('T')[0]
+        const endDate = sunday.toISOString().split('T')[0]
+
+        const [slotCount, fetchedLog, cardioCount] = await Promise.all([
           getMealSlotCount(date, userId),
           getDailyLog(date, userId),
+          getWeeklyCardioCount(startDate, endDate, userId),
         ])
         setMealSlotCount(slotCount)
         const completed = fetchedLog?.meal_completed ?? 0
         setMealChecked(
           Array.from({ length: slotCount }, (_, i) => i < completed)
         )
+        setWeeklyCardioCount(cardioCount)
       } else {
         setMealSlotCount(0)
         setMealChecked([])
+        setWeeklyCardioCount(0)
       }
     }
     load()
@@ -407,7 +423,7 @@ export default function DailyPage() {
       </Section>
 
       {/* Kakao share */}
-      {log.id && <KakaoShareText log={log} />}
+      {log.id && <KakaoShareText log={log} weekNumber={weekNumber} weeklyCardioCount={weeklyCardioCount} />}
     </div>
   )
 }
