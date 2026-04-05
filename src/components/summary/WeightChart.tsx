@@ -40,10 +40,15 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
   const range = maxWeight - minWeight
   const tickStep = range > 4 ? 1 : 0.5
   const yTicks: number[] = []
+  const yGridTicks: number[] = []  // 0.5kg grid lines
   if (isAll) {
     const start = Math.ceil(minWeight / tickStep) * tickStep
     for (let v = start; v <= maxWeight + 0.01; v += tickStep) {
       yTicks.push(Math.round(v * 10) / 10)
+    }
+    const gridStart = Math.ceil(minWeight * 2) / 2
+    for (let v = gridStart; v <= maxWeight + 0.01; v += 0.5) {
+      yGridTicks.push(Math.round(v * 2) / 2)
     }
   }
 
@@ -147,8 +152,8 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
           <YAxis
             domain={[minWeight, maxWeight]}
             hide={!isAll}
-            ticks={isAll ? yTicks : undefined}
-            tickFormatter={isAll ? (v: number) => `${v}` : undefined}
+            ticks={isAll ? yGridTicks : undefined}
+            tickFormatter={isAll ? (v: number) => (v % tickStep === 0 ? `${v}` : '') : undefined}
             tick={isAll ? { fontSize: 9, fill: '#9CA3AF' } : undefined}
             axisLine={false}
             tickLine={false}
