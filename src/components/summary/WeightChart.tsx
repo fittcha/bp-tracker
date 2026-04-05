@@ -156,6 +156,7 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
             ticks={isAll ? yTicks : undefined}
             tickFormatter={isAll ? (v: number) => `${v}` : undefined}
             tick={isAll ? { fontSize: 9, fill: '#9CA3AF' } : undefined}
+            interval={0}
             axisLine={false}
             tickLine={false}
             width={isAll ? 28 : 0}
