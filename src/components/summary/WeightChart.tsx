@@ -36,11 +36,14 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
   const minWeight = isAll ? Math.floor(rawMin * 2) / 2 : rawMin   // snap down to 0.5
   const maxWeight = isAll ? Math.ceil(rawMax * 2) / 2 : rawMax    // snap up to 0.5
 
-  // Y-axis ticks: 0.5kg grid lines, 1kg labels
-  const yTicks05: number[] = []
+  // Y-axis ticks: dynamic interval based on range
+  const range = maxWeight - minWeight
+  const tickStep = range > 8 ? 2 : range > 4 ? 1 : 0.5
+  const yTicks: number[] = []
   if (isAll) {
-    for (let v = minWeight; v <= maxWeight + 0.01; v += 0.5) {
-      yTicks05.push(Math.round(v * 2) / 2)
+    const start = Math.ceil(minWeight / tickStep) * tickStep
+    for (let v = start; v <= maxWeight + 0.01; v += tickStep) {
+      yTicks.push(Math.round(v * 10) / 10)
     }
   }
 
@@ -144,8 +147,8 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
           <YAxis
             domain={[minWeight, maxWeight]}
             hide={!isAll}
-            ticks={isAll ? yTicks05 : undefined}
-            tickFormatter={isAll ? (v: number) => (v % 1 === 0 ? `${v}` : '') : undefined}
+            ticks={isAll ? yTicks : undefined}
+            tickFormatter={isAll ? (v: number) => `${v}` : undefined}
             tick={isAll ? { fontSize: 9, fill: '#9CA3AF' } : undefined}
             axisLine={false}
             tickLine={false}
