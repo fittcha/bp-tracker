@@ -67,6 +67,7 @@ export default function DailyPage() {
   const [weeklyCardioCount, setWeeklyCardioCount] = useState(0)
   const [showMealInput, setShowMealInput] = useState(false)
   const [newMealName, setNewMealName] = useState('')
+  const [mealEditMode, setMealEditMode] = useState(false)
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
   const isLoadedRef = useRef(false)
 
@@ -344,7 +345,14 @@ export default function DailyPage() {
       {/* 식단 횟수 (5주차~) */}
       {weekNumber !== null && weekNumber >= 5 && (
         <Section title="식단 횟수" right={
-          <button onClick={() => setShowMealInput(!showMealInput)} className="text-xs text-accent font-medium">+추가</button>
+          <div className="flex items-center gap-2">
+            {mealSlotNames.length > 0 && (
+              <button onClick={() => { setMealEditMode(!mealEditMode); setShowMealInput(false) }} className={`text-xs font-medium ${mealEditMode ? 'text-success' : 'text-text-secondary'}`}>
+                {mealEditMode ? '완료' : '편집'}
+              </button>
+            )}
+            <button onClick={() => { setShowMealInput(!showMealInput); setMealEditMode(false) }} className="text-xs text-accent font-medium">+추가</button>
+          </div>
         }>
           {showMealInput && (
             <div className="flex gap-2 mb-3">
@@ -366,25 +374,32 @@ export default function DailyPage() {
             </div>
           )}
           {mealSlotNames.length > 0 ? (
-            <>
-              <div className="flex flex-wrap gap-2">
-                {mealSlotNames.map(name => {
-                  const checked = mealCheckedSet.has(name)
-                  return (
+            <div className="flex flex-wrap gap-2">
+              {mealSlotNames.map(name => {
+                const checked = mealCheckedSet.has(name)
+                return (
+                  <div key={name} className="relative">
                     <button
-                      key={name}
-                      onClick={() => toggleMealSlot(name)}
-                      onContextMenu={(e) => { e.preventDefault(); if (confirm(`'${name}' 삭제?`)) handleRemoveMealSlot(name) }}
+                      onClick={() => !mealEditMode && toggleMealSlot(name)}
                       className={`px-3 h-10 rounded-lg border flex items-center justify-center transition-colors text-sm ${
+                        mealEditMode ? 'border-danger/30 bg-surface text-text-secondary' :
                         checked ? 'border-blue-500 bg-surface text-blue-500' : 'border-border bg-surface text-text-secondary'
                       }`}
                     >
                       {name}
                     </button>
-                  )
-                })}
-              </div>
-            </>
+                    {mealEditMode && (
+                      <button
+                        onClick={() => handleRemoveMealSlot(name)}
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-danger text-white flex items-center justify-center text-xs"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           ) : (
             <p className="text-xs text-text-secondary">+추가 버튼으로 식사 루틴을 추가하세요</p>
           )}
