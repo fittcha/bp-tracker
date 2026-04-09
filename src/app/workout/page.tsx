@@ -5,7 +5,7 @@ import { toDateString } from '@/lib/utils'
 import { getWorkoutLogs, upsertWorkoutLog, batchInsertWorkoutLogs, addCustomExercise, deleteWorkoutLog, WorkoutLog } from '@/lib/api/workout-logs'
 import { getTemplatesByWeek, getWeeks } from '@/lib/api/workout-templates'
 import { getLoggedInUser } from '@/lib/auth'
-import { getCardioLog, upsertCardioLog, getWeeklyCardioCount, CardioLog } from '@/lib/api/cardio-logs'
+import { getCardioLog, upsertCardioLog, CardioLog } from '@/lib/api/cardio-logs'
 import CustomExerciseForm from '@/components/workout/CustomExerciseForm'
 import Calculator from '@/components/workout/Calculator'
 import ExerciseGifModal from '@/components/workout/ExerciseGifModal'
@@ -51,7 +51,6 @@ export default function WorkoutPage() {
   const [cardioLog, setCardioLog] = useState<CardioLog | null>(null)
   const [cardioMemo, setCardioMemo] = useState('')
   const [showCardioMemo, setShowCardioMemo] = useState(false)
-  const [weeklyCardioCount, setWeeklyCardioCount] = useState(0)
   const longPressRef = useRef<Record<string, NodeJS.Timeout>>({})
 
   function handleLongPressStart(exerciseName: string) {
@@ -130,23 +129,10 @@ export default function WorkoutPage() {
       setCardioLog(cLog)
       setCardioMemo(cLog?.memo || '')
       setShowCardioMemo(!!cLog?.memo)
-      // 주간 유산소 횟수 (월~일)
-      const d2 = new Date(date + 'T00:00:00')
-      const dow2 = d2.getDay()
-      const mondayOffset = dow2 === 0 ? -6 : 1 - dow2
-      const monday = new Date(d2)
-      monday.setDate(d2.getDate() + mondayOffset)
-      const sunday = new Date(monday)
-      sunday.setDate(monday.getDate() + 6)
-      const startDate = monday.toISOString().split('T')[0]
-      const endDate = sunday.toISOString().split('T')[0]
-      const count = await getWeeklyCardioCount(startDate, endDate, userId)
-      setWeeklyCardioCount(count)
     } else {
       setCardioLog(null)
       setCardioMemo('')
       setShowCardioMemo(false)
-      setWeeklyCardioCount(0)
     }
 
     const d = new Date(date)
@@ -290,7 +276,6 @@ export default function WorkoutPage() {
       ...(cardioLog?.id ? { id: cardioLog.id } : {}),
     })
     setCardioLog(updated)
-    setWeeklyCardioCount(prev => newCompleted ? prev + 1 : prev - 1)
   }
 
   function handleCardioMemoChange(value: string) {
@@ -424,7 +409,7 @@ export default function WorkoutPage() {
             </button>
             <span className="text-xs font-bold text-accent">저강도 유산소</span>
             <span className="text-xs text-text-secondary font-medium">45분+</span>
-            <span className="text-xs text-text-secondary font-medium">({weeklyCardioCount}/2)</span>
+
             <div className="flex-1" />
             <button
               onClick={() => setShowCardioMemo(!showCardioMemo)}
