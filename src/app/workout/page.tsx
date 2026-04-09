@@ -5,7 +5,7 @@ import { toDateString } from '@/lib/utils'
 import { getWorkoutLogs, upsertWorkoutLog, batchInsertWorkoutLogs, addCustomExercise, deleteWorkoutLog, WorkoutLog } from '@/lib/api/workout-logs'
 import { getTemplatesByWeek, getWeeks } from '@/lib/api/workout-templates'
 import { getLoggedInUser } from '@/lib/auth'
-import { getCardioLog, upsertCardioLog, CardioLog } from '@/lib/api/cardio-logs'
+import { getCardioLog, upsertCardioLog, getWeeklyCardioCount, CardioLog } from '@/lib/api/cardio-logs'
 import CustomExerciseForm from '@/components/workout/CustomExerciseForm'
 import Calculator from '@/components/workout/Calculator'
 import ExerciseGifModal from '@/components/workout/ExerciseGifModal'
@@ -51,6 +51,7 @@ export default function WorkoutPage() {
   const [cardioLog, setCardioLog] = useState<CardioLog | null>(null)
   const [cardioMemo, setCardioMemo] = useState('')
   const [showCardioMemo, setShowCardioMemo] = useState(false)
+  const [weeklyCardioCount, setWeeklyCardioCount] = useState(0)
   const longPressRef = useRef<Record<string, NodeJS.Timeout>>({})
 
   function handleLongPressStart(exerciseName: string) {
@@ -129,10 +130,23 @@ export default function WorkoutPage() {
       setCardioLog(cLog)
       setCardioMemo(cLog?.memo || '')
       setShowCardioMemo(!!cLog?.memo)
+      // 주간 유산소 횟수 (월~일)
+      const d2 = new Date(date + 'T00:00:00')
+      const dow2 = d2.getDay()
+      const mondayOffset = dow2 === 0 ? -6 : 1 - dow2
+      const monday = new Date(d2)
+      monday.setDate(d2.getDate() + mondayOffset)
+      const sunday = new Date(monday)
+      sunday.setDate(monday.getDate() + 6)
+      const startDate = monday.toISOString().split('T')[0]
+      const endDate = sunday.toISOString().split('T')[0]
+      const count = await getWeeklyCardioCount(startDate, endDate, userId)
+      setWeeklyCardioCount(count)
     } else {
       setCardioLog(null)
       setCardioMemo('')
       setShowCardioMemo(false)
+      setWeeklyCardioCount(0)
     }
 
     const d = new Date(date)
@@ -276,6 +290,7 @@ export default function WorkoutPage() {
       ...(cardioLog?.id ? { id: cardioLog.id } : {}),
     })
     setCardioLog(updated)
+    setWeeklyCardioCount(prev => newCompleted ? prev + 1 : prev - 1)
   }
 
   function handleCardioMemoChange(value: string) {
@@ -379,11 +394,6 @@ export default function WorkoutPage() {
               >
                 <span className="font-medium">{wd.label}</span>
                 <span className="text-lg font-bold mt-0.5">{wd.dayOfMonth}</span>
-                {wd.isWorkoutDay && (
-                  <span className={`text-[10px] mt-0.5 ${isSelected ? 'text-white/70' : 'text-text-secondary'}`}>
-                    Day{wd.dayNum}
-                  </span>
-                )}
               </button>
             )
           })}
@@ -396,8 +406,8 @@ export default function WorkoutPage() {
         </button>
       </div>
 
-      {/* 저강도 유산소 (5주차~, 평일만) */}
-      {weekInfo?.week_number !== undefined && weekInfo.week_number >= 5 && selectedDay <= 5 && (
+      {/* 저강도 유산소 (5주차~) */}
+      {weekInfo?.week_number !== undefined && weekInfo.week_number >= 5 && (
         <div className="bg-background border border-border rounded-xl overflow-hidden">
           <div className="px-4 py-2.5 flex items-center gap-2">
             <button
@@ -414,6 +424,7 @@ export default function WorkoutPage() {
             </button>
             <span className="text-xs font-bold text-accent">저강도 유산소</span>
             <span className="text-xs text-text-secondary font-medium">45분+</span>
+            <span className="text-xs text-text-secondary font-medium">({weeklyCardioCount}/2)</span>
             <div className="flex-1" />
             <button
               onClick={() => setShowCardioMemo(!showCardioMemo)}
@@ -456,7 +467,7 @@ export default function WorkoutPage() {
 
       {/* Progress + Search */}
       {totalSections > 0 && (
-        <div className={`flex items-center justify-between -mb-0.5 ${weekInfo?.week_number !== undefined && weekInfo.week_number >= 5 && selectedDay <= 5 ? '-mt-2' : ''}`}>
+        <div className={`flex items-center justify-between -mb-0.5 ${weekInfo?.week_number !== undefined && weekInfo.week_number >= 5 ? '-mt-2' : ''}`}>
           <span className="text-xs text-text-secondary">
             {completedSections}/{totalSections} 완료
           </span>
