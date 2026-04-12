@@ -627,7 +627,7 @@ export default function WorkoutPage() {
                               {tmpl.sets && `${tmpl.sets}세트`} {tmpl.reps && `× ${tmpl.reps}`}
                             </p>
                           )}
-                          {tmpl?.notes && !isNewSubGroup && (() => {
+                          {tmpl?.notes && (!isNewSubGroup || setsChanged) && (() => {
                             // For first item in superset/setInfo group, strip the group label prefix and show remainder
                             if (isGroup && tmpl === firstTmpl) {
                               if (isSetInfo) return null // already shown in group label
