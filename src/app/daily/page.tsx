@@ -504,7 +504,7 @@ export default function DailyPage() {
       </Section>
 
       {/* Kakao share */}
-      {log.id && <KakaoShareText log={log} weekNumber={weekNumber} weeklyCardioCount={weeklyCardioCount} />}
+      {<KakaoShareText log={log} weekNumber={weekNumber} weeklyCardioCount={weeklyCardioCount} />}
     </div>
   )
 }
