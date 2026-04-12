@@ -109,8 +109,8 @@ export default function DailyPage() {
         monday.setDate(d.getDate() + mondayOffset)
         const sunday = new Date(monday)
         sunday.setDate(monday.getDate() + 6)
-        const startDate = monday.toISOString().split('T')[0]
-        const endDate = sunday.toISOString().split('T')[0]
+        const startDate = toDateString(monday)
+        const endDate = toDateString(sunday)
 
         const [slotNames, fetchedLog, cardioCount] = await Promise.all([
           getMealSlotNames(date, userId),
@@ -130,6 +130,26 @@ export default function DailyPage() {
     load()
     loadWeek()
   }, [date, userId])
+
+  // Refresh cardio count when tab becomes visible (e.g. after checking in workout tab)
+  useEffect(() => {
+    function handleVisibility() {
+      if (document.visibilityState !== 'visible') return
+      if (weekNumber === null || weekNumber < 5) return
+      const d = new Date(date + 'T00:00:00')
+      const dayOfWeek = d.getDay()
+      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+      const monday = new Date(d)
+      monday.setDate(d.getDate() + mondayOffset)
+      const sunday = new Date(monday)
+      sunday.setDate(monday.getDate() + 6)
+      const startDate = toDateString(monday)
+      const endDate = toDateString(sunday)
+      getWeeklyCardioCount(startDate, endDate, userId).then(setWeeklyCardioCount)
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [date, userId, weekNumber])
 
   const autoSave = useCallback((updated: DailyLog) => {
     if (!isLoadedRef.current) return
