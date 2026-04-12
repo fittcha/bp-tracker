@@ -571,16 +571,19 @@ export default function WorkoutPage() {
                     // For "Every X minutes" style, still show reps if available
                     const showRepsPrefix = isGroup && !isSetInfo && tmpl?.reps && tmpl.reps !== '1'
 
-                    // Sub-group detection: insert divider when notes type changes within a section
+                    // Sub-group detection: insert divider when notes type changes or sets changes within a section
                     const getSubType = (n: string) =>
                       n.includes('superset') ? 'superset' : n.includes('amrap') ? 'amrap' : n.includes('emom') ? 'emom' : n.includes('every') ? 'every' : null
                     const curNotes = (tmpl?.notes || '').toLowerCase()
                     const prevNotes = (items[logIndex - 1]?.template?.notes || '').toLowerCase()
                     const curSubType = getSubType(curNotes)
                     const prevSubType = getSubType(prevNotes)
-                    const isNewSubGroup = logIndex > 0 && curSubType && curSubType !== prevSubType
+                    const prevTmpl = items[logIndex - 1]?.template
+                    const setsChanged = isGroup && logIndex > 0 && tmpl?.sets && prevTmpl?.sets && tmpl.sets !== prevTmpl.sets
+                    const isNewSubGroup = logIndex > 0 && ((curSubType && curSubType !== prevSubType) || setsChanged)
                     const subGroupLabel = isNewSubGroup
-                      ? curSubType === 'superset' ? `Superset${tmpl?.sets ? ` · ${tmpl.sets} Sets` : ''}` : tmpl?.notes
+                      ? setsChanged ? `${tmpl?.sets} Set${tmpl?.sets !== '1' ? 's' : ''}`
+                      : curSubType === 'superset' ? `Superset${tmpl?.sets ? ` · ${tmpl.sets} Sets` : ''}` : tmpl?.notes
                       : null
 
                     return (
@@ -624,9 +627,15 @@ export default function WorkoutPage() {
                               {tmpl.sets && `${tmpl.sets}세트`} {tmpl.reps && `× ${tmpl.reps}`}
                             </p>
                           )}
-                          {tmpl?.notes && !(isGroup && (isSuperset || isSetInfo) && tmpl === firstTmpl) && !isNewSubGroup && (
-                            <p className="text-[11px] text-text-secondary italic mt-0.5">{tmpl.notes}</p>
-                          )}
+                          {tmpl?.notes && !isNewSubGroup && (() => {
+                            // For first item in superset/setInfo group, strip the group label prefix and show remainder
+                            if (isGroup && (isSuperset || isSetInfo) && tmpl === firstTmpl) {
+                              const stripped = tmpl.notes.replace(/^Superset\s*\/?\.?\s*/i, '').replace(/^\s*\/\s*/, '').trim()
+                              if (!stripped) return null
+                              return <p className="text-[11px] text-text-secondary italic mt-0.5">{stripped}</p>
+                            }
+                            return <p className="text-[11px] text-text-secondary italic mt-0.5">{tmpl.notes}</p>
+                          })()}
                         </div>
 
                         {/* Weight toggle checkbox + input */}
