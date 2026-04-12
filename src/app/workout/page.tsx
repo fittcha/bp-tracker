@@ -629,10 +629,13 @@ export default function WorkoutPage() {
                           )}
                           {tmpl?.notes && !isNewSubGroup && (() => {
                             // For first item in superset/setInfo group, strip the group label prefix and show remainder
-                            if (isGroup && (isSuperset || isSetInfo) && tmpl === firstTmpl) {
-                              const stripped = tmpl.notes.replace(/^Superset\s*\/?\.?\s*/i, '').replace(/^\s*\/\s*/, '').trim()
-                              if (!stripped) return null
-                              return <p className="text-[11px] text-text-secondary italic mt-0.5">{stripped}</p>
+                            if (isGroup && tmpl === firstTmpl) {
+                              if (isSetInfo) return null // already shown in group label
+                              if (isSuperset) {
+                                const stripped = tmpl.notes.replace(/^Superset\s*\/?\.?\s*/i, '').replace(/^\s*\/\s*/, '').trim()
+                                if (!stripped) return null
+                                return <p className="text-[11px] text-text-secondary italic mt-0.5">{stripped}</p>
+                              }
                             }
                             return <p className="text-[11px] text-text-secondary italic mt-0.5">{tmpl.notes}</p>
                           })()}
