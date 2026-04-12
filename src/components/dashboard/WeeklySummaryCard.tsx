@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { getLoggedInUser } from '@/lib/auth'
+import { toDateString } from '@/lib/utils'
 
 const PROGRAM_START = '2026-03-09'
 
@@ -22,7 +23,7 @@ export default function WeeklySummaryCard() {
 
   useEffect(() => {
     async function fetchOverall() {
-      const todayStr = new Date().toISOString().split('T')[0]
+      const todayStr = toDateString(new Date())
 
       const { data: logs } = await supabase
         .from('daily_logs')

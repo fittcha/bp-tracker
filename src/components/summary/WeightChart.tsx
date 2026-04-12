@@ -1,6 +1,7 @@
 'use client'
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList } from 'recharts'
+import { toDateString } from '@/lib/utils'
 
 interface WeekInfo {
   start_date: string
@@ -51,7 +52,7 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
   }
 
   // Find today's data point index (fallback to last data point)
-  const todayStr = new Date().toISOString().split('T')[0]
+  const todayStr = toDateString(new Date())
   const todayDataIndex = data.findIndex(d => d.date === todayStr && d.weight != null)
   let lastDataIndex = -1
   data.forEach((d, i) => { if (d.weight != null) lastDataIndex = i })
