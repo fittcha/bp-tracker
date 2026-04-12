@@ -183,7 +183,7 @@ SELECT w.id, 5, 'WOD', '박스 와드', NULL, NULL, NULL, NULL, 0 FROM weeks w W
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
 SELECT w.id, 5, 'A', 'Close Grip Bench Press', '4', '6', 120, '@ The Heaviest Weight of Last Week / Rest 2:00 b/w sets', 1 FROM weeks w WHERE w.week_number = 6;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 5, 'A', 'Close Grip Bench Press', '1', 'Max reps @ Light', 120, 'No More than 30 reps / Rest 2:00 b/w sets', 2 FROM weeks w WHERE w.week_number = 6;
+SELECT w.id, 5, 'A', 'Close Grip Bench Press', '1', 'Max reps @ Light', NULL, 'No More than 30 reps', 2 FROM weeks w WHERE w.week_number = 6;
 
 -- B. 4 Sets: 8 Standing DB Press @ Heavier than Week 5 *Rest 1:30 b/w sets
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
