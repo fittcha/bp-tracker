@@ -499,8 +499,12 @@ export default function WorkoutPage() {
             // Notes starting with @, *, Rest, Climbing are exercise-specific, not setInfo
             const isExerciseNote = /^[@*]|^Rest\b|^Climbing\b/i.test(firstNotes)
             const isSetInfo = firstNotes && !isExerciseNote && !isSuperset
+            // For setInfo notes with " / ", split: non-exercise parts → group label, exercise parts → shown below
+            const setInfoParts = isSetInfo ? firstNotes.split(' / ') : []
+            const setInfoLabel = setInfoParts.filter(p => !/^[@*]|^Rest\b|^Climbing\b|^No\s/i.test(p)).join(' / ')
+            const setInfoExerciseNotes = setInfoParts.filter(p => /^[@*]|^Rest\b|^Climbing\b|^No\s/i.test(p)).join(' / ')
             const groupLabel = isSuperset ? `Superset${groupSets ? ` · ${groupSets} Sets` : ''}`
-              : isSetInfo ? `${groupSets ? `${groupSets} Sets · ` : ''}${firstNotes}`
+              : isSetInfo && setInfoLabel ? `${groupSets ? `${groupSets} Sets · ` : ''}${setInfoLabel}`
               : isGroup && groupSets ? `${groupSets} Sets` : null
 
             // Group completion state
@@ -629,8 +633,12 @@ export default function WorkoutPage() {
                           )}
                           {tmpl?.notes && (!isNewSubGroup || setsChanged) && (() => {
                             // For first item in superset/setInfo group, strip the group label prefix and show remainder
-                            if (isGroup && tmpl === firstTmpl) {
-                              if (isSetInfo) return null // already shown in group label
+                            if (tmpl === firstTmpl) {
+                              if (isSetInfo) {
+                                // Show only exercise-specific parts (already stripped from group label)
+                                if (!setInfoExerciseNotes) return null
+                                return <p className="text-[11px] text-text-secondary italic mt-0.5">{setInfoExerciseNotes}</p>
+                              }
                               if (isSuperset) {
                                 const stripped = tmpl.notes.replace(/^Superset\s*\/?\.?\s*/i, '').replace(/^\s*\/\s*/, '').trim()
                                 if (!stripped) return null
