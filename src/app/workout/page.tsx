@@ -498,7 +498,7 @@ export default function WorkoutPage() {
             const isSuperset = isGroup && firstNotes.toLowerCase().includes('superset')
             // Notes starting with @, *, Rest, Climbing are exercise-specific, not setInfo
             const isExerciseNote = /^[@*]|^Rest\b|^Climbing\b/i.test(firstNotes)
-            const isSetInfo = isGroup && firstNotes && !isExerciseNote && !isSuperset
+            const isSetInfo = firstNotes && !isExerciseNote && !isSuperset
             const groupLabel = isSuperset ? `Superset${groupSets ? ` · ${groupSets} Sets` : ''}`
               : isSetInfo ? `${groupSets ? `${groupSets} Sets · ` : ''}${firstNotes}`
               : isGroup && groupSets ? `${groupSets} Sets` : null
