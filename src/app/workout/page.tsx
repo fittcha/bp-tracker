@@ -573,7 +573,7 @@ export default function WorkoutPage() {
                     const showSetsInline = !isGroup
                     // For EMOM/AMRAP, don't prepend reps (they are '1' or null)
                     // For "Every X minutes" style, still show reps if available
-                    const showRepsPrefix = isGroup && !isSetInfo && tmpl?.reps && tmpl.reps !== '1'
+                    const showRepsPrefix = isGroup && tmpl?.reps && tmpl.reps !== '1'
 
                     // Sub-group detection: insert divider when notes type changes or sets changes within a section
                     const getSubType = (n: string) =>
