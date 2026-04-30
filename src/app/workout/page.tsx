@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { toDateString } from '@/lib/utils'
-import { getWorkoutLogs, upsertWorkoutLog, batchInsertWorkoutLogs, addCustomExercise, deleteWorkoutLog, WorkoutLog } from '@/lib/api/workout-logs'
+import { getWorkoutLogs, upsertWorkoutLog, batchInsertWorkoutLogs, addCustomExercise, updateCustomExercise, deleteWorkoutLog, WorkoutLog } from '@/lib/api/workout-logs'
 import { getTemplatesByWeek, getWeeks } from '@/lib/api/workout-templates'
 import { getLoggedInUser } from '@/lib/auth'
 import { getCardioLog, upsertCardioLog, CardioLog } from '@/lib/api/cardio-logs'
@@ -52,6 +52,7 @@ export default function WorkoutPage() {
   const [cardioMemo, setCardioMemo] = useState('')
   const [showCardioMemo, setShowCardioMemo] = useState(false)
   const longPressRef = useRef<Record<string, NodeJS.Timeout>>({})
+  const [editingLog, setEditingLog] = useState<WorkoutLog | null>(null)
 
   function handleLongPressStart(exerciseName: string) {
     longPressRef.current[exerciseName] = setTimeout(() => {
@@ -167,6 +168,8 @@ export default function WorkoutPage() {
           weight_lb: null,
           weight_unit: 'lb' as const,
           memo: null,
+          custom_sets: null,
+          custom_reps: null,
         })))
         allLogs = [...allLogs, ...(newLogs || [])]
       }
@@ -254,8 +257,14 @@ export default function WorkoutPage() {
     }, 800)
   }
 
-  async function handleAddCustom(name: string) {
-    await addCustomExercise(date, name, userId)
+  async function handleAddCustom(name: string, section?: string, sets?: string, reps?: string) {
+    await addCustomExercise(date, name, userId, section, sets, reps)
+    loadData()
+  }
+
+  async function handleUpdateCustom(id: string, name: string, section: string | null, sets: string | null, reps: string | null) {
+    await updateCustomExercise(id, { exercise_name: name, section, custom_sets: sets, custom_reps: reps })
+    setEditingLog(null)
     loadData()
   }
 
@@ -300,6 +309,19 @@ export default function WorkoutPage() {
   })
   const customLogs = logs.filter(l => l.is_custom)
 
+  // Group custom logs by section
+  const customSections: { section: string; items: WorkoutLog[] }[] = []
+  const customSectionMap = new Map<string, WorkoutLog[]>()
+  for (const log of customLogs) {
+    const sec = log.section || '개인 운동'
+    if (!customSectionMap.has(sec)) {
+      const items: WorkoutLog[] = []
+      customSectionMap.set(sec, items)
+      customSections.push({ section: sec, items })
+    }
+    customSectionMap.get(sec)!.push(log)
+  }
+
   // Group coach logs by section (preserve order)
   const sections: { section: string; items: (WorkoutLog & { template?: TemplateEx })[] }[] = []
   const sectionMap = new Map<string, (WorkoutLog & { template?: TemplateEx })[]>()
@@ -314,8 +336,8 @@ export default function WorkoutPage() {
     sectionMap.get(sec)!.push({ ...log, template: tmpl })
   }
 
-  const totalSections = sections.length + (customLogs.length > 0 ? 1 : 0)
-  const completedSections = sections.filter(s => s.items.every(i => i.completed)).length + (customLogs.length > 0 && customLogs.every(l => l.completed) ? 1 : 0)
+  const totalSections = sections.length + customSections.length
+  const completedSections = sections.filter(s => s.items.every(i => i.completed)).length + customSections.filter(s => s.items.every(l => l.completed)).length
   const isWorkoutDay = selectedDay <= 5
 
   function handleDaySelect(dayNum: number, dayDate: string) {
@@ -723,92 +745,183 @@ export default function WorkoutPage() {
         </>
       )}
 
-      {/* Custom exercises */}
-      {customLogs.length > 0 && (
-        <div className="bg-surface border border-accent/20 rounded-xl overflow-hidden">
-          <div className="px-4 py-2.5 bg-accent-light border-b border-accent/20">
-            <span className="text-xs font-bold text-accent">개인 추가 운동</span>
-          </div>
-          <div className="divide-y divide-border">
-            {customLogs.map(log => {
-              const isWeightOpen = !!weightOpen[log.id!]
-              return (
-                <div key={log.id} className="flex items-center gap-3 px-4 py-3">
-                  <button
-                    onClick={() => handleToggleComplete(log.id!, !log.completed)}
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                      log.completed ? 'bg-text-secondary/40 border-transparent text-white' : 'border-accent/30'
-                    }`}
-                  >
-                    {log.completed && (
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    )}
-                  </button>
-                  <p
-                    className={`flex-1 text-sm font-medium text-accent select-none ${log.completed ? 'line-through opacity-50' : ''}`}
-                    onTouchStart={() => handleLongPressStart(log.exercise_name)}
-                    onTouchEnd={() => handleLongPressEnd(log.exercise_name)}
-                    onTouchCancel={() => handleLongPressEnd(log.exercise_name)}
-                    onMouseDown={() => handleLongPressStart(log.exercise_name)}
-                    onMouseUp={() => handleLongPressEnd(log.exercise_name)}
-                    onMouseLeave={() => handleLongPressEnd(log.exercise_name)}
-                    onContextMenu={(e) => e.preventDefault()}
-                  >
-                    {log.exercise_name}
-                  </p>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <button
-                      onClick={() => toggleWeightInput(log.id!)}
-                      className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
-                        isWeightOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/30 bg-surface'
-                      }`}
-                    >
-                      {isWeightOpen ? (
-                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                          <polyline points="20 6 9 17 4 12" />
+      {/* Custom exercises grouped by section */}
+      {customSections.map(({ section: sec, items: customItems }) => {
+        const allCompleted = customItems.every(l => l.completed)
+        const someCompleted = customItems.some(l => l.completed)
+
+        function handleCustomGroupToggle() {
+          const newState = !allCompleted
+          for (const item of customItems) {
+            if (item.completed !== newState) {
+              handleToggleComplete(item.id!, newState)
+            }
+          }
+        }
+
+        return (
+          <div key={`custom-${sec}`} className="bg-surface border border-accent/20 rounded-xl overflow-hidden">
+            <div className="px-4 py-2.5 bg-accent-light border-b border-accent/20 flex items-center gap-2">
+              <button
+                onClick={handleCustomGroupToggle}
+                className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                  allCompleted ? 'bg-success border-success text-white'
+                    : someCompleted ? 'border-success/50 bg-success/10'
+                    : 'border-accent/30'
+                }`}
+              >
+                {allCompleted && (
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
+                {someCompleted && !allCompleted && (
+                  <div className="w-2 h-0.5 bg-success rounded" />
+                )}
+              </button>
+              <span className="text-xs font-bold text-accent">{sec}</span>
+            </div>
+            <div className="divide-y divide-border">
+              {customItems.map(log => {
+                const isWeightOpen = !!weightOpen[log.id!]
+                const isMemoOpen = !!memoOpen[log.id!]
+                return (
+                  <div key={log.id}>
+                    <div className="flex items-center gap-3 px-4 py-3">
+                      <button
+                        onClick={() => handleToggleComplete(log.id!, !log.completed)}
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                          log.completed ? 'bg-text-secondary/40 border-transparent text-white' : 'border-accent/30'
+                        }`}
+                      >
+                        {log.completed && (
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className={`text-sm font-medium text-accent select-none whitespace-pre-line ${log.completed ? 'line-through opacity-50' : ''}`}
+                          onTouchStart={() => handleLongPressStart(log.exercise_name)}
+                          onTouchEnd={() => handleLongPressEnd(log.exercise_name)}
+                          onTouchCancel={() => handleLongPressEnd(log.exercise_name)}
+                          onMouseDown={() => handleLongPressStart(log.exercise_name)}
+                          onMouseUp={() => handleLongPressEnd(log.exercise_name)}
+                          onMouseLeave={() => handleLongPressEnd(log.exercise_name)}
+                          onContextMenu={(e) => e.preventDefault()}
+                        >
+                          {log.exercise_name}
+                        </p>
+                        {(log.custom_sets || log.custom_reps) && (
+                          <p className="text-xs text-text-secondary">
+                            {log.custom_sets && `${log.custom_sets}세트`} {log.custom_reps && `× ${log.custom_reps}`}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <button
+                          onClick={() => toggleWeightInput(log.id!)}
+                          className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                            isWeightOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/30 bg-surface'
+                          }`}
+                        >
+                          {isWeightOpen ? (
+                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          ) : (
+                            <span className="text-[8px] font-bold text-text-secondary">{log.weight_unit ?? 'lb'}</span>
+                          )}
+                        </button>
+                        {isWeightOpen && (
+                          <>
+                            <button
+                              onClick={() => handleWeightChange(log.id!, Math.max(0, (log.weight_lb ?? 0) - 5))}
+                              className="w-5 h-5 rounded bg-background border border-border flex items-center justify-center text-[10px] font-bold text-text-secondary active:bg-border"
+                            >−</button>
+                            <input
+                              type="number"
+                              inputMode="decimal"
+                              placeholder="0"
+                              value={log.weight_lb ?? ''}
+                              onChange={(e) => handleWeightChange(log.id!, e.target.value ? parseFloat(e.target.value) : null)}
+                              className="w-12 border border-border rounded-lg px-1 py-0.5 text-xs text-center bg-background"
+                            />
+                            <button
+                              onClick={() => handleUnitToggle(log.id!)}
+                              className="text-[9px] text-text-secondary active:text-accent"
+                            >{log.weight_unit ?? 'lb'}</button>
+                            <button
+                              onClick={() => handleWeightChange(log.id!, (log.weight_lb ?? 0) + 5)}
+                              className="w-5 h-5 rounded bg-background border border-border flex items-center justify-center text-[10px] font-bold text-text-secondary active:bg-border"
+                            >+</button>
+                          </>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => setMemoOpen(prev => ({ ...prev, [log.id!]: !prev[log.id!] }))}
+                        className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${
+                          isMemoOpen ? 'text-accent' : log.memo ? 'text-accent/60' : 'text-text-secondary/40'
+                        }`}
+                        title="메모"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="16" y1="13" x2="8" y2="13" />
+                          <line x1="16" y1="17" x2="8" y2="17" />
                         </svg>
-                      ) : (
-                        <span className="text-[8px] font-bold text-text-secondary">{log.weight_unit ?? 'lb'}</span>
-                      )}
-                    </button>
-                    {isWeightOpen && (
-                      <>
-                        <button
-                          onClick={() => handleWeightChange(log.id!, Math.max(0, (log.weight_lb ?? 0) - (log.weight_unit === 'kg' ? 5 : 5)))}
-                          className="w-5 h-5 rounded bg-background border border-border flex items-center justify-center text-[10px] font-bold text-text-secondary active:bg-border"
-                        >−</button>
-                        <input
-                          type="number"
-                          inputMode="decimal"
-                          placeholder="0"
-                          value={log.weight_lb ?? ''}
-                          onChange={(e) => handleWeightChange(log.id!, e.target.value ? parseFloat(e.target.value) : null)}
-                          className="w-12 border border-border rounded-lg px-1 py-0.5 text-xs text-center bg-background"
+                      </button>
+                      <button
+                        onClick={() => setEditingLog(log)}
+                        className="text-accent/60 hover:text-accent transition-colors"
+                        title="수정"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                      </button>
+                      <button onClick={() => handleDeleteLog(log.id!)} className="text-danger text-xs">
+                        삭제
+                      </button>
+                    </div>
+                    {isMemoOpen && (
+                      <div className="px-4 py-2.5 border-t border-border bg-background/50">
+                        <textarea
+                          placeholder="메모 입력..."
+                          value={log.memo || ''}
+                          onChange={(e) => {
+                            handleMemoChange(log.id!, e.target.value)
+                            e.target.style.height = 'auto'
+                            e.target.style.height = e.target.scrollHeight + 'px'
+                          }}
+                          ref={(el) => {
+                            if (el) {
+                              el.style.height = 'auto'
+                              el.style.height = el.scrollHeight + 'px'
+                            }
+                          }}
+                          className="w-full text-xs bg-transparent resize-none outline-none text-foreground placeholder:text-text-secondary/50"
+                          rows={1}
                         />
-                        <button
-                          onClick={() => handleUnitToggle(log.id!)}
-                          className="text-[9px] text-text-secondary active:text-accent"
-                        >{log.weight_unit ?? 'lb'}</button>
-                        <button
-                          onClick={() => handleWeightChange(log.id!, (log.weight_lb ?? 0) + (log.weight_unit === 'kg' ? 5 : 5))}
-                          className="w-5 h-5 rounded bg-background border border-border flex items-center justify-center text-[10px] font-bold text-text-secondary active:bg-border"
-                        >+</button>
-                      </>
+                      </div>
                     )}
                   </div>
-                  <button onClick={() => handleDeleteLog(log.id!)} className="text-danger text-xs">
-                    삭제
-                  </button>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )
+      })}
 
-      <CustomExerciseForm onAdd={handleAddCustom} />
+      <CustomExerciseForm
+        onAdd={handleAddCustom}
+        editingLog={editingLog && editingLog.id ? { ...editingLog, id: editingLog.id } : null}
+        onUpdate={handleUpdateCustom}
+        onCancelEdit={() => setEditingLog(null)}
+      />
 
       {/* Calculator panel */}
       {calcOpen && (
