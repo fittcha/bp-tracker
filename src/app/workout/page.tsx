@@ -53,6 +53,8 @@ export default function WorkoutPage() {
   const [showCardioMemo, setShowCardioMemo] = useState(false)
   const longPressRef = useRef<Record<string, NodeJS.Timeout>>({})
   const [editingLog, setEditingLog] = useState<WorkoutLog | null>(null)
+  const [editingSection, setEditingSection] = useState<string | null>(null)
+  const [actionMenuLog, setActionMenuLog] = useState<WorkoutLog | null>(null)
 
   function handleLongPressStart(exerciseName: string) {
     longPressRef.current[exerciseName] = setTimeout(() => {
@@ -257,8 +259,17 @@ export default function WorkoutPage() {
     }, 800)
   }
 
-  async function handleAddCustom(name: string, section?: string, sets?: string, reps?: string) {
-    await addCustomExercise(date, name, userId, section, sets, reps)
+  async function handleAddCustomMultiple(section: string | undefined, sectionInfo: string | undefined, rows: { type: string; name: string; info: string }[]) {
+    for (const row of rows) {
+      await addCustomExercise(
+        date,
+        row.type === 'andthen' ? '— and then —' : row.name,
+        userId,
+        section,
+        row.type === 'exercise' ? sectionInfo : undefined,
+        row.type === 'exercise' && row.info ? row.info : undefined,
+      )
+    }
     loadData()
   }
 
@@ -759,6 +770,137 @@ export default function WorkoutPage() {
           }
         }
 
+        // Inline edit mode for this section
+        if (editingSection === sec) {
+          return (
+            <div key={`custom-edit-${sec}`} className="bg-surface border border-accent/20 rounded-xl overflow-hidden">
+              {/* Editable header */}
+              <div className="px-4 py-2.5 bg-accent-light border-b border-accent/20 flex items-center gap-2">
+                <div className="w-5 h-5 rounded border-2 border-accent/30 flex items-center justify-center flex-shrink-0">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-accent">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                </div>
+                <input
+                  autoFocus
+                  value={customItems[0].section || ''}
+                  onChange={(e) => {
+                    const newSection = e.target.value
+                    for (const item of customItems) {
+                      updateCustomExercise(item.id!, { exercise_name: item.exercise_name, section: newSection || null, custom_sets: item.custom_sets, custom_reps: item.custom_reps })
+                    }
+                    setLogs(prev => prev.map(l => customItems.some(ci => ci.id === l.id) ? { ...l, section: newSection || null } : l))
+                  }}
+                  placeholder="section (ex: A, legs)"
+                  className="text-xs font-bold text-accent bg-transparent outline-none placeholder:text-accent/40 min-w-0 flex-1"
+                />
+                <input
+                  value={customItems[0].custom_sets || ''}
+                  onChange={(e) => {
+                    const newInfo = e.target.value
+                    const first = customItems[0]
+                    updateCustomExercise(first.id!, { exercise_name: first.exercise_name, section: first.section, custom_sets: newInfo || null, custom_reps: first.custom_reps })
+                    setLogs(prev => prev.map(l => l.id === first.id ? { ...l, custom_sets: newInfo || null } : l))
+                  }}
+                  placeholder="set info (ex: 4 sets, amrap 10)"
+                  className="flex-1 text-xs text-text-secondary font-medium bg-transparent outline-none placeholder:text-text-secondary/40"
+                />
+              </div>
+              {/* Editable exercise rows */}
+              <div className="divide-y divide-border">
+                {customItems.map(log => {
+                  const isAndThen = log.exercise_name.includes('and then')
+                  if (isAndThen) {
+                    return (
+                      <div key={log.id} className="flex items-center px-4 py-1.5">
+                        <span className="flex-1 text-[11px] text-text-secondary/50 text-center italic">and then</span>
+                        <button
+                          onClick={() => handleDeleteLog(log.id!)}
+                          className="w-4 h-4 flex items-center justify-center text-text-secondary/20 hover:text-danger transition-colors flex-shrink-0"
+                        >
+                          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                          </svg>
+                        </button>
+                      </div>
+                    )
+                  }
+                  return (
+                    <div key={log.id} className="flex items-center gap-3 px-4 py-3">
+                      <div className="w-5 h-5 rounded-full border-2 border-accent/30 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <input
+                          value={log.exercise_name}
+                          onChange={(e) => {
+                            const newName = e.target.value
+                            setLogs(prev => prev.map(l => l.id === log.id ? { ...l, exercise_name: newName } : l))
+                          }}
+                          onBlur={() => {
+                            updateCustomExercise(log.id!, { exercise_name: log.exercise_name, section: log.section, custom_sets: log.custom_sets, custom_reps: log.custom_reps })
+                          }}
+                          placeholder="exercise name"
+                          className="w-full text-sm font-medium text-accent bg-transparent outline-none placeholder:text-accent/40"
+                        />
+                        <input
+                          value={log.custom_reps || ''}
+                          onChange={(e) => {
+                            const newInfo = e.target.value
+                            setLogs(prev => prev.map(l => l.id === log.id ? { ...l, custom_reps: newInfo || null } : l))
+                          }}
+                          onBlur={() => {
+                            updateCustomExercise(log.id!, { exercise_name: log.exercise_name, section: log.section, custom_sets: log.custom_sets, custom_reps: log.custom_reps })
+                          }}
+                          placeholder="exercise info (ex: 50lb, rest 60s, × 12)"
+                          className="w-full text-[11px] text-text-secondary italic bg-transparent outline-none mt-0.5 placeholder:text-text-secondary/40 placeholder:not-italic"
+                        />
+                      </div>
+                      <button
+                        onClick={() => handleDeleteLog(log.id!)}
+                        className="w-5 h-5 flex items-center justify-center text-text-secondary/30 hover:text-danger transition-colors flex-shrink-0"
+                      >
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+              {/* Add row buttons + Done */}
+              <div className="px-4 py-2 border-t border-accent/20 flex items-center">
+                <div className="flex gap-3">
+                  <button
+                    onClick={async () => {
+                      await addCustomExercise(date, '운동명', userId, customItems[0].section || undefined, customItems[0].custom_sets || undefined, undefined)
+                      loadData()
+                    }}
+                    className="text-[11px] text-accent/40 hover:text-accent transition-colors"
+                  >
+                    + 운동
+                  </button>
+                  <button
+                    onClick={async () => {
+                      await addCustomExercise(date, '— and then —', userId, customItems[0].section || undefined, undefined, undefined)
+                      loadData()
+                    }}
+                    className="text-[11px] text-text-secondary/40 hover:text-text-secondary transition-colors"
+                  >
+                    + and then
+                  </button>
+                </div>
+                <div className="flex-1" />
+                <button
+                  onClick={() => setEditingSection(null)}
+                  className="px-4 py-1 bg-accent text-white rounded-lg text-xs font-medium"
+                >
+                  완료
+                </button>
+              </div>
+            </div>
+          )
+        }
+
         return (
           <div key={`custom-${sec}`} className="bg-surface border border-accent/20 rounded-xl overflow-hidden">
             <div className="px-4 py-2.5 bg-accent-light border-b border-accent/20 flex items-center gap-2">
@@ -780,11 +922,64 @@ export default function WorkoutPage() {
                 )}
               </button>
               <span className="text-xs font-bold text-accent">{sec}</span>
+              {customItems[0]?.custom_sets && (
+                <span className="text-xs text-text-secondary font-medium">{customItems[0].custom_sets}</span>
+              )}
+              <div className="flex-1" />
+              <button
+                onClick={() => setMemoOpen(prev => ({ ...prev, [customItems[0].id!]: !prev[customItems[0].id!] }))}
+                className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${
+                  memoOpen[customItems[0].id!] ? 'text-accent' : customItems[0].memo ? 'text-accent/60' : 'text-text-secondary/40'
+                }`}
+                title="메모"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setEditingSection(sec)}
+                className="w-6 h-6 flex items-center justify-center rounded text-text-secondary/40 hover:text-accent transition-colors"
+                title="수정"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+              </button>
+              <button
+                onClick={() => { for (const item of customItems) handleDeleteLog(item.id!) }}
+                className="w-6 h-6 flex items-center justify-center rounded text-text-secondary/40 hover:text-danger transition-colors"
+                title="삭제"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+              </button>
             </div>
             <div className="divide-y divide-border">
               {customItems.map(log => {
+                const isAndThen = log.exercise_name.includes('and then')
+                if (isAndThen) {
+                  return (
+                    <div key={log.id} className="flex items-center px-4 py-1.5">
+                      <span className="flex-1 text-[11px] text-text-secondary/50 text-center italic">and then</span>
+                      <button
+                        onClick={() => handleDeleteLog(log.id!)}
+                        className="w-4 h-4 flex items-center justify-center text-text-secondary/20 hover:text-danger transition-colors flex-shrink-0"
+                      >
+                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    </div>
+                  )
+                }
                 const isWeightOpen = !!weightOpen[log.id!]
-                const isMemoOpen = !!memoOpen[log.id!]
                 return (
                   <div key={log.id}>
                     <div className="flex items-center gap-3 px-4 py-3">
@@ -813,10 +1008,8 @@ export default function WorkoutPage() {
                         >
                           {log.exercise_name}
                         </p>
-                        {(log.custom_sets || log.custom_reps) && (
-                          <p className="text-xs text-text-secondary">
-                            {log.custom_sets && `${log.custom_sets}세트`} {log.custom_reps && `× ${log.custom_reps}`}
-                          </p>
+                        {log.custom_reps && (
+                          <p className="text-[11px] text-text-secondary italic mt-0.5">{log.custom_reps}</p>
                         )}
                       </div>
                       <div className="flex items-center gap-1 flex-shrink-0">
@@ -860,67 +1053,67 @@ export default function WorkoutPage() {
                         )}
                       </div>
                       <button
-                        onClick={() => setMemoOpen(prev => ({ ...prev, [log.id!]: !prev[log.id!] }))}
-                        className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${
-                          isMemoOpen ? 'text-accent' : log.memo ? 'text-accent/60' : 'text-text-secondary/40'
-                        }`}
-                        title="메모"
+                        onClick={() => handleDeleteLog(log.id!)}
+                        className="w-5 h-5 flex items-center justify-center text-text-secondary/30 hover:text-danger transition-colors flex-shrink-0"
+                        title="삭제"
                       >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                          <polyline points="14 2 14 8 20 8" />
-                          <line x1="16" y1="13" x2="8" y2="13" />
-                          <line x1="16" y1="17" x2="8" y2="17" />
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                         </svg>
-                      </button>
-                      <button
-                        onClick={() => setEditingLog(log)}
-                        className="text-accent/60 hover:text-accent transition-colors"
-                        title="수정"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                        </svg>
-                      </button>
-                      <button onClick={() => handleDeleteLog(log.id!)} className="text-danger text-xs">
-                        삭제
                       </button>
                     </div>
-                    {isMemoOpen && (
-                      <div className="px-4 py-2.5 border-t border-border bg-background/50">
-                        <textarea
-                          placeholder="메모 입력..."
-                          value={log.memo || ''}
-                          onChange={(e) => {
-                            handleMemoChange(log.id!, e.target.value)
-                            e.target.style.height = 'auto'
-                            e.target.style.height = e.target.scrollHeight + 'px'
-                          }}
-                          ref={(el) => {
-                            if (el) {
-                              el.style.height = 'auto'
-                              el.style.height = el.scrollHeight + 'px'
-                            }
-                          }}
-                          className="w-full text-xs bg-transparent resize-none outline-none text-foreground placeholder:text-text-secondary/50"
-                          rows={1}
-                        />
-                      </div>
-                    )}
                   </div>
                 )
               })}
+              {/* Add exercise / and then to this section */}
+              <div className="flex gap-3 px-4 py-1.5">
+                <button
+                  onClick={async () => {
+                    await addCustomExercise(date, '운동명', userId, customItems[0].section || undefined, customItems[0].custom_sets || undefined, undefined)
+                    loadData()
+                  }}
+                  className="text-[11px] text-accent/40 hover:text-accent transition-colors"
+                >
+                  + 운동
+                </button>
+                <button
+                  onClick={async () => {
+                    await addCustomExercise(date, '— and then —', userId, customItems[0].section || undefined, undefined, undefined)
+                    loadData()
+                  }}
+                  className="text-[11px] text-text-secondary/40 hover:text-text-secondary transition-colors"
+                >
+                  + and then
+                </button>
+              </div>
             </div>
+            {memoOpen[customItems[0].id!] && (
+              <div className="px-4 py-2.5 border-t border-border bg-background/50">
+                <textarea
+                  placeholder="메모 입력..."
+                  value={customItems[0].memo || ''}
+                  onChange={(e) => {
+                    handleMemoChange(customItems[0].id!, e.target.value)
+                    e.target.style.height = 'auto'
+                    e.target.style.height = e.target.scrollHeight + 'px'
+                  }}
+                  ref={(el) => {
+                    if (el) {
+                      el.style.height = 'auto'
+                      el.style.height = el.scrollHeight + 'px'
+                    }
+                  }}
+                  className="w-full text-xs bg-transparent resize-none outline-none text-foreground placeholder:text-text-secondary/50"
+                  rows={1}
+                />
+              </div>
+            )}
           </div>
         )
       })}
 
       <CustomExerciseForm
-        onAdd={handleAddCustom}
-        editingLog={editingLog && editingLog.id ? { ...editingLog, id: editingLog.id } : null}
-        onUpdate={handleUpdateCustom}
-        onCancelEdit={() => setEditingLog(null)}
+        onAddMultiple={handleAddCustomMultiple}
       />
 
       {/* Calculator panel */}
