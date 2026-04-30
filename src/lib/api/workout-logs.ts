@@ -12,6 +12,8 @@ export interface WorkoutLog {
   weight_lb: number | null
   weight_unit: 'lb' | 'kg'
   memo: string | null
+  custom_sets: string | null
+  custom_reps: string | null
 }
 
 export async function getWorkoutLogs(date: string, userId: string) {
@@ -58,7 +60,14 @@ export async function batchInsertWorkoutLogs(logs: Omit<WorkoutLog, 'id'>[]) {
   return data
 }
 
-export async function addCustomExercise(date: string, exerciseName: string, userId: string) {
+export async function addCustomExercise(
+  date: string,
+  exerciseName: string,
+  userId: string,
+  section?: string,
+  customSets?: string,
+  customReps?: string,
+) {
   const { data, error } = await supabase
     .from('workout_logs')
     .insert({
@@ -67,16 +76,34 @@ export async function addCustomExercise(date: string, exerciseName: string, user
       template_id: null,
       is_custom: true,
       exercise_name: exerciseName,
-      section: null,
+      section: section || null,
       completed: false,
       weight_lb: null,
       weight_unit: 'lb',
       memo: null,
+      custom_sets: customSets || null,
+      custom_reps: customReps || null,
     })
     .select()
     .single()
   if (error) throw error
   return data
+}
+
+export async function updateCustomExercise(
+  id: string,
+  fields: {
+    exercise_name: string
+    section: string | null
+    custom_sets: string | null
+    custom_reps: string | null
+  },
+) {
+  const { error } = await supabase
+    .from('workout_logs')
+    .update(fields)
+    .eq('id', id)
+  if (error) throw error
 }
 
 export async function deleteWorkoutLog(id: string) {
