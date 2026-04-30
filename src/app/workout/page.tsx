@@ -775,7 +775,7 @@ export default function WorkoutPage() {
           return (
             <div key={`custom-edit-${sec}`} className="bg-surface border border-accent/20 rounded-xl overflow-hidden">
               {/* Editable header */}
-              <div className="px-4 py-2.5 bg-accent-light border-b border-accent/20 flex items-center gap-2">
+              <div className="px-4 py-1.5 bg-accent-light border-b border-accent/20 flex items-center gap-2">
                 <div className="w-5 h-5 rounded border-2 border-accent/30 flex items-center justify-center flex-shrink-0">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-accent">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -903,7 +903,7 @@ export default function WorkoutPage() {
 
         return (
           <div key={`custom-${sec}`} className="bg-surface border border-accent/20 rounded-xl overflow-hidden">
-            <div className="px-4 py-2.5 bg-accent-light border-b border-accent/20 flex items-center gap-2">
+            <div className="px-4 py-1.5 bg-accent-light border-b border-accent/20 flex items-center gap-2">
               <button
                 onClick={handleCustomGroupToggle}
                 className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
@@ -968,14 +968,6 @@ export default function WorkoutPage() {
                   return (
                     <div key={log.id} className="flex items-center px-4 py-1.5">
                       <span className="flex-1 text-[11px] text-text-secondary/50 text-center italic">and then</span>
-                      <button
-                        onClick={() => handleDeleteLog(log.id!)}
-                        className="w-4 h-4 flex items-center justify-center text-text-secondary/20 hover:text-danger transition-colors flex-shrink-0"
-                      >
-                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                      </button>
                     </div>
                   )
                 }
@@ -1052,15 +1044,6 @@ export default function WorkoutPage() {
                           </>
                         )}
                       </div>
-                      <button
-                        onClick={() => handleDeleteLog(log.id!)}
-                        className="w-5 h-5 flex items-center justify-center text-text-secondary/30 hover:text-danger transition-colors flex-shrink-0"
-                        title="삭제"
-                      >
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                      </button>
                     </div>
                   </div>
                 )

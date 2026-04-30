@@ -62,7 +62,7 @@ export default function CustomExerciseForm({ onAddMultiple }: CustomExerciseForm
   return (
     <div className="bg-surface border border-accent/20 rounded-xl overflow-hidden">
       {/* Section header */}
-      <div className="px-4 py-2.5 bg-accent-light border-b border-accent/20 flex items-center gap-2">
+      <div className="px-4 py-1.5 bg-accent-light border-b border-accent/20 flex items-center gap-2">
         <div className="w-5 h-5 rounded border-2 border-accent/30 flex items-center justify-center flex-shrink-0">
           <span className="text-accent text-[10px] font-bold">+</span>
         </div>
