@@ -108,19 +108,17 @@ SELECT w.id, 3, 'D', 'Feet Elevated Ring Row', '3', '8~10', NULL, NULL, 7 FROM w
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
 SELECT w.id, 3, 'D', '0:30 Max Banded Curls', '3', NULL, 120, 'Rest 2:00 b/w sets', 8 FROM weeks w WHERE w.week_number = 9;
 
--- E. For time of: 15-12-9-6-3 DB Curl to Press / V up - Rest 2:00 -
+-- E. For time of: 15-12-9-6-3 DB Curl to Press / V up - Rest 2:00 - → 4 sets of: 16 Alt DB Front/Lateral/Shoulder Raises (같은 E 섹션, sets 변경으로 디바이더 자동 표시)
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
 SELECT w.id, 3, 'E', 'DB Curl to Press', NULL, NULL, NULL, 'For time of : 15-12-9-6-3', 9 FROM weeks w WHERE w.week_number = 9;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
 SELECT w.id, 3, 'E', 'V up', NULL, NULL, 120, '* Rest 2:00', 10 FROM weeks w WHERE w.week_number = 9;
-
--- F. 4 sets of: 16 Alternating DB Front Raises (8 Each) / 16 Alternating DB Lateral Raises (8 Each) / 16 Alternating DB Shoulder Press (8 Each) *Rest 1:30 between sets
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 3, 'F', '16 Alternating DB Front Raises (8 Each)', '4', NULL, NULL, NULL, 11 FROM weeks w WHERE w.week_number = 9;
+SELECT w.id, 3, 'E', '16 Alternating DB Front Raises (8 Each)', '4', NULL, NULL, NULL, 11 FROM weeks w WHERE w.week_number = 9;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 3, 'F', '16 Alternating DB Lateral Raises (8 Each)', '4', NULL, NULL, NULL, 12 FROM weeks w WHERE w.week_number = 9;
+SELECT w.id, 3, 'E', '16 Alternating DB Lateral Raises (8 Each)', '4', NULL, NULL, NULL, 12 FROM weeks w WHERE w.week_number = 9;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 3, 'F', '16 Alternating DB Shoulder Press (8 Each)', '4', NULL, 90, '* Rest 1:30 between sets', 13 FROM weeks w WHERE w.week_number = 9;
+SELECT w.id, 3, 'E', '16 Alternating DB Shoulder Press (8 Each)', '4', NULL, 90, '* Rest 1:30 between sets', 13 FROM weeks w WHERE w.week_number = 9;
 
 
 -- ============ Day 4 ============
