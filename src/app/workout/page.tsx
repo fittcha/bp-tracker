@@ -626,10 +626,11 @@ export default function WorkoutPage() {
                     const curSubType = getSubType(curNotes)
                     const prevSubType = getSubType(prevNotes)
                     const prevTmpl = items[logIndex - 1]?.template
+                    const prevIsSep = prevTmpl?.notes === '__sep__'
                     const setsChanged = isGroup && logIndex > 0 && tmpl?.sets && prevTmpl?.sets && tmpl.sets !== prevTmpl.sets
-                    const isNewSubGroup = logIndex > 0 && ((curSubType && curSubType !== prevSubType) || setsChanged)
+                    const isNewSubGroup = logIndex > 0 && ((curSubType && curSubType !== prevSubType) || setsChanged || prevIsSep)
                     const subGroupLabel = isNewSubGroup
-                      ? setsChanged ? `${tmpl?.sets} Set${tmpl?.sets !== '1' ? 's' : ''}`
+                      ? (setsChanged || prevIsSep) && tmpl?.sets ? `${tmpl.sets} Set${tmpl.sets !== '1' ? 's' : ''}`
                       : curSubType === 'superset' ? `Superset${tmpl?.sets ? ` · ${tmpl.sets} Sets` : ''}` : tmpl?.notes
                       : null
 
