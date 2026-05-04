@@ -605,7 +605,7 @@ export default function WorkoutPage() {
                     // Separator row detection (template notes='__sep__')
                     if (tmpl?.notes === '__sep__') {
                       return (
-                        <div key={log.id} className="flex items-center px-4 py-1.5 border-t border-border">
+                        <div key={log.id} className="flex items-center px-4 py-1.5 border-t border-border bg-border/30">
                           <span className="flex-1 text-[11px] text-text-secondary/50 text-center italic">{log.exercise_name}</span>
                         </div>
                       )
