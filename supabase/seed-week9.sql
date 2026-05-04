@@ -108,17 +108,19 @@ SELECT w.id, 3, 'D', 'Feet Elevated Ring Row', '3', '8~10', NULL, NULL, 7 FROM w
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
 SELECT w.id, 3, 'D', '0:30 Max Banded Curls', '3', NULL, 120, 'Rest 2:00 b/w sets', 8 FROM weeks w WHERE w.week_number = 9;
 
--- E. For time of: 15-12-9-6-3 DB Curl to Press / V up - Rest 2:00 - → 4 sets of: 16 Alt DB Front/Lateral/Shoulder Raises (같은 E 섹션, sets 변경으로 디바이더 자동 표시)
+-- E. For time of: 15-12-9-6-3 DB Curl to Press / V up → - Rest 2:00 - → 4 sets of: 16 Alt DB Raises (같은 E 섹션, __sep__ 구분자로 분리)
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
 SELECT w.id, 3, 'E', 'DB Curl to Press', NULL, NULL, NULL, 'For time of : 15-12-9-6-3', 9 FROM weeks w WHERE w.week_number = 9;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 3, 'E', 'V up', NULL, NULL, 120, '* Rest 2:00', 10 FROM weeks w WHERE w.week_number = 9;
+SELECT w.id, 3, 'E', 'V up', NULL, NULL, NULL, NULL, 10 FROM weeks w WHERE w.week_number = 9;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 3, 'E', '16 Alternating DB Front Raises (8 Each)', '4', NULL, NULL, NULL, 11 FROM weeks w WHERE w.week_number = 9;
+SELECT w.id, 3, 'E', '- Rest 2:00 -', NULL, NULL, NULL, '__sep__', 11 FROM weeks w WHERE w.week_number = 9;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 3, 'E', '16 Alternating DB Lateral Raises (8 Each)', '4', NULL, NULL, NULL, 12 FROM weeks w WHERE w.week_number = 9;
+SELECT w.id, 3, 'E', '16 Alternating DB Front Raises (8 Each)', '4', NULL, NULL, NULL, 12 FROM weeks w WHERE w.week_number = 9;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 3, 'E', '16 Alternating DB Shoulder Press (8 Each)', '4', NULL, 90, '* Rest 1:30 between sets', 13 FROM weeks w WHERE w.week_number = 9;
+SELECT w.id, 3, 'E', '16 Alternating DB Lateral Raises (8 Each)', '4', NULL, NULL, NULL, 13 FROM weeks w WHERE w.week_number = 9;
+INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
+SELECT w.id, 3, 'E', '16 Alternating DB Shoulder Press (8 Each)', '4', NULL, 90, '* Rest 1:30 between sets', 14 FROM weeks w WHERE w.week_number = 9;
 
 
 -- ============ Day 4 ============
@@ -172,30 +174,30 @@ SELECT w.id, 5, 'A', 'Strict Chest to bar (Pull ups)', '8', '5~8', NULL, NULL, 1
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
 SELECT w.id, 5, 'A', 'DB Push Press', '8', '12', 90, '* Rest 90 seconds between sets', 2 FROM weeks w WHERE w.week_number = 9;
 
--- B. 5 sets: 20 Alternating DB Curls / 10 Pendlay Row *Rest as needed between sets
+-- B. 5 sets: 20 Alternating DB Curls / 10 Pendlay Row → into → 15 DB Bench Flys / 10 Skull Crushers (같은 B 섹션, into 구분자로 분리)
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
 SELECT w.id, 5, 'B', 'Alternating DB Curls', '5', '20', NULL, NULL, 3 FROM weeks w WHERE w.week_number = 9;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
 SELECT w.id, 5, 'B', 'Pendlay Row', '5', '10', NULL, '* Rest as needed between sets', 4 FROM weeks w WHERE w.week_number = 9;
-
--- into: 5 sets: 15 DB Bench Flys / 10 Skull Crushers *Rest as needed between sets
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 5, 'into', 'DB Bench Flys', '5', '15', NULL, NULL, 5 FROM weeks w WHERE w.week_number = 9;
+SELECT w.id, 5, 'B', 'into', '5', NULL, NULL, '__sep__', 5 FROM weeks w WHERE w.week_number = 9;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 5, 'into', 'Skull Crushers', '5', '10', NULL, '* Rest as needed between sets', 6 FROM weeks w WHERE w.week_number = 9;
+SELECT w.id, 5, 'B', 'DB Bench Flys', '5', '15', NULL, NULL, 6 FROM weeks w WHERE w.week_number = 9;
+INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
+SELECT w.id, 5, 'B', 'Skull Crushers', '5', '10', NULL, '* Rest as needed between sets', 7 FROM weeks w WHERE w.week_number = 9;
 
 -- C. 5 sets: 15 Seated DB Press / 15 Seated DB Lateral Raises *Rest as needed between sets
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 5, 'C', 'Seated DB Press', '5', '15', NULL, NULL, 7 FROM weeks w WHERE w.week_number = 9;
+SELECT w.id, 5, 'C', 'Seated DB Press', '5', '15', NULL, NULL, 8 FROM weeks w WHERE w.week_number = 9;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 5, 'C', 'Seated DB Lateral Raises', '5', '15', NULL, '* Rest as needed between sets', 8 FROM weeks w WHERE w.week_number = 9;
+SELECT w.id, 5, 'C', 'Seated DB Lateral Raises', '5', '15', NULL, '* Rest as needed between sets', 9 FROM weeks w WHERE w.week_number = 9;
 
 -- D. EMOM 12: 1 min, 30's Hollow Hold / 2 min, 15 V ups / 3 min, 40's Elbow Plank / 4 min, 30 Weighted Russian Twists
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 5, 'D', '1 min, 30''s Hollow Hold', NULL, NULL, NULL, 'EMOM 12', 9 FROM weeks w WHERE w.week_number = 9;
+SELECT w.id, 5, 'D', '1 min, 30''s Hollow Hold', NULL, NULL, NULL, 'EMOM 12', 10 FROM weeks w WHERE w.week_number = 9;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 5, 'D', '2 min, 15 V ups', NULL, NULL, NULL, NULL, 10 FROM weeks w WHERE w.week_number = 9;
+SELECT w.id, 5, 'D', '2 min, 15 V ups', NULL, NULL, NULL, NULL, 11 FROM weeks w WHERE w.week_number = 9;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 5, 'D', '3 min, 40''s Elbow Plank', NULL, NULL, NULL, NULL, 11 FROM weeks w WHERE w.week_number = 9;
+SELECT w.id, 5, 'D', '3 min, 40''s Elbow Plank', NULL, NULL, NULL, NULL, 12 FROM weeks w WHERE w.week_number = 9;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 5, 'D', '4 min, 30 Weighted Russian Twists', NULL, NULL, NULL, NULL, 12 FROM weeks w WHERE w.week_number = 9;
+SELECT w.id, 5, 'D', '4 min, 30 Weighted Russian Twists', NULL, NULL, NULL, NULL, 13 FROM weeks w WHERE w.week_number = 9;

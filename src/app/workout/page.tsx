@@ -601,6 +601,16 @@ export default function WorkoutPage() {
                   {items.map((log, logIndex) => {
                     const tmpl = log.template
                     const isWeightOpen = !!weightOpen[log.id!]
+
+                    // Separator row detection (template notes='__sep__')
+                    if (tmpl?.notes === '__sep__') {
+                      return (
+                        <div key={log.id} className="flex items-center px-4 py-1.5 border-t border-border">
+                          <span className="flex-1 text-[11px] text-text-secondary/50 text-center italic">{log.exercise_name}</span>
+                        </div>
+                      )
+                    }
+
                     // For grouped exercises, show reps + rest inline (sets shown in header)
                     // For single exercises, show sets × reps as before
                     const showSetsInline = !isGroup
