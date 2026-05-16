@@ -22,7 +22,7 @@ SELECT w.id, 1, 'B', 'Seated DB Front Raises', '4', '15~20', 120, 'Rest 2:00', 5
 
 -- C. 4 Sets: 15/15 DB Tricep Kickback *Rest as needed between sets
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 1, 'C', 'DB Tricep Kickback', '4', '15/15', NULL, '* Rest as needed between sets', 6 FROM weeks w WHERE w.week_number = 10;
+SELECT w.id, 1, 'C', '15/15 DB Tricep Kickback', '4', NULL, NULL, '* Rest as needed between sets', 6 FROM weeks w WHERE w.week_number = 10;
 
 -- D. EMOM 10: 0:30 Sprint Ski-erg / 0:30 Rest
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
@@ -32,9 +32,7 @@ SELECT w.id, 1, 'D', '0:30 Rest', NULL, NULL, NULL, NULL, 8 FROM weeks w WHERE w
 
 -- E. For time of: Row 5,000m *Every 3:00, Perform 10~20 Toes to bar or V-ups
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 1, 'E', 'Row 5,000m', NULL, NULL, NULL, 'For time of : / * Every 3:00, Perform', 9 FROM weeks w WHERE w.week_number = 10;
-INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 1, 'E', '10~20 Toes to bar or V-ups', NULL, NULL, NULL, NULL, 10 FROM weeks w WHERE w.week_number = 10;
+SELECT w.id, 1, 'E', 'Row 5,000m', NULL, NULL, NULL, 'For time of : / * Every 3:00, Perform 10~20 Toes to bar or V-ups', 9 FROM weeks w WHERE w.week_number = 10;
 
 
 -- ============ Day 2 ============

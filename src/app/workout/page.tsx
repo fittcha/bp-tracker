@@ -5,7 +5,7 @@ import { toDateString } from '@/lib/utils'
 import { getWorkoutLogs, upsertWorkoutLog, batchInsertWorkoutLogs, addCustomExercise, updateCustomExercise, deleteWorkoutLog, WorkoutLog } from '@/lib/api/workout-logs'
 import { getTemplatesByWeek, getWeeks } from '@/lib/api/workout-templates'
 import { getLoggedInUser } from '@/lib/auth'
-import { getCardioLog, upsertCardioLog, CardioLog } from '@/lib/api/cardio-logs'
+import { getCardioLogs, upsertCardioLog, deleteCardioLog, CardioLog } from '@/lib/api/cardio-logs'
 import CustomExerciseForm from '@/components/workout/CustomExerciseForm'
 import Calculator from '@/components/workout/Calculator'
 import ExerciseGifModal from '@/components/workout/ExerciseGifModal'
@@ -48,9 +48,9 @@ export default function WorkoutPage() {
   const debounceRef = useRef<Record<string, NodeJS.Timeout>>({})
   const [gifModalExercise, setGifModalExercise] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
-  const [cardioLog, setCardioLog] = useState<CardioLog | null>(null)
-  const [cardioMemo, setCardioMemo] = useState('')
-  const [showCardioMemo, setShowCardioMemo] = useState(false)
+  const [cardioLogs, setCardioLogs] = useState<CardioLog[]>([])
+  const [cardioMemos, setCardioMemos] = useState<Record<number, string>>({})
+  const [showCardioMemo, setShowCardioMemo] = useState<Record<number, boolean>>({})
   const longPressRef = useRef<Record<string, NodeJS.Timeout>>({})
   const [editingLog, setEditingLog] = useState<WorkoutLog | null>(null)
   const [editingSection, setEditingSection] = useState<string | null>(null)
@@ -128,14 +128,20 @@ export default function WorkoutPage() {
     }
 
     if (week?.week_number && week.week_number >= 5) {
-      const cLog = await getCardioLog(date, userId)
-      setCardioLog(cLog)
-      setCardioMemo(cLog?.memo || '')
-      setShowCardioMemo(!!cLog?.memo)
+      const cLogs = await getCardioLogs(date, userId)
+      setCardioLogs(cLogs)
+      const memos: Record<number, string> = {}
+      const memoShow: Record<number, boolean> = {}
+      for (const cl of cLogs) {
+        memos[cl.session_number] = cl.memo || ''
+        if (cl.memo) memoShow[cl.session_number] = true
+      }
+      setCardioMemos(memos)
+      setShowCardioMemo(memoShow)
     } else {
-      setCardioLog(null)
-      setCardioMemo('')
-      setShowCardioMemo(false)
+      setCardioLogs([])
+      setCardioMemos({})
+      setShowCardioMemo({})
     }
 
     const d = new Date(date)
@@ -284,33 +290,60 @@ export default function WorkoutPage() {
     setLogs(prev => prev.filter(l => l.id !== id))
   }
 
-  const cardioDebounceRef = useRef<NodeJS.Timeout>(undefined)
+  const cardioDebounceRef = useRef<Record<number, NodeJS.Timeout>>({})
 
-  async function handleCardioToggle() {
-    const newCompleted = !cardioLog?.completed
+  async function handleCardioToggle(sessionNum: number) {
+    const existing = cardioLogs.find(cl => cl.session_number === sessionNum)
+    const newCompleted = !existing?.completed
     const updated = await upsertCardioLog({
       user_id: userId,
       date,
       completed: newCompleted,
-      memo: cardioMemo || null,
-      ...(cardioLog?.id ? { id: cardioLog.id } : {}),
+      memo: cardioMemos[sessionNum] || null,
+      session_number: sessionNum,
+      ...(existing?.id ? { id: existing.id } : {}),
     })
-    setCardioLog(updated)
+    setCardioLogs(prev => {
+      const idx = prev.findIndex(cl => cl.session_number === sessionNum)
+      if (idx >= 0) return prev.map(cl => cl.session_number === sessionNum ? updated : cl)
+      return [...prev, updated].sort((a, b) => a.session_number - b.session_number)
+    })
   }
 
-  function handleCardioMemoChange(value: string) {
-    setCardioMemo(value)
-    if (cardioDebounceRef.current) clearTimeout(cardioDebounceRef.current)
-    cardioDebounceRef.current = setTimeout(async () => {
+  function handleCardioMemoChange(sessionNum: number, value: string) {
+    setCardioMemos(prev => ({ ...prev, [sessionNum]: value }))
+    if (cardioDebounceRef.current[sessionNum]) clearTimeout(cardioDebounceRef.current[sessionNum])
+    cardioDebounceRef.current[sessionNum] = setTimeout(async () => {
+      const existing = cardioLogs.find(cl => cl.session_number === sessionNum)
       const updated = await upsertCardioLog({
         user_id: userId,
         date,
-        completed: cardioLog?.completed ?? false,
+        completed: existing?.completed ?? false,
         memo: value || null,
-        ...(cardioLog?.id ? { id: cardioLog.id } : {}),
+        session_number: sessionNum,
+        ...(existing?.id ? { id: existing.id } : {}),
       })
-      setCardioLog(updated)
+      setCardioLogs(prev => {
+        const idx = prev.findIndex(cl => cl.session_number === sessionNum)
+        if (idx >= 0) return prev.map(cl => cl.session_number === sessionNum ? updated : cl)
+        return [...prev, updated].sort((a, b) => a.session_number - b.session_number)
+      })
     }, 800)
+  }
+
+  function handleCardioAdd() {
+    const maxSession = cardioLogs.length > 0 ? Math.max(...cardioLogs.map(cl => cl.session_number)) : 0
+    const nextSession = maxSession + 1
+    setCardioLogs(prev => [...prev, { user_id: userId, date, completed: false, memo: null, session_number: nextSession }])
+    setCardioMemos(prev => ({ ...prev, [nextSession]: '' }))
+  }
+
+  async function handleCardioDelete(sessionNum: number) {
+    const existing = cardioLogs.find(cl => cl.session_number === sessionNum)
+    if (existing?.id) await deleteCardioLog(existing.id)
+    setCardioLogs(prev => prev.filter(cl => cl.session_number !== sessionNum))
+    setCardioMemos(prev => { const n = { ...prev }; delete n[sessionNum]; return n })
+    setShowCardioMemo(prev => { const n = { ...prev }; delete n[sessionNum]; return n })
   }
 
   const coachLogs = logs.filter(l => !l.is_custom).sort((a, b) => {
@@ -427,59 +460,85 @@ export default function WorkoutPage() {
       {/* 저강도 유산소 (5주차~) */}
       {weekInfo?.week_number !== undefined && weekInfo.week_number >= 5 && (
         <div className="bg-background border border-border rounded-xl overflow-hidden">
-          <div className="px-4 py-2.5 flex items-center gap-2">
-            <button
-              onClick={handleCardioToggle}
-              className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                cardioLog?.completed ? 'bg-success border-success text-white' : 'border-border'
-              }`}
-            >
-              {cardioLog?.completed && (
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              )}
-            </button>
-            <span className="text-xs font-bold text-accent">저강도 유산소</span>
-            <span className="text-xs text-text-secondary font-medium">45분+</span>
+          {(cardioLogs.length > 0 ? cardioLogs : [{ user_id: userId, date, completed: false, memo: null, session_number: 1 }]).map((cl, idx) => {
+            const sn = cl.session_number
+            const isCompleted = cl.completed
+            const memo = cardioMemos[sn] ?? ''
+            const memoVisible = showCardioMemo[sn] ?? false
+            return (
+              <div key={sn} className={idx > 0 ? 'border-t border-border' : ''}>
+                <div className="px-4 py-2.5 flex items-center gap-2">
+                  <button
+                    onClick={() => handleCardioToggle(sn)}
+                    className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                      isCompleted ? 'bg-success border-success text-white' : 'border-border'
+                    }`}
+                  >
+                    {isCompleted && (
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                  </button>
+                  <span className="text-xs font-bold text-accent">저강도 유산소{sn > 1 ? sn : ''}</span>
+                  <span className="text-xs text-text-secondary font-medium">45분+</span>
 
-            <div className="flex-1" />
-            <button
-              onClick={() => setShowCardioMemo(!showCardioMemo)}
-              className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${
-                showCardioMemo ? 'text-accent' : cardioMemo ? 'text-accent/60' : 'text-text-secondary/40'
-              }`}
-              title="메모"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-              </svg>
-            </button>
-          </div>
-          {showCardioMemo && (
-            <div className="px-4 py-2.5 bg-background/50">
-              <textarea
-                value={cardioMemo}
-                onChange={(e) => {
-                  handleCardioMemoChange(e.target.value)
-                  e.target.style.height = 'auto'
-                  e.target.style.height = e.target.scrollHeight + 'px'
-                }}
-                ref={(el) => {
-                  if (el) {
-                    el.style.height = 'auto'
-                    el.style.height = el.scrollHeight + 'px'
-                  }
-                }}
-                placeholder="머신 종류, 시간 등"
-                className="w-full text-xs bg-transparent resize-none outline-none text-foreground placeholder:text-text-secondary/50"
-                rows={1}
-              />
-            </div>
-          )}
+                  <div className="flex-1" />
+                  {sn > 1 && (
+                    <button
+                      onClick={() => handleCardioDelete(sn)}
+                      className="w-6 h-6 flex items-center justify-center rounded text-text-secondary/40"
+                      title="삭제"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setShowCardioMemo(prev => ({ ...prev, [sn]: !memoVisible }))}
+                    className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${
+                      memoVisible ? 'text-accent' : memo ? 'text-accent/60' : 'text-text-secondary/40'
+                    }`}
+                    title="메모"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
+                    </svg>
+                  </button>
+                </div>
+                {memoVisible && (
+                  <div className="px-4 py-2.5 bg-background/50">
+                    <textarea
+                      value={memo}
+                      onChange={(e) => {
+                        handleCardioMemoChange(sn, e.target.value)
+                        e.target.style.height = 'auto'
+                        e.target.style.height = e.target.scrollHeight + 'px'
+                      }}
+                      ref={(el) => {
+                        if (el) {
+                          el.style.height = 'auto'
+                          el.style.height = el.scrollHeight + 'px'
+                        }
+                      }}
+                      placeholder="머신 종류, 시간 등"
+                      className="w-full text-xs bg-transparent resize-none outline-none text-foreground placeholder:text-text-secondary/50"
+                      rows={1}
+                    />
+                  </div>
+                )}
+              </div>
+            )
+          })}
+          <button
+            onClick={handleCardioAdd}
+            className="w-full px-4 py-2 flex items-center justify-center gap-1 text-xs text-text-secondary/60 border-t border-border"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            추가
+          </button>
         </div>
       )}
 
@@ -629,8 +688,18 @@ export default function WorkoutPage() {
                     const prevIsSep = prevTmpl?.notes === '__sep__'
                     const setsChanged = isGroup && logIndex > 0 && tmpl?.sets && prevTmpl?.sets && tmpl.sets !== prevTmpl.sets
                     const isNewSubGroup = logIndex > 0 && ((curSubType && curSubType !== prevSubType) || setsChanged || prevIsSep)
+                    const getSetInfo = (notes: string | null | undefined) => {
+                      if (!notes) return null
+                      const first = notes.split(' / ')[0]
+                      const fl = first.toLowerCase()
+                      if (fl.startsWith('rest') || fl.startsWith('*') || fl.startsWith('@')) return null
+                      return first
+                    }
+                    const subSetInfo = prevIsSep ? getSetInfo(tmpl?.notes) : null
+                    const setsLabel = tmpl?.sets ? `${tmpl.sets} Set${tmpl.sets !== '1' ? 's' : ''}` : null
                     const subGroupLabel = isNewSubGroup
-                      ? (setsChanged || prevIsSep) && tmpl?.sets ? `${tmpl.sets} Set${tmpl.sets !== '1' ? 's' : ''}`
+                      ? (setsChanged || prevIsSep) && tmpl?.sets
+                        ? subSetInfo ? `${setsLabel} (${subSetInfo})` : setsLabel
                       : curSubType === 'superset' ? `Superset${tmpl?.sets ? ` · ${tmpl.sets} Sets` : ''}` : tmpl?.notes
                       : null
 
