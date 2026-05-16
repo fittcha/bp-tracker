@@ -484,15 +484,6 @@ export default function WorkoutPage() {
                   <span className="text-xs text-text-secondary font-medium">45분+</span>
 
                   <div className="flex-1" />
-                  {sn > 1 && (
-                    <button
-                      onClick={() => handleCardioDelete(sn)}
-                      className="w-6 h-6 flex items-center justify-center rounded text-text-secondary/40"
-                      title="삭제"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                    </button>
-                  )}
                   <button
                     onClick={() => setShowCardioMemo(prev => ({ ...prev, [sn]: !memoVisible }))}
                     className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${
@@ -507,6 +498,15 @@ export default function WorkoutPage() {
                       <line x1="16" y1="17" x2="8" y2="17" />
                     </svg>
                   </button>
+                  {sn > 1 && (
+                    <button
+                      onClick={() => handleCardioDelete(sn)}
+                      className="w-6 h-6 flex items-center justify-center rounded text-text-secondary/40"
+                      title="삭제"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  )}
                   {idx === 0 && (
                     <button
                       onClick={handleCardioAdd}
