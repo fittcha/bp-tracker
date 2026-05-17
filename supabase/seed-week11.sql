@@ -151,7 +151,6 @@ INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets
 SELECT w.id, 4, 'B', 'DB Romanian Deadlift', '3', '15', 120, 'Rest 2:00', 3 FROM weeks w WHERE w.week_number = 11;
 
 -- C. 5 sets: 10 Hammer Curls / 10 DB Hang Power Clean / 10 DB Bent Row * Rest as needed between sets
--- C. 3 sets: 20 Steps DB(2) Overhead Walk / 40 Box Step Ups / 20 Steps DB(2) Front Rack Walk / 40 Steps, Lunges * Rest as needed between sets
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
 SELECT w.id, 4, 'C', 'Hammer Curls', '5', '10', NULL, NULL, 4 FROM weeks w WHERE w.week_number = 11;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
@@ -159,21 +158,23 @@ SELECT w.id, 4, 'C', 'DB Hang Power Clean', '5', '10', NULL, NULL, 5 FROM weeks 
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
 SELECT w.id, 4, 'C', 'DB Bent Row', '5', '10', NULL, '* Rest as needed between sets', 6 FROM weeks w WHERE w.week_number = 11;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 4, 'C', '20 Steps DB(2) Overhead Walk', '3', NULL, NULL, NULL, 7 FROM weeks w WHERE w.week_number = 11;
+-- D. 3 sets: 20 Steps DB(2) Overhead Walk / 40 Box Step Ups / 20 Steps DB(2) Front Rack Walk / 40 Steps, Lunges * Rest as needed between sets
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 4, 'C', '40 Box Step Ups', '3', NULL, NULL, NULL, 8 FROM weeks w WHERE w.week_number = 11;
+SELECT w.id, 4, 'D', '20 Steps DB(2) Overhead Walk', '3', NULL, NULL, NULL, 7 FROM weeks w WHERE w.week_number = 11;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 4, 'C', '20 Steps DB(2) Front Rack Walk', '3', NULL, NULL, NULL, 9 FROM weeks w WHERE w.week_number = 11;
+SELECT w.id, 4, 'D', '40 Box Step Ups', '3', NULL, NULL, NULL, 8 FROM weeks w WHERE w.week_number = 11;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 4, 'C', '40 Steps, Lunges', '3', NULL, NULL, '* Rest as needed between sets', 10 FROM weeks w WHERE w.week_number = 11;
+SELECT w.id, 4, 'D', '20 Steps DB(2) Front Rack Walk', '3', NULL, NULL, NULL, 9 FROM weeks w WHERE w.week_number = 11;
+INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
+SELECT w.id, 4, 'D', '40 Steps, Lunges', '3', NULL, NULL, '* Rest as needed between sets', 10 FROM weeks w WHERE w.week_number = 11;
 
--- D. EMOM 16~20: Odd min, 8~12 Knee to Elbow or Toes to bar or Knee Raises / Even min, 10~15 Hollow Rock
+-- E. EMOM 16~20: Odd min, 8~12 Knee to Elbow or Toes to bar or Knee Raises / Even min, 10~15 Hollow Rock
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 4, 'D', 'Odd min, 8~12 Knee to Elbow or Toes to bar or Knee Raises', NULL, NULL, NULL, 'EMOM 16~20', 11 FROM weeks w WHERE w.week_number = 11;
+SELECT w.id, 4, 'E', 'Odd min, 8~12 Knee to Elbow or Toes to bar or Knee Raises', NULL, NULL, NULL, 'EMOM 16~20', 11 FROM weeks w WHERE w.week_number = 11;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 4, 'D', 'Even min, 10~15 Hollow Rock', NULL, NULL, NULL, NULL, 12 FROM weeks w WHERE w.week_number = 11;
+SELECT w.id, 4, 'E', 'Even min, 10~15 Hollow Rock', NULL, NULL, NULL, NULL, 12 FROM weeks w WHERE w.week_number = 11;
 
--- F. 10 Sets: 400m Run @ Faster than Moderated / 400m Run @ Zone 2 * No Rest b/w sets (E 섹션 없음)
+-- F. 10 Sets: 400m Run @ Faster than Moderated / 400m Run @ Zone 2 * No Rest b/w sets
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
 SELECT w.id, 4, 'F', '400m Run @ Faster than Moderated', '10', NULL, NULL, NULL, 13 FROM weeks w WHERE w.week_number = 11;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
