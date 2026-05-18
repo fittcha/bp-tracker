@@ -163,9 +163,9 @@ SELECT w.id, 4, 'E', 'Toes to bar', '4', '10~15', NULL, '* Rest as needed betwee
 
 -- F. 4~5 sets: 800m Run @ Moderate / 200m Recovery Run or Walk / No Rest between sets
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 4, 'F', '800m Run @ Moderate', '4~5', NULL, NULL, 'No Rest between sets', 12 FROM weeks w WHERE w.week_number = 7;
+SELECT w.id, 4, 'F', '800m Run @ Moderate', '4~5', NULL, NULL, NULL, 12 FROM weeks w WHERE w.week_number = 7;
 INSERT INTO workout_templates (week_id, day_number, section, exercise_name, sets, reps, rest_seconds, notes, sort_order)
-SELECT w.id, 4, 'F', '200m Recovery Run or Walk', '4~5', NULL, NULL, NULL, 13 FROM weeks w WHERE w.week_number = 7;
+SELECT w.id, 4, 'F', '200m Recovery Run or Walk', '4~5', NULL, NULL, 'No Rest between sets', 13 FROM weeks w WHERE w.week_number = 7;
 
 
 -- ============ Day 5 ============

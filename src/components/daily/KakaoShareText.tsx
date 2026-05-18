@@ -40,7 +40,7 @@ export default function KakaoShareText({ log, weekNumber, weeklyCardioCount }: K
   }
   lines.push(`당/가공식품 섭취 여부 : ${log.sugar_processed || 'X'}`)
   if (weekNumber && weekNumber >= 5) {
-    lines.push(`저강도 유산소 : ${weeklyCardioCount ?? 0}/${weekNumber && weekNumber >= 9 ? 5 : 2}`)
+    lines.push(`저강도 유산소 : ${weeklyCardioCount ?? 0}/${weekNumber && weekNumber >= 9 ? 7 : 2}`)
   }
   const text = lines.join('\n')
 
