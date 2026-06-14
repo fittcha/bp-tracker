@@ -43,7 +43,7 @@ export default function FinalWeekCheerPopup() {
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/40">
-      <div className="relative bg-surface rounded-2xl shadow-xl mx-6 max-w-sm w-full p-6 pt-9 text-left">
+      <div className="relative bg-surface rounded-2xl shadow-xl mx-6 max-w-sm w-full p-5 pt-9 text-left">
         <button
           onClick={handleDismiss}
           aria-label="닫기"
@@ -54,7 +54,7 @@ export default function FinalWeekCheerPopup() {
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
-        <div className="space-y-4 text-sm text-text-secondary leading-relaxed border-l-[3px] border-text-secondary/30 pl-4">
+        <div className="space-y-4 text-xs text-text-secondary leading-relaxed border-l-[3px] border-text-secondary/30 pl-3">
           <p>드디어 마지막 주입니다 🥳</p>
           <div>
             <p>15주 동안 열심히 달려오느라 정말 고생 많았습니다!</p>
