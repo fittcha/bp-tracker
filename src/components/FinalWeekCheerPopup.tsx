@@ -43,7 +43,7 @@ export default function FinalWeekCheerPopup() {
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/40">
-      <div className="relative bg-surface rounded-2xl shadow-xl mx-6 max-w-sm w-full p-5 pt-9 text-left">
+      <div className="relative bg-surface rounded-2xl shadow-xl mx-6 max-w-sm w-full px-5 pt-9 pb-8 text-left">
         <button
           onClick={handleDismiss}
           aria-label="닫기"
