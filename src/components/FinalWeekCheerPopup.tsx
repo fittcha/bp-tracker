@@ -57,11 +57,11 @@ export default function FinalWeekCheerPopup() {
         <div className="space-y-4 text-sm text-text-secondary leading-relaxed border-l-[3px] border-text-secondary/30 pl-4">
           <p>드디어 마지막 주입니다 🥳</p>
           <div>
-            <p>15주 동안 열심히 달려오느라 정말 고생 많았어요!</p>
-            <p>남은 한 주도 컨디션 잘 챙기고,</p>
-            <p>끝까지 나를 믿고 힘내봅시다 💪</p>
+            <p>15주 동안 열심히 달려오느라 정말 고생 많았습니다!</p>
+            <p>남은 한 주도 컨디션 잘 챙기고</p>
+            <p>끝까지 나를 믿고 잘 마무리합시다 💪</p>
           </div>
-          <p>6월 20일, 다 같이 멋지게 마무리해요! 🔥</p>
+          <p>6월 20일, 다 같이 멋지게 즐겨봐요! 🔥</p>
         </div>
       </div>
     </div>
