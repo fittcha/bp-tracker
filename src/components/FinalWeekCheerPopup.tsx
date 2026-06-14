@@ -54,16 +54,12 @@ export default function FinalWeekCheerPopup() {
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
-        <p className="text-base mb-4">마지막 한 주입니다 💪</p>
-        <p className="text-sm text-text-secondary leading-relaxed">
-          15주 동안 달려오느라 정말 고생 많았어요.
-        </p>
-        <p className="text-sm text-text-secondary leading-relaxed mb-4">
-          컨디션 잘 챙기고, 끝까지 나를 믿고 잘 마무리하길 🙏
-        </p>
-        <p className="text-sm">
-          6월 20일, 가장 멋진 모습으로 봐요! 🔥
-        </p>
+        <div className="space-y-3 text-sm text-text-secondary leading-relaxed">
+          <p>마지막 한 주입니다 💪</p>
+          <p>15주 동안 달려오느라 정말 고생 많았어요.</p>
+          <p>컨디션 잘 챙기고, 끝까지 나를 믿고 잘 마무리하길 🙏</p>
+          <p>6월 20일, 가장 멋진 모습으로 봐요! 🔥</p>
+        </div>
       </div>
     </div>
   )
