@@ -43,23 +43,27 @@ export default function FinalWeekCheerPopup() {
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/40">
-      <div className="bg-surface rounded-2xl shadow-xl mx-6 max-w-sm w-full p-6 text-center">
-        <p className="text-base font-bold mb-4">마지막 한 주입니다 💪</p>
+      <div className="relative bg-surface rounded-2xl shadow-xl mx-6 max-w-sm w-full p-6 pt-9 text-left">
+        <button
+          onClick={handleDismiss}
+          aria-label="닫기"
+          className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-full text-text-secondary active:bg-border/50"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+        <p className="text-base mb-4">마지막 한 주입니다 💪</p>
         <p className="text-sm text-text-secondary leading-relaxed">
           15주 동안 달려오느라 정말 고생 많았어요.
         </p>
         <p className="text-sm text-text-secondary leading-relaxed mb-4">
           컨디션 잘 챙기고, 끝까지 나를 믿고 잘 마무리하길 🙏
         </p>
-        <p className="text-sm font-semibold mb-5">
+        <p className="text-sm">
           6월 20일, 가장 멋진 모습으로 봐요! 🔥
         </p>
-        <button
-          onClick={handleDismiss}
-          className="w-full py-2 rounded-xl bg-accent text-white text-sm font-medium active:bg-accent/80"
-        >
-          확인
-        </button>
       </div>
     </div>
   )
