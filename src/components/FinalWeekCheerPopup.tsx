@@ -61,7 +61,7 @@ export default function FinalWeekCheerPopup() {
             <p>남은 한 주도 컨디션 잘 챙기고,</p>
             <p>끝까지 나를 믿고 잘 마무리합시다 💪</p>
           </div>
-          <p>6월 20일, 가장 멋진 모습으로 만나요! 🔥</p>
+          <p>6월 20일, 다 같이 멋지게 마무리해요! 🔥</p>
         </div>
       </div>
     </div>
