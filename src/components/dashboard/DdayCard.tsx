@@ -11,7 +11,7 @@ export default function DdayCard() {
         <div>
           <p className="text-xs text-text-secondary font-medium">촬영일까지</p>
           <p className="text-4xl font-bold text-foreground mt-1">
-            D{dday <= 0 ? '+' : '-'}{Math.abs(dday)}
+            {dday === 0 ? 'D-DAY' : `D${dday < 0 ? '+' : '-'}${Math.abs(dday)}`}
           </p>
         </div>
         <div className="text-right">

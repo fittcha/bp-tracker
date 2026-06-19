@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { toDateString } from '@/lib/utils'
+import { toDateString, getDday } from '@/lib/utils'
 import { getLoggedInUser } from '@/lib/auth'
 import Link from 'next/link'
 
@@ -11,11 +11,15 @@ type Status = 'none' | 'in-progress' | 'done'
 export default function TodayStatus() {
   const user = getLoggedInUser()
   const userId = user?.id ?? ''
+  const dday = getDday()
+  const isShootDay = dday === 0
+  const isProgramOver = dday < 0
   const [workoutStatus, setWorkoutStatus] = useState<Status>('none')
   const [dailyStatus, setDailyStatus] = useState<Status>('none')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (isShootDay || isProgramOver) return
     const today = toDateString(new Date())
 
     async function fetchStatus() {
@@ -55,6 +59,31 @@ export default function TodayStatus() {
 
     fetchStatus()
   }, [])
+
+  if (isShootDay) {
+    return (
+      <div className="bg-surface rounded-2xl p-5 border border-border">
+        <p className="text-xs text-text-secondary font-medium mb-3">오늘의 기록</p>
+        <div className="flex items-center justify-center gap-2 py-3">
+          <span className="text-2xl">📷</span>
+          <p className="text-base font-semibold">촬영 잘하기</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (isProgramOver) {
+    return (
+      <div className="bg-surface rounded-2xl p-5 border border-border">
+        <p className="text-xs text-text-secondary font-medium mb-3">오늘의 기록</p>
+        <div className="flex flex-col items-center justify-center gap-1 py-3 text-center">
+          <span className="text-2xl">🎉</span>
+          <p className="text-base font-semibold">프로그램이 종료되었습니다.</p>
+          <p className="text-sm text-text-secondary">다음 시즌 시작은..</p>
+        </div>
+      </div>
+    )
+  }
 
   if (loading) {
     return (

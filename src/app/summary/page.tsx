@@ -112,9 +112,17 @@ export default function SummaryPage() {
   // Weight chart data
   const weightData = (() => {
     if (chartMode === 'all') {
-      const logMap = new Map(allLogs.filter(l => l.weight_kg).map(l => [l.date, l.weight_kg!]))
+      const weighedLogs = allLogs.filter(l => l.weight_kg)
+      const logMap = new Map(weighedLogs.map(l => [l.date, l.weight_kg!]))
       const start = new Date(PROGRAM_START)
-      const end = new Date(PROGRAM_END)
+      // x축 끝: 최종 체중 입력일 + 2일 (값 라벨이 오른쪽에서 잘리지 않도록 여백 확보)
+      let end: Date
+      if (weighedLogs.length) {
+        end = new Date(weighedLogs[weighedLogs.length - 1].date)
+        end.setDate(end.getDate() + 2)
+      } else {
+        end = new Date(PROGRAM_END)
+      }
       const days: { date: string; weight: number | null }[] = []
       for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         const dateStr = d.toISOString().slice(0, 10)
