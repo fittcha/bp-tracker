@@ -145,9 +145,10 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
           {isAll && dday && data.some(d => d.date === dday) && (
             <ReferenceLine
               x={dday}
-              stroke="#3B82F6"
-              strokeDasharray="4 4"
-              strokeWidth={1.5}
+              stroke="#93C5FD"
+              strokeOpacity={0.6}
+              strokeDasharray="3 3"
+              strokeWidth={1}
             />
           )}
           <XAxis
