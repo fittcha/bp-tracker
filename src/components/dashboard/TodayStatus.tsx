@@ -64,9 +64,9 @@ export default function TodayStatus() {
     return (
       <div className="bg-surface rounded-2xl p-5 border border-border">
         <p className="text-xs text-text-secondary font-medium mb-3">오늘의 기록</p>
-        <div className="flex items-center justify-center gap-2 py-3">
+        <div className="flex items-center gap-2 py-3">
           <span className="text-2xl">📷</span>
-          <p className="text-base font-semibold">촬영 잘하기</p>
+          <p className="text-base">촬영 잘하기</p>
         </div>
       </div>
     )
@@ -76,9 +76,9 @@ export default function TodayStatus() {
     return (
       <div className="bg-surface rounded-2xl p-5 border border-border">
         <p className="text-xs text-text-secondary font-medium mb-3">오늘의 기록</p>
-        <div className="flex flex-col items-center justify-center gap-1 py-3 text-center">
+        <div className="flex flex-col gap-1 py-3">
           <span className="text-2xl">🎉</span>
-          <p className="text-base font-semibold">프로그램이 종료되었습니다.</p>
+          <p className="text-base">프로그램이 종료되었습니다.</p>
           <p className="text-sm text-text-secondary">다음 시즌 시작은..</p>
         </div>
       </div>

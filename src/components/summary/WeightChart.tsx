@@ -1,6 +1,6 @@
 'use client'
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList, ReferenceLine } from 'recharts'
 import { toDateString } from '@/lib/utils'
 
 interface WeekInfo {
@@ -140,6 +140,14 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
             <CartesianGrid
               stroke="#E5E7EB"
               strokeOpacity={0.5}
+            />
+          )}
+          {isAll && dday && data.some(d => d.date === dday) && (
+            <ReferenceLine
+              x={dday}
+              stroke="#3B82F6"
+              strokeDasharray="4 4"
+              strokeWidth={1.5}
             />
           )}
           <XAxis

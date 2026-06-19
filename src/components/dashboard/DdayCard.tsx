@@ -9,7 +9,7 @@ export default function DdayCard() {
     <div className="bg-surface rounded-2xl p-5 border border-border">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs text-text-secondary font-medium">촬영일까지</p>
+          <p className="text-xs text-text-secondary font-medium">{dday === 0 ? '촬영일입니다!' : '촬영일까지'}</p>
           <p className="text-4xl font-bold text-foreground mt-1">
             {dday === 0 ? 'D-DAY' : `D${dday < 0 ? '+' : '-'}${Math.abs(dday)}`}
           </p>
