@@ -1,10 +1,12 @@
 import { supabase } from '@/lib/supabase'
+import { getWorkoutExercises } from './workouts'
 
 export interface WorkoutLog {
   id?: string
   user_id?: string
   date: string
   template_id: string | null
+  workout_exercise_id: string | null
   is_custom: boolean
   exercise_name: string
   section: string | null
@@ -135,4 +137,61 @@ export async function searchWorkoutLogs(
     .order('created_at', { ascending: true })
   if (error) throw error
   return data
+}
+
+export type WorkoutLogJoined = WorkoutLog & {
+  workout?: { workout_id: string; title: string; owner_user_id: string | null } | null
+}
+
+export async function getWorkoutLogsWithWorkout(
+  date: string,
+  userId: string,
+): Promise<WorkoutLogJoined[]> {
+  const { data, error } = await supabase
+    .from('workout_logs')
+    .select(
+      'id, user_id, date, template_id, workout_exercise_id, is_custom, exercise_name, section, completed, weight_lb, weight_unit, memo, custom_sets, custom_reps, ' +
+        'workout_exercises ( workout_id, workouts ( title, owner_user_id ) )',
+    )
+    .eq('date', date)
+    .eq('user_id', userId)
+  if (error) throw error
+  return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) => {
+    const we = row.workout_exercises as
+      | { workout_id: string; workouts?: { title: string; owner_user_id: string | null } | null }
+      | null
+    const { workout_exercises, ...rest } = row
+    void workout_exercises
+    return {
+      ...(rest as unknown as WorkoutLog),
+      workout: we
+        ? { workout_id: we.workout_id, title: we.workouts?.title ?? '', owner_user_id: we.workouts?.owner_user_id ?? null }
+        : null,
+    }
+  })
+}
+
+export async function addWorkoutToDate(
+  userId: string,
+  date: string,
+  workoutId: string,
+): Promise<WorkoutLog[]> {
+  const exercises = await getWorkoutExercises(workoutId)
+  const rows: Omit<WorkoutLog, 'id'>[] = exercises.map((ex) => ({
+    user_id: userId,
+    date,
+    template_id: null,
+    workout_exercise_id: ex.id,
+    is_custom: false,
+    exercise_name: ex.exercise_name,
+    section: ex.section,
+    completed: false,
+    weight_lb: null,
+    weight_unit: 'lb',
+    memo: null,
+    custom_sets: ex.sets,
+    custom_reps: ex.reps,
+  }))
+  if (rows.length === 0) return []
+  return batchInsertWorkoutLogs(rows)
 }

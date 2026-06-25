@@ -169,6 +169,7 @@ export default function WorkoutPage() {
           date,
           user_id: userId,
           template_id: t.id,
+          workout_exercise_id: null,
           is_custom: false,
           exercise_name: t.exercise_name,
           section: t.section,
