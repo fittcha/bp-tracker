@@ -384,8 +384,7 @@ function SectionGroup({
                       {log.custom_sets && `${log.custom_sets}세트`} {log.custom_reps && `× ${log.custom_reps}`}
                     </p>
                   )}
-                  {isGroup &&
-                    log.custom_notes &&
+                  {log.custom_notes &&
                     (!isNewSubGroup || setsChanged) &&
                     (() => {
                       // 동작별 부가 노트는 custom_notes에서 읽는다(반복수와 분리).
