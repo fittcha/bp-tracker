@@ -29,16 +29,18 @@
 
 운동 라이브러리는 두 계층으로 구성된다.
 
-1. **공용 기본 운동** — 관리자(chacha)가 직접 등록. 전원에게 노출.
-   - 각 공용 운동은 **요일(월~금)에 매핑**되어 **매주 그 요일에 캘린더에 자동 제공**된다
+1. **공용 기본 운동** — 관리자(chacha)가 시드한 **기존 데이터**. 전원에게 노출.
+   - 각 공용 운동은 **요일(월~금)에 매핑**되어 **매주 그 요일에 자동 제공**된다
      (예: 월=어깨/가슴, 화=하체, 수=등, 목=팔, 금=전신). 주말은 기본 제공 없음.
-   - 앱 내에서는 멤버가 공용 운동을 만들 수 없다. chacha가 SQL/관리자 화면으로 시드한다
-     (시즌1 주차 데이터 입력하던 방식과 동일).
-2. **개인 운동** — 멤버가 현행 커스텀 운동처럼 직접 추가. **추가한 본인만** 노출.
-   - 라이브러리에서 공용 운동 **아래에** 정렬된다.
-   - 요일 매핑 없음. 멤버가 원하는 날짜에 직접 "담기"로 추가하며, 주말도 가능.
+   - **멤버는 공용 운동을 생성·수정·삭제할 수 없다(읽기 전용).** chacha가 SQL/관리자 화면으로만 관리
+     (시즌1 주차 데이터 입력 방식과 동일).
+   - **운동 추가 팝업에는 공용이 나오지 않는다** — 이미 그 요일에 자동 제공되므로 "담기" 대상이 아님.
+2. **개인 운동** — 멤버가 직접 만들고 **수정·보관(archive)** 하는 본인 운동. **본인만** 노출.
+   - 요일 매핑 없음. 멤버가 원하는 날짜에 **운동 추가 팝업**으로 담으며, 주말도 가능.
+   - **신체 부위/종류 카테고리**(전신·가슴·등·어깨·팔·하체·코어·유산소 등)를 가진다 → 추가 팝업에서
+     카테고리 탭으로 분류해 카드로 브라우징.
 
-**결과 기록은 항상 개인별이다.** 공용 운동도 각자 자기 무게/완료/메모를 기록한다.
+**결과 기록은 항상 개인별이다.** 공용 운동도 각자 자기 무게/완료/메모를 기록한다(공용 정의 자체는 불변, 로그만 개인).
 
 ## 4. 데이터 모델
 
@@ -51,6 +53,7 @@ create table workouts (
   title text not null,
   owner_user_id uuid references users(id) on delete cascade,  -- NULL = 공용, 값 있으면 개인(본인만)
   default_weekday int check (default_weekday between 1 and 5), -- 공용 전용: 1=월 .. 5=금, NULL=요일 매핑 없음
+  category text,                                               -- 신체 부위/종류 (개인 운동 분류용; 공용도 보유 가능)
   notes text,
   archived boolean not null default false,
   sort_order int not null default 0,
@@ -114,9 +117,8 @@ alter table workout_logs
 - **선택 날짜의 운동 목록** (workout 단위 카드, 동작별 체크/무게/메모 — 기존 컨트롤 재사용):
   - **공용 운동 섹션**: 그 날짜 요일에 매핑된 공용 운동 (default_weekday = 요일).
   - **개인 운동 섹션** (공용 아래): 그 날짜에 사용자가 담은 개인 운동.
-- **운동 추가 버튼**:
-  - ① 라이브러리에서 선택 → 이 날짜에 담기
-  - ② 새 개인 운동 만들기 (제목 + 동작들) → 라이브러리(개인)에 등록 + 이 날짜에 담기
+- **운동 추가 버튼** → **추가 팝업**(§5.3): 카테고리 탭으로 본인 개인 운동을 카드 브라우징해 담거나,
+  `+ 새 운동`으로 만들어 담는다. (공용은 팝업에 없음 — 요일 자동 제공.)
 - **검색/이력**: 기존 `searchWorkoutLogs`(ILIKE) 유지 — 시즌1·2 로그 모두 검색됨.
 - **제거**: 저강도 유산소 섹션, 주차/요일(1~5일) 제약, "칼로리 진행률" 문구.
 
@@ -133,23 +135,28 @@ alter table workout_logs
 6. (연속성) 그 날짜에 `workout_exercise_id`/연결이 없는 시즌1 로그가 있으면 섹션 기준으로
    읽기 위주 렌더 — 과거 날짜 조회 시 기존 기록이 그대로 보인다.
 
-### 5.3 운동 담기 / 기록
+### 5.3 운동 추가 팝업 (개인 운동 전용, 카테고리 탭)
 
-- **담기**: 라이브러리에서 운동 선택 → 그 운동의 동작들로 (user, D) 로그를 batch insert.
-- **기록**: 동작 체크/무게/메모 변경 시 `upsertWorkoutLog` (기존 800ms 디바운스 패턴).
-- **개인 운동 생성**: 제목 + 동작 입력 → `workouts`(owner=current user) + `workout_exercises`
-  insert. 곧바로 선택 날짜에 담기.
+운동 페이지의 "+ 운동 추가" → **모달 팝업**. 공용은 나오지 않는다(요일 자동 제공).
 
-### 5.4 라이브러리 관리
+- **카테고리 탭** (가로 스크롤): `전체` + 부위별(`전신·가슴·등·어깨·팔·하체·코어·유산소`).
+  `전체`는 UI 전용 메타탭, 나머지는 `workouts.category` 값. 본인 개인 운동만 대상.
+- **카드 그리드**: 선택 탭의 개인 운동 카드 = 운동명 + 동작 수. **카드 본문 탭 → 그 날짜에 즉시 담기**
+  (그 운동의 동작들로 (user, D) 로그 batch insert, 토스트 확인).
+- **카드 ⋯ 메뉴**: 본인 개인 운동이므로 **수정 / 보관(archive)**. (공용은 팝업에 없으니 멤버가 손댈 수 없음.)
+- **`+ 새 운동`**: 제목 + **카테고리 선택** + 동작들 입력 → `workouts`(owner=current user, category) +
+  `workout_exercises` insert → 곧바로 선택 날짜에 담기.
+- **기록**: 담은 뒤 동작 체크/무게/메모 변경 시 `upsertWorkoutLog`(기존 디바운스 패턴, 무게 500ms·메모 800ms).
 
-- **라이브러리 뷰** (모달 또는 별도 화면): 공용(상단, 멤버는 읽기 전용) + 개인(하단, 본인 편집/보관).
-  개인 운동 생성/수정/보관(archive)을 여기서 수행.
-- **공용 운동 관리**: chacha가 `/admin/workout`을 공용 운동 관리용으로 가볍게 재활용하거나
-  SQL로 시드 (초기엔 SQL만으로 충분, YAGNI).
+### 5.4 운동 관리 권한
 
-### 5.5 운동별 조회
+- **개인 운동**: 생성/수정/보관 전부 **추가 팝업 안에서** 본인이 수행 (별도 라이브러리 화면 불필요).
+- **공용 운동**: 멤버는 **수정·삭제 불가(읽기 전용)**. chacha가 `/admin/workout` 또는 SQL로만 관리
+  (초기엔 SQL 시드로 충분, YAGNI).
 
-- 라이브러리에서 특정 운동을 탭하면 그 운동에 대한 **본인 기록 추이**(날짜별 무게/완료)를 표시.
+### 5.5 운동별 조회 (선택)
+
+- 개인 운동 카드 상세에서 그 운동에 대한 **본인 기록 추이**(날짜별 무게/완료)를 표시(우선순위 낮음).
 - 데이터: `workout_logs`를 `workout_exercise_id → workout_id` 기준으로 집계.
 
 ## 6. 화면별 변경
@@ -181,11 +188,12 @@ alter table workout_logs
 ## 8. lib/api 변경
 
 - **신규** `src/lib/api/workouts.ts`:
-  - `getLibrary(userId)` — 공용(owner null) + 개인(owner=userId), 공용 우선 정렬, archived 제외
-  - `getDefaultWorkoutsForWeekday(weekday)` — 공용 + default_weekday 매칭
+  - `getPersonalWorkouts(userId)` — **본인 개인 운동만**(공용 제외), category→sort_order 정렬, archived 제외. 추가 팝업용
+  - `getDefaultWorkoutsForWeekday(weekday)` — 공용 + default_weekday 매칭 (요일 자동 제공)
   - `getWorkoutExercises(workoutId)`
-  - `createPersonalWorkout(userId, title, exercises[])`, `updatePersonalWorkout`, `archiveWorkout`
-  - `getWorkoutProgress(userId, workoutId)` — 운동별 기록 추이
+  - `createPersonalWorkout(userId, title, category, exercises[])`, `updatePersonalWorkout(workoutId, title, category, exercises[])`, `archiveWorkout`
+  - `getWorkoutProgress(userId, workoutId)` — 운동별 기록 추이 (선택)
+  - 상수 `WORKOUT_CATEGORIES`(전신·가슴·등·어깨·팔·하체·코어·유산소)
 - **변경** `src/lib/api/workout-logs.ts`:
   - 로그 생성/조회 시 `workout_exercise_id` 반영. 날짜 조회를 workout 그룹으로 묶기 위한
     nested select(`workout_exercises(workout_id, workouts(title, owner_user_id))`) 추가.
@@ -206,9 +214,10 @@ alter table workout_logs
 
 ## 10. 결정 로그 (확정됨)
 
-- 운동 공유: **공용은 관리자 큐레이션(전원 노출) / 개인은 멤버 생성(본인만)**.
-- 운동 구성: **라이브러리 + 날짜 담기**(혼합), 날짜별·운동별 둘 다 조회.
-- 공용 기본운동: **주중 5일 요일별 고정**, 매주 자동 반복.
+- 운동 공유: **공용은 관리자 큐레이션 기존 데이터(전원 노출, 멤버 읽기 전용) / 개인은 멤버 생성·수정·보관(본인만)**.
+- 운동 추가: **추가 팝업 = 개인 운동 전용**, **신체 부위 카테고리 탭 + 카드 탭 담기**. 공용은 팝업 비노출(요일 자동 제공). 개인 관리(수정/보관)도 팝업 내에서.
+- 공용 기본운동: **주중 5일 요일별 고정**, 매주 자동 반복. 멤버는 손댈 수 없음.
+- 카테고리: `workouts.category`(전신·가슴·등·어깨·팔·하체·코어·유산소 등). `전체`는 UI 메타탭.
 - 유지: 추가운동 기록 · 체중+그래프 · 1RM. 미노출: 수면 · 식단 · 물·영양제·당가공·유산소.
 - 데이터 구조: **가볍게 피봇** (시즌 테이블 없음, 신규 테이블 + 컬럼 1개, 시즌1 보관).
 - 앱명: **ROAD TO FITTER**.

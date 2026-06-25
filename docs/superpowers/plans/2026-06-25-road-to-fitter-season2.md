@@ -29,6 +29,7 @@ export interface Workout {
   title: string
   owner_user_id: string | null   // null = 공용(전원), 값 있으면 개인(본인만)
   default_weekday: number | null // 공용 전용: 1=월 .. 5=금, null=요일 매핑 없음
+  category: string | null        // 신체 부위/종류 (개인 운동 분류용). 공용은 null 가능
   notes: string | null
   archived: boolean
   sort_order: number
@@ -76,6 +77,7 @@ create table if not exists workouts (
   title text not null,
   owner_user_id uuid references users(id) on delete cascade,   -- null = 공용
   default_weekday int check (default_weekday between 1 and 5), -- 공용 요일(1=월..5=금)
+  category text,                                              -- 신체 부위/종류 (개인 분류용)
   notes text,
   archived boolean not null default false,
   sort_order int not null default 0,
@@ -257,12 +259,12 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 **Interfaces:**
 - Consumes: `supabase` from `@/lib/supabase`.
 - Produces (이후 운동 페이지·addWorkoutToDate가 의존):
-  - types `Workout`, `WorkoutExercise` (위 "핵심 데이터 모델"과 동일).
-  - `getLibrary(userId: string): Promise<Workout[]>`
+  - types `Workout`, `WorkoutExercise` (위 "핵심 데이터 모델"과 동일, `category` 포함).
+  - `getPersonalWorkouts(userId: string): Promise<Workout[]>` — 본인 개인 운동만(공용 제외), archived 제외. 추가 팝업 카테고리 브라우징용.
   - `getDefaultWorkoutsForWeekday(weekday: number): Promise<Workout[]>`
   - `getWorkoutExercises(workoutId: string): Promise<WorkoutExercise[]>`
-  - `createPersonalWorkout(userId: string, title: string, exercises: Omit<WorkoutExercise,'id'|'workout_id'>[]): Promise<Workout>`
-  - `updatePersonalWorkout(workoutId: string, title: string, exercises: Omit<WorkoutExercise,'id'|'workout_id'>[]): Promise<void>`
+  - `createPersonalWorkout(userId: string, title: string, category: string | null, exercises: Omit<WorkoutExercise,'id'|'workout_id'>[]): Promise<Workout>`
+  - `updatePersonalWorkout(workoutId: string, title: string, category: string | null, exercises: Omit<WorkoutExercise,'id'|'workout_id'>[]): Promise<void>`
   - `archiveWorkout(workoutId: string): Promise<void>`
   - `getWorkoutProgress(userId: string, workoutId: string): Promise<{ date: string; exercise_name: string; weight_lb: number | null; weight_unit: 'lb'|'kg'; completed: boolean }[]>`
 
@@ -277,6 +279,7 @@ export interface Workout {
   title: string
   owner_user_id: string | null
   default_weekday: number | null
+  category: string | null
   notes: string | null
   archived: boolean
   sort_order: number
@@ -295,14 +298,14 @@ export interface WorkoutExercise {
   sort_order: number
 }
 
-// 라이브러리: 공용(owner null) + 본인 개인. 공용 먼저(owner_user_id nulls first), 그다음 sort_order.
-export async function getLibrary(userId: string): Promise<Workout[]> {
+// 추가 팝업용: 본인 개인 운동만(공용 제외). 카테고리→sort_order 순. 공용은 요일 자동 제공이라 여기 없음.
+export async function getPersonalWorkouts(userId: string): Promise<Workout[]> {
   const { data, error } = await supabase
     .from('workouts')
     .select('*')
-    .or(`owner_user_id.is.null,owner_user_id.eq.${userId}`)
+    .eq('owner_user_id', userId)
     .eq('archived', false)
-    .order('owner_user_id', { ascending: true, nullsFirst: true })
+    .order('category', { ascending: true, nullsFirst: false })
     .order('sort_order', { ascending: true })
   if (error) throw error
   return (data ?? []) as Workout[]
@@ -334,11 +337,12 @@ export async function getWorkoutExercises(workoutId: string): Promise<WorkoutExe
 export async function createPersonalWorkout(
   userId: string,
   title: string,
+  category: string | null,
   exercises: Omit<WorkoutExercise, 'id' | 'workout_id'>[],
 ): Promise<Workout> {
   const { data: w, error: we } = await supabase
     .from('workouts')
-    .insert({ title, owner_user_id: userId, created_by: userId, default_weekday: null })
+    .insert({ title, owner_user_id: userId, created_by: userId, default_weekday: null, category })
     .select()
     .single()
   if (we) throw we
@@ -355,9 +359,10 @@ export async function createPersonalWorkout(
 export async function updatePersonalWorkout(
   workoutId: string,
   title: string,
+  category: string | null,
   exercises: Omit<WorkoutExercise, 'id' | 'workout_id'>[],
 ): Promise<void> {
-  const { error: te } = await supabase.from('workouts').update({ title }).eq('id', workoutId)
+  const { error: te } = await supabase.from('workouts').update({ title, category }).eq('id', workoutId)
   if (te) throw te
   const { error: de } = await supabase.from('workout_exercises').delete().eq('workout_id', workoutId)
   if (de) throw de
@@ -430,10 +435,10 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 -- 공용 기본운동 시드 (owner_user_id = null). default_weekday: 1=월 .. 5=금.
 -- chacha가 운동별로 아래 블록을 복제해 채운다.
 
--- 예시: 월요일 "어깨·가슴"
+-- 예시: 월요일 "어깨·가슴" (공용 category는 선택 — 팝업엔 안 나오므로 표시용)
 with w as (
-  insert into workouts (title, owner_user_id, default_weekday, sort_order)
-  values ('어깨·가슴', null, 1, 0)
+  insert into workouts (title, owner_user_id, default_weekday, category, sort_order)
+  values ('어깨·가슴', null, 1, '가슴', 0)
   returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order)
@@ -637,32 +642,40 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 ---
 
-### Task B4: 운동 추가 — 라이브러리 담기 + 새 개인 운동 만들기
+### Task B4: 운동 추가 팝업 — 카테고리 탭 + 카드 담기 + 새 개인 운동 (개인 전용)
+
+> 공용 운동은 팝업에 나오지 않는다(요일 자동 제공). 팝업은 **본인 개인 운동 전용**이며, 신체 부위 카테고리 탭으로 카드 브라우징한다.
 
 **Files:**
-- Create: `src/components/workout/AddWorkoutSheet.tsx`
+- Create: `src/components/workout/AddWorkoutPopup.tsx`
 - Modify: `src/app/workout/page.tsx`
 
 **Interfaces:**
-- Consumes: `getLibrary`, `createPersonalWorkout`, `WorkoutExercise` (workouts.ts); `addWorkoutToDate` (workout-logs.ts); `getLoggedInUser`.
-- Produces: `AddWorkoutSheet({ userId, date, onAdded, onClose }: { userId: string; date: string; onAdded: () => void; onClose: () => void })`.
+- Consumes: `getPersonalWorkouts`, `createPersonalWorkout`, `WorkoutExercise` (workouts.ts); `addWorkoutToDate` (workout-logs.ts); `getLoggedInUser`.
+- Produces: `AddWorkoutPopup({ userId, date, onAdded, onClose }: { userId: string; date: string; onAdded: () => void; onClose: () => void })`; 상수 `WORKOUT_CATEGORIES: string[]`.
 
-- [ ] **Step 1: 시트 컴포넌트 작성**
+- [ ] **Step 1: 팝업 컴포넌트 작성**
 
-두 탭:
-1. **라이브러리에서 담기**: `getLibrary(userId)` 목록(공용 위, 개인 아래) → 항목 탭 → `addWorkoutToDate(userId, date, workout.id)` → `onAdded()`.
-2. **새 개인 운동 만들기**: 제목 입력 + 동작 행 추가(section/exercise_name/sets/reps/notes, 기존 `CustomExerciseForm` 입력 UX 참고) → `createPersonalWorkout(userId, title, rows)` → 생성된 운동 즉시 `addWorkoutToDate` → `onAdded()`.
+```tsx
+// 카테고리 표준 목록 (탭 순서·생성 폼 select 공용). '전체'는 UI 메타탭으로 별도.
+export const WORKOUT_CATEGORIES = ['전신', '가슴', '등', '어깨', '팔', '하체', '코어', '유산소']
+```
+구성:
+- 마운트 시 `getPersonalWorkouts(userId)` → `workouts: Workout[]` state.
+- **카테고리 탭**(가로 스크롤): `['전체', ...WORKOUT_CATEGORIES.filter(c => workouts.some(w => w.category === c))]`. 선택 탭 `selectedCat`(기본 '전체'). '전체'면 전부, 아니면 `w.category === selectedCat` 필터.
+- **카드 그리드**: 운동명 + 동작 수(선택; 생략 가능). **카드 본문 탭** → `await addWorkoutToDate(userId, date, w.id); onAdded()`.
+- 빈 카테고리/운동 없음: 안내 문구.
+- **헤더 `+ 새 운동`** → 인라인 생성 폼: 제목 입력 + **카테고리 select(`WORKOUT_CATEGORIES`)** + 동작 행들(section/exercise_name/sets/reps/notes — 기존 `CustomExerciseForm` 입력 UX 참고) → `const w = await createPersonalWorkout(userId, title, category, rows); await addWorkoutToDate(userId, date, w.id); onAdded()`.
+- 모달 셸(딤 배경 + 시맨틱 토큰). 닫기 ✕ → `onClose()`.
 
-기존 `CustomExerciseForm.tsx`의 입력 행 UI를 재사용하거나 참고. 시맨틱 토큰 사용.
-
-- [ ] **Step 2: page.tsx에 "운동 추가" 버튼 + 시트**
+- [ ] **Step 2: page.tsx에 "운동 추가" 버튼 + 팝업**
 
 ```tsx
 const [addOpen, setAddOpen] = useState(false)
 // ...
 <button onClick={() => setAddOpen(true)} className="w-full rounded-xl border border-border py-3 text-sm text-accent">+ 운동 추가</button>
 {addOpen && (
-  <AddWorkoutSheet userId={getLoggedInUser()!.id} date={toDateString(date)}
+  <AddWorkoutPopup userId={getLoggedInUser()!.id} date={toDateString(date)}
     onAdded={() => { setAddOpen(false); loadData(date) }} onClose={() => setAddOpen(false)} />
 )}
 ```
@@ -670,49 +683,51 @@ const [addOpen, setAddOpen] = useState(false)
 - [ ] **Step 3: 빌드·린트·수동 확인**
 
 Run: `npm run build && npm run lint`
-dev: 라이브러리에서 담기 → 카드 추가 확인. 새 개인 운동 생성 → 라이브러리(개인)에 등록되고 그 날짜에 카드로 추가 확인.
+dev: 팝업 열기 → 카테고리 탭 전환, 카드 탭 시 그 날짜에 담김(공용은 안 보임). `+ 새 운동`으로 카테고리 지정해 만들면 개인 라이브러리에 등록되고 즉시 담김.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/components/workout/AddWorkoutSheet.tsx src/app/workout/page.tsx
-git commit -m "feat(workout): 운동 추가 시트 — 라이브러리 담기 + 새 개인 운동 생성
+git add src/components/workout/AddWorkoutPopup.tsx src/app/workout/page.tsx
+git commit -m "feat(workout): 운동 추가 팝업 — 카테고리 탭 카드 담기 + 새 개인 운동(개인 전용)
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
 
-### Task B5: 라이브러리 관리 + 운동별 추이
+### Task B5: 팝업 내 개인 운동 수정/보관 (+ 선택: 운동별 추이)
+
+> 멤버는 **본인 개인 운동만** 수정/보관 가능. 공용은 팝업에 없으므로 손댈 수 없다(읽기 전용).
 
 **Files:**
-- Create: `src/components/workout/LibrarySheet.tsx`
-- Modify: `src/app/workout/page.tsx`
+- Modify: `src/components/workout/AddWorkoutPopup.tsx`
 
 **Interfaces:**
-- Consumes: `getLibrary`, `getWorkoutExercises`, `updatePersonalWorkout`, `archiveWorkout`, `getWorkoutProgress` (workouts.ts); `getLoggedInUser`.
-- Produces: `LibrarySheet({ userId, onClose }: { userId: string; onClose: () => void })`.
+- Consumes: `getWorkoutExercises`, `updatePersonalWorkout`, `archiveWorkout`, `getWorkoutProgress` (workouts.ts).
 
-- [ ] **Step 1: 라이브러리 시트 작성**
+- [ ] **Step 1: 카드 ⋯ 메뉴 — 수정 / 보관**
 
-- 공용(상단, 읽기 전용) + 개인(하단, 수정/보관) 목록.
-- 개인 항목: 수정(`updatePersonalWorkout`) / 보관(`archiveWorkout`).
-- 항목 탭 → `getWorkoutProgress(userId, workoutId)`로 본인 기록 추이(날짜별 무게/완료) 간단 리스트(또는 recharts 미니 차트) 표시.
+각 개인 운동 카드 우상단 `⋯`:
+- **수정**: `getWorkoutExercises(w.id)`로 기존 동작 프리필 → B4 생성 폼 재사용(제목+카테고리+동작) → `updatePersonalWorkout(w.id, title, category, rows)` → 목록 새로고침(`getPersonalWorkouts`).
+- **보관**: 확인 후 `archiveWorkout(w.id)` → 목록에서 사라짐(새로고침).
 
-- [ ] **Step 2: page.tsx에 라이브러리 진입 버튼**
+(카드 본문 탭=담기 동작과 충돌 안 나게 `⋯`는 stopPropagation.)
 
-헤더 영역에 "라이브러리" 버튼 → `LibrarySheet` 오픈.
+- [ ] **Step 2: (선택) 운동별 추이**
+
+여유 있으면 카드 상세에 `getWorkoutProgress(userId, w.id)` 추이(날짜별 무게/완료) 미니 리스트. 우선순위 낮음 — 스킵 가능(스킵 시 `log`로 명시).
 
 - [ ] **Step 3: 빌드·린트·수동 확인**
 
 Run: `npm run build && npm run lint`
-dev: 라이브러리 열기 → 개인 운동 수정/보관 반영, 운동 탭 시 추이 표시.
+dev: 개인 운동 카드 ⋯ → 수정 반영, 보관 시 목록에서 제거. 공용엔 ⋯ 없음(애초에 팝업에 없음).
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/components/workout/LibrarySheet.tsx src/app/workout/page.tsx
-git commit -m "feat(workout): 라이브러리 관리(수정/보관) + 운동별 기록 추이
+git add src/components/workout/AddWorkoutPopup.tsx
+git commit -m "feat(workout): 추가 팝업에 개인 운동 수정/보관(+선택 추이)
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
@@ -975,7 +990,8 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ## Self-Review 메모
 
 - **Spec 커버리지**: §4 데이터모델→A1~A3 / §5 운동흐름→B1~B5 / §6 화면변경→C1~C3,D1 / §8 lib/api→A2,A3,D2 / §9 마이그레이션·유틸정리→A1,D2 / §3 2계층 라이브러리→A3,B3,B4 / §12 비주얼은 범위 밖 명시. 누락 없음.
-- **타입 일관성**: `Workout`/`WorkoutExercise`는 "핵심 데이터 모델"·A3에서 단일 정의. `WorkoutLogJoined`는 A2에서 정의, B1·B2·C3에서 소비. `addWorkoutToDate`/`getWorkoutExercises` 시그니처 A2↔A3 일치.
+- **타입 일관성**: `Workout`(`category` 포함)/`WorkoutExercise`는 "핵심 데이터 모델"·A3에서 단일 정의. `WorkoutLogJoined`는 A2에서 정의, B1·B2·C3에서 소비. `addWorkoutToDate`/`getWorkoutExercises` 시그니처 A2↔A3 일치. `createPersonalWorkout`/`updatePersonalWorkout`의 `category` 인자 순서(title, category, exercises)가 A3 정의와 B4/B5 호출에서 동일. `getPersonalWorkouts`(구 getLibrary)는 개인 전용 — B4/B5만 소비.
+- **추가 팝업 모델(확정)**: 공용은 팝업 비노출(요일 자동 제공), 멤버는 공용 수정·삭제 불가. 팝업=개인 전용, `WORKOUT_CATEGORIES` 탭 + 카드 담기 + 생성/수정/보관 통합(B4+B5). 별도 라이브러리 화면 없음.
 - **검증**: 테스트 하네스 없음 → 전 태스크 build+lint+manual. (TDD 대체, Global Constraints 명시.)
-- **순서 의존성**: A3(getWorkoutExercises)을 A2(addWorkoutToDate)보다 먼저 또는 함께 구현. D2/D3는 모든 소비처 제거 후 마지막.
+- **순서 의존성**: A3(getWorkoutExercises)을 A2(addWorkoutToDate)보다 먼저 또는 함께 구현. B5는 B4 팝업 위에 얹음. D2/D3는 모든 소비처 제거 후 마지막.
 ```
