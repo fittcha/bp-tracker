@@ -15,10 +15,12 @@ interface Props {
 // __sep__ 구분선·서브그룹 디바이더·무게 lb/kg 입력·메모 auto-height·디바운스 자동저장)를
 // workout의 logs 기준으로 일반화해 이식한 것.
 //
-// 시즌2 데이터 흐름: addWorkoutToDate가 workout_exercise.sets→custom_sets, reps→custom_reps로
-// 복사하므로, 시즌1에서 template.sets/template.notes가 하던 역할을 custom_sets/custom_reps가 맡는다.
-//   - custom_sets : "N sets" / setInfo (Superset/EMOM/AMRAP 등 그룹 라벨 소스)
-//   - custom_reps : 반복수 또는 동작별 부가 노트(@/*/Rest…) / '__sep__' 구분자
+// 시즌2 데이터 흐름: addWorkoutToDate가 workout_exercise.sets→custom_sets, reps→custom_reps,
+// notes→custom_notes로 복사하므로, 시즌1에서 template.sets/template.reps/template.notes가 하던
+// 역할을 custom_sets/custom_reps/custom_notes가 각각 맡는다(세 소스를 명확히 분리).
+//   - custom_sets  : 세트수 / 그룹 "N Sets"
+//   - custom_reps  : 순수 반복수(동작명 앞 prefix·"N세트 × reps" 인라인 소스)
+//   - custom_notes : setInfo(Superset/EMOM/AMRAP 등 그룹 라벨 소스) / 동작별 부가 노트(@/*/Rest…) / '__sep__' 구분자
 export default function WorkoutCard({ title, isShared, logs, onChanged, onExerciseLongPress }: Props) {
   // 낙관적 로컬 상태(autosave 즉시 반영). props 변경 시 동기화.
   const [items, setItems] = useState<WorkoutLogJoined[]>(logs)
@@ -261,9 +263,9 @@ function SectionGroup({
 }: SectionGroupProps) {
   const isGroup = rows.length > 1
   const first = rows[0]
-  // 시즌2: sets는 custom_sets, notes(setInfo)는 custom_reps에서 온다.
+  // 시즌2: sets는 custom_sets, reps는 custom_reps, notes(setInfo)는 custom_notes에서 온다.
   const groupSets = isGroup && first?.custom_sets ? first.custom_sets : null
-  const firstNotes = first?.custom_reps || ''
+  const firstNotes = first?.custom_notes || ''
   const isSuperset = isGroup && firstNotes.toLowerCase().includes('superset')
   // @, *, Rest, Climbing 으로 시작하는 노트는 동작별 노트(setInfo 아님)
   const isExerciseNote = /^[@*]|^Rest\b|^Climbing\b/i.test(firstNotes)
@@ -296,8 +298,8 @@ function SectionGroup({
         {rows.map((log, logIndex) => {
           const isWeightOpen = !!(log.id && weightOpen[log.id])
 
-          // __sep__ 구분선 (custom_reps === '__sep__')
-          if (log.custom_reps === '__sep__') {
+          // __sep__ 구분선 (custom_notes === '__sep__')
+          if (log.custom_notes === '__sep__') {
             return (
               <div key={log.id} className="flex items-center px-4 py-1.5 border-t border-border bg-border/30">
                 <span className="flex-1 text-[11px] text-text-secondary/50 text-center italic">{log.exercise_name}</span>
@@ -306,18 +308,19 @@ function SectionGroup({
           }
 
           // 그룹 동작: reps를 앞에 표기(EMOM/AMRAP의 '1'·null은 제외), 단일 동작: 세트×반복 표기
+          // 반복수 표시는 custom_reps(순수 반복수). 동작별 부가 노트는 custom_notes에서 따로 표시.
           const showSetsInline = !isGroup
           const showRepsPrefix = isGroup && log.custom_reps && log.custom_reps !== '1' && !/^[@*]|^Rest\b|^Climbing\b/i.test(log.custom_reps)
 
-          // 서브그룹 디바이더: setInfo 타입 변화 또는 sets 변화 시
+          // 서브그룹 디바이더: setInfo(custom_notes) 타입 변화 또는 sets(custom_sets) 변화 시
           const getSubType = (n: string) =>
             n.includes('superset') ? 'superset' : n.includes('amrap') ? 'amrap' : n.includes('emom') ? 'emom' : n.includes('every') ? 'every' : null
-          const curNotes = (log.custom_reps || '').toLowerCase()
+          const curNotes = (log.custom_notes || '').toLowerCase()
           const prevRow = rows[logIndex - 1]
-          const prevNotes = (prevRow?.custom_reps || '').toLowerCase()
+          const prevNotes = (prevRow?.custom_notes || '').toLowerCase()
           const curSubType = getSubType(curNotes)
           const prevSubType = getSubType(prevNotes)
-          const prevIsSep = prevRow?.custom_reps === '__sep__'
+          const prevIsSep = prevRow?.custom_notes === '__sep__'
           const setsChanged = isGroup && logIndex > 0 && !!log.custom_sets && !!prevRow?.custom_sets && log.custom_sets !== prevRow.custom_sets
           const isNewSubGroup = logIndex > 0 && ((!!curSubType && curSubType !== prevSubType) || setsChanged || prevIsSep)
           const getSetInfo = (notes: string | null | undefined) => {
@@ -327,7 +330,7 @@ function SectionGroup({
             if (fl.startsWith('rest') || fl.startsWith('*') || fl.startsWith('@')) return null
             return f
           }
-          const subSetInfo = prevIsSep ? getSetInfo(log.custom_reps) : null
+          const subSetInfo = prevIsSep ? getSetInfo(log.custom_notes) : null
           const setsLabel = log.custom_sets ? `${log.custom_sets} Set${log.custom_sets !== '1' ? 's' : ''}` : null
           const subGroupLabel = isNewSubGroup
             ? (setsChanged || prevIsSep) && log.custom_sets
@@ -336,7 +339,7 @@ function SectionGroup({
                 : setsLabel
               : curSubType === 'superset'
                 ? `Superset${log.custom_sets ? ` · ${log.custom_sets} Sets` : ''}`
-                : log.custom_reps
+                : log.custom_notes
             : null
 
           return (
@@ -382,9 +385,10 @@ function SectionGroup({
                     </p>
                   )}
                   {isGroup &&
-                    log.custom_reps &&
+                    log.custom_notes &&
                     (!isNewSubGroup || setsChanged) &&
                     (() => {
+                      // 동작별 부가 노트는 custom_notes에서 읽는다(반복수와 분리).
                       // 그룹 첫 동작: 그룹 라벨로 빠진 prefix는 제거하고 나머지만 표시
                       if (log === first) {
                         if (isSetInfo) {
@@ -392,14 +396,12 @@ function SectionGroup({
                           return <p className="text-[11px] text-text-secondary italic mt-0.5">{setInfoExerciseNotes}</p>
                         }
                         if (isSuperset) {
-                          const stripped = log.custom_reps.replace(/^Superset\s*\/?\.?\s*/i, '').replace(/^\s*\/\s*/, '').trim()
+                          const stripped = log.custom_notes.replace(/^Superset\s*\/?\.?\s*/i, '').replace(/^\s*\/\s*/, '').trim()
                           if (!stripped) return null
                           return <p className="text-[11px] text-text-secondary italic mt-0.5">{stripped}</p>
                         }
                       }
-                      // showRepsPrefix로 이미 동작명 앞에 표기되는 reps는 노트로 중복 표시하지 않음
-                      if (showRepsPrefix) return null
-                      return <p className="text-[11px] text-text-secondary italic mt-0.5">{log.custom_reps}</p>
+                      return <p className="text-[11px] text-text-secondary italic mt-0.5">{log.custom_notes}</p>
                     })()}
                 </div>
 

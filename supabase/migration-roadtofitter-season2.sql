@@ -31,6 +31,10 @@ create table if not exists workout_exercises (
 alter table workout_logs
   add column if not exists workout_exercise_id uuid references workout_exercises(id) on delete set null;
 
+-- 3-1) 동작 노트 운반용 컬럼 (workout_exercise.notes → custom_notes: setInfo/그룹라벨/__sep__/부가노트)
+alter table workout_logs
+  add column if not exists custom_notes text;
+
 -- 4) 조회 인덱스
 create index if not exists idx_workouts_owner on workouts(owner_user_id);
 create index if not exists idx_workouts_weekday on workouts(default_weekday) where owner_user_id is null;

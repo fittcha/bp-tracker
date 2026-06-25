@@ -16,6 +16,7 @@ export interface WorkoutLog {
   memo: string | null
   custom_sets: string | null
   custom_reps: string | null
+  custom_notes: string | null
 }
 
 export async function getWorkoutLogs(date: string, userId: string) {
@@ -85,6 +86,7 @@ export async function addCustomExercise(
       memo: null,
       custom_sets: customSets || null,
       custom_reps: customReps || null,
+      custom_notes: null,
     })
     .select()
     .single()
@@ -150,7 +152,7 @@ export async function getWorkoutLogsWithWorkout(
   const { data, error } = await supabase
     .from('workout_logs')
     .select(
-      'id, user_id, date, template_id, workout_exercise_id, is_custom, exercise_name, section, completed, weight_lb, weight_unit, memo, custom_sets, custom_reps, ' +
+      'id, user_id, date, template_id, workout_exercise_id, is_custom, exercise_name, section, completed, weight_lb, weight_unit, memo, custom_sets, custom_reps, custom_notes, ' +
         'workout_exercises ( workout_id, workouts ( title, owner_user_id ) )',
     )
     .eq('date', date)
@@ -191,6 +193,7 @@ export async function addWorkoutToDate(
     memo: null,
     custom_sets: ex.sets,
     custom_reps: ex.reps,
+    custom_notes: ex.notes,
   }))
   if (rows.length === 0) return []
   return batchInsertWorkoutLogs(rows)
