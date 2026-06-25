@@ -751,58 +751,78 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 ---
 
-## Phase C — 나머지 페이지 축소
+## Phase C — 탭 IA 개편 (4탭→3탭: 홈/운동/기록) + 페이지 정리
 
-### Task C1: 기록(daily) 페이지 — 체중 + 메모만
+> **IA 결정(spec §6)**: 요약 탭을 없애고 그 콘텐츠(체중 그래프·1RM)를 **기록 탭으로 흡수**해 3탭으로. C1에서 기록 탭을 통합 구성한 뒤 C2에서 요약 라우트·탭을 제거한다(순서 중요).
+
+### Task C1: 기록(daily) 통합 탭 — 체중 입력 + 체중 그래프 + 1RM + 메모
 
 **Files:**
 - Modify: `src/app/daily/page.tsx`
 
 **Interfaces:**
-- Consumes: `getDailyLog`, `upsertDailyLog` (daily-logs.ts, 그대로). `weight_kg`, `memo` 필드만 사용.
+- Consumes: `getDailyLog`, `upsertDailyLog` (daily-logs.ts; `weight_kg`/`memo`만 사용); `WeightChart`(`@/components/summary/WeightChart`), `OneRMSection`(`@/components/summary/OneRMSection`) — 컴포넌트 자체는 유지하고 import 경로만 그대로 사용.
 
-- [ ] **Step 1: 체중·메모 외 섹션 전부 제거**
+- [ ] **Step 1: 시즌1 섹션 제거 (체중·메모만 남김)**
 
-`daily/page.tsx`에서 수면(취침/기상)·운동여부(O/X)·당가공·식단횟수(meal slot)·식단(이미지/OCR/매크로)·영양제·물(water cups) 섹션과 관련 state(`sugarToggle`, `checkedSupps`, `mealSlotNames`, `mealCheckedSet`, `weeklyCardioCount`, `showMealInput`, `newMealName`, `mealEditMode`, `weekLabel`, `weekNumber`)·핸들러(`handleAddMealSlot`/`toggleMealSlot`/`handleRemoveMealSlot`)·API호출(`getMealSlotNames`/`upsertMealSlotConfig`/`getWeeklyCardioCount`)·`FoodImageUpload`/`MacroDonutChart`/`KakaoShareText` import·KakaoShareText 렌더 전부 삭제. 남기는 건 **체중 입력 + 메모 textarea** 두 섹션. 자동저장 패턴 유지(`upsertDailyLog`에 weight_kg/memo만 채워 호출 — 나머지 컬럼은 기존 값 보존되도록 upsert가 전체 row를 덮어쓰면 안 됨; `getDailyLog`로 읽은 기존 객체에 weight_kg/memo만 갱신해 upsert).
+`daily/page.tsx`에서 수면(취침/기상)·운동여부(O/X)·당가공·식단횟수(meal slot)·식단(이미지/OCR/매크로)·영양제·물(water cups) 섹션과 관련 state(`sugarToggle`, `checkedSupps`, `mealSlotNames`, `mealCheckedSet`, `weeklyCardioCount`, `showMealInput`, `newMealName`, `mealEditMode`, `weekLabel`, `weekNumber`)·핸들러(`handleAddMealSlot`/`toggleMealSlot`/`handleRemoveMealSlot`)·API호출(`getMealSlotNames`/`upsertMealSlotConfig`/`getWeeklyCardioCount`)·`FoodImageUpload`/`MacroDonutChart`/`KakaoShareText` import·렌더 전부 삭제. 자동저장 유지(`getDailyLog`로 읽은 기존 객체에 `weight_kg`/`memo`만 갱신해 `upsertDailyLog` 호출 — 보관 컬럼 값 보존, 전체 row 덮어쓰기 금지).
 
-- [ ] **Step 2: 빌드·린트·수동 확인**
+- [ ] **Step 2: 요약 콘텐츠를 기록 탭으로 이식**
+
+현재 `summary/page.tsx`가 렌더하는 `WeightChart`·`OneRMSection` 블록(데이터 로딩 포함, 단 주차선택/매크로/주간통계/`PROGRAM_START`·`PROGRAM_END` 제외)을 `daily/page.tsx`로 옮긴다. 최종 기록 탭은 위→아래 4섹션:
+1. **체중 입력** (기존 daily의 weight 섹션)
+2. **체중 그래프** — `<WeightChart .../>` (summary에서 쓰던 것과 동일한 props·데이터 로딩. 전체 연속·동적 범위)
+3. **1RM** — `<OneRMSection .../>` (summary에서 쓰던 것과 동일)
+4. **메모** — 기존 daily memo textarea (자동 높이)
+
+각 섹션은 기존 `Section` 래퍼 + 시맨틱 토큰 사용.
+
+- [ ] **Step 3: 빌드·린트·수동 확인**
 
 Run: `npm run build && npm run lint`
-dev `/daily`: 체중 + 메모만 표시, 입력 저장·재로드 유지. (삭제 컴포넌트 파일 자체는 Phase D에서 제거.)
+dev `/daily`: 체중 입력 → 그래프 → 1RM → 메모 4섹션 표시, 체중/메모 저장·재로드 유지, 그래프·1RM이 `/summary`와 동일하게 동작.
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
 git add src/app/daily/page.tsx
-git commit -m "refactor(daily): 체중+메모만 유지, 식단/수면/물/영양제/식단횟수 제거
+git commit -m "feat(daily): 기록 탭에 체중그래프+1RM 흡수, 식단/수면/물/영양제 제거 (요약 통합)
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
 
-### Task C2: 요약(summary) 페이지 — 체중 그래프 + 1RM만
+### Task C2: 요약 라우트 제거 + 하단 네비 3탭
 
 **Files:**
-- Modify: `src/app/summary/page.tsx`
+- Delete: `src/app/summary/page.tsx`
+- Modify: `src/components/BottomNav.tsx`
 
 **Interfaces:**
-- Consumes: `WeightChart`, `OneRMSection` (유지). `MacroChart`, `WeeklyStats` 제거.
+- Consumes: C1이 `WeightChart`/`OneRMSection`을 기록 탭으로 이미 이식 완료(요약 라우트 삭제해도 콘텐츠 손실 없음).
 
-- [ ] **Step 1: 주차 선택·매크로·주간통계 제거**
+- [ ] **Step 1: BottomNav에서 요약 탭 제거**
 
-`summary/page.tsx`에서 `chartMode` 토글·"전체/주차별" 라디오·`selectedWeekId`/`selectedWeek` 로직·주차 드롭다운·`PROGRAM_START`/`PROGRAM_END` 상수·수면/당/칼로리 필터링·`MacroChart`/`WeeklyStats` import·렌더 전부 삭제. `WeightChart`(전체 연속, 동적 범위)와 `OneRMSection`, 로그아웃 버튼만 유지.
+`BottomNav.tsx` `tabs` 배열에서 `{ href: '/summary', label: '요약', icon: SummaryIcon }` 제거 → 홈/운동/기록 3탭. 미사용 `SummaryIcon` import 제거. 3탭 균등 배치 확인(레이아웃 grid/flex 비율 조정 필요 시).
 
-- [ ] **Step 2: 빌드·린트·수동 확인**
-
-Run: `npm run build && npm run lint`
-dev `/summary`: 체중 그래프 전체 표시 + 1RM 섹션 + 로그아웃만.
-
-- [ ] **Step 3: Commit**
+- [ ] **Step 2: 요약 페이지 삭제**
 
 ```bash
-git add src/app/summary/page.tsx
-git commit -m "refactor(summary): 체중 그래프+1RM만 유지, 주차선택/매크로/주간통계 제거
+git rm src/app/summary/page.tsx
+```
+(`src/components/summary/WeightChart.tsx`·`OneRMSection.tsx`는 **삭제 금지** — 기록 탭이 사용. `MacroChart.tsx`·`WeeklyStats.tsx`는 D3에서 삭제.)
+
+- [ ] **Step 3: 빌드·린트·수동 확인**
+
+Run: `npm run build && npm run lint`
+Expected: `/summary` 참조 잔여 에러 0(있으면 제거). dev: 하단 네비가 홈/운동/기록 3탭, `/summary` 직접 접근 시 404(정상), 기록 탭에서 그래프·1RM 정상.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add -A
+git commit -m "refactor(nav): 요약 라우트 삭제 + 하단 네비 3탭(홈/운동/기록)
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
