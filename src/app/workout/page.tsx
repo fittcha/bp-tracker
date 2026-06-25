@@ -241,18 +241,55 @@ export default function WorkoutPage() {
         </div>
       ) : (
         <>
-          {groups.map((g) => (
-            <WorkoutCard
-              key={g.workoutId}
-              title={g.title}
-              isShared={g.isShared}
-              logs={g.logs}
-              onChanged={() => loadData(date)}
-              onExerciseLongPress={setGifModalExercise}
-            />
-          ))}
-          {groups.length === 0 && (
+          {groups.length === 0 ? (
             <p className="text-center text-text-secondary text-sm py-12">이 날짜에 등록된 운동이 없어요. 아래에서 운동을 추가하세요.</p>
+          ) : (
+            <>
+              {/* 오늘의 공용 운동 */}
+              {groups.filter((g) => g.isShared).length > 0 && (
+                <h2 className="text-sm font-semibold text-accent mt-2 mb-1">오늘의 공용 운동</h2>
+              )}
+              {groups.filter((g) => g.isShared).map((g) => (
+                <WorkoutCard
+                  key={g.workoutId}
+                  title={g.title}
+                  isShared={g.isShared}
+                  logs={g.logs}
+                  onChanged={() => loadData(date)}
+                  onExerciseLongPress={setGifModalExercise}
+                />
+              ))}
+
+              {/* 내 운동 */}
+              {groups.filter((g) => !g.isShared && g.workoutId !== '__legacy__').length > 0 && (
+                <h2 className="text-sm font-semibold text-secondary mt-4 mb-1">내 운동</h2>
+              )}
+              {groups.filter((g) => !g.isShared && g.workoutId !== '__legacy__').map((g) => (
+                <WorkoutCard
+                  key={g.workoutId}
+                  title={g.title}
+                  isShared={g.isShared}
+                  logs={g.logs}
+                  onChanged={() => loadData(date)}
+                  onExerciseLongPress={setGifModalExercise}
+                />
+              ))}
+
+              {/* 이전 기록 */}
+              {groups.filter((g) => g.workoutId === '__legacy__').length > 0 && (
+                <h2 className="text-sm font-semibold text-secondary mt-4 mb-1">이전 기록</h2>
+              )}
+              {groups.filter((g) => g.workoutId === '__legacy__').map((g) => (
+                <WorkoutCard
+                  key={g.workoutId}
+                  title={g.title}
+                  isShared={g.isShared}
+                  logs={g.logs}
+                  onChanged={() => loadData(date)}
+                  onExerciseLongPress={setGifModalExercise}
+                />
+              ))}
+            </>
           )}
         </>
       )}
