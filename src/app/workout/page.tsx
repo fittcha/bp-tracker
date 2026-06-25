@@ -1,73 +1,32 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { toDateString } from '@/lib/utils'
-import { getWorkoutLogs, upsertWorkoutLog, batchInsertWorkoutLogs, addCustomExercise, updateCustomExercise, deleteWorkoutLog, WorkoutLog } from '@/lib/api/workout-logs'
-import { getTemplatesByWeek, getWeeks } from '@/lib/api/workout-templates'
 import { getLoggedInUser } from '@/lib/auth'
-import { getCardioLogs, upsertCardioLog, deleteCardioLog, CardioLog } from '@/lib/api/cardio-logs'
-import CustomExerciseForm from '@/components/workout/CustomExerciseForm'
+import { getDefaultWorkoutsForWeekday } from '@/lib/api/workouts'
+import { getWorkoutLogsWithWorkout, addWorkoutToDate, type WorkoutLogJoined } from '@/lib/api/workout-logs'
+import WorkoutCard from '@/components/workout/WorkoutCard'
 import Calculator from '@/components/workout/Calculator'
 import ExerciseGifModal from '@/components/workout/ExerciseGifModal'
 import ExerciseSearchModal from '@/components/workout/ExerciseSearchModal'
 
-interface TemplateEx {
-  id: string
-  section: string
-  exercise_name: string
-  sets: string | null
-  reps: string | null
-  rest_seconds: number | null
-  notes: string | null
-  sort_order: number
-  day_number: number
-}
-
-interface Week {
-  id: string
-  week_number: number
-  phase: string
-  start_date: string
-  end_date: string
-}
-
 const DAY_LABELS = ['월', '화', '수', '목', '금', '토', '일']
+
+interface WorkoutGroup {
+  workoutId: string
+  title: string
+  isShared: boolean
+  logs: WorkoutLogJoined[]
+}
 
 export default function WorkoutPage() {
   const user = getLoggedInUser()
   const userId = user?.id ?? ''
-  const [date, setDate] = useState(toDateString(new Date()))
-  const [selectedDay, setSelectedDay] = useState<number>(1)
-  const [templates, setTemplates] = useState<TemplateEx[]>([])
-  const [logs, setLogs] = useState<WorkoutLog[]>([])
+  const [date, setDate] = useState<Date>(() => new Date())
+  const [groups, setGroups] = useState<WorkoutGroup[]>([])
   const [loading, setLoading] = useState(true)
-  const [weekId, setWeekId] = useState<string | null>(null)
-  const [weekInfo, setWeekInfo] = useState<Week | null>(null)
-  const [weightOpen, setWeightOpen] = useState<Record<string, boolean>>({})
-  const [memoOpen, setMemoOpen] = useState<Record<string, boolean>>({})
-  const debounceRef = useRef<Record<string, NodeJS.Timeout>>({})
   const [gifModalExercise, setGifModalExercise] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
-  const [cardioLogs, setCardioLogs] = useState<CardioLog[]>([])
-  const [cardioMemos, setCardioMemos] = useState<Record<number, string>>({})
-  const [showCardioMemo, setShowCardioMemo] = useState<Record<number, boolean>>({})
-  const longPressRef = useRef<Record<string, NodeJS.Timeout>>({})
-  const [editingLog, setEditingLog] = useState<WorkoutLog | null>(null)
-  const [editingSection, setEditingSection] = useState<string | null>(null)
-  const [actionMenuLog, setActionMenuLog] = useState<WorkoutLog | null>(null)
-
-  function handleLongPressStart(exerciseName: string) {
-    longPressRef.current[exerciseName] = setTimeout(() => {
-      setGifModalExercise(exerciseName)
-    }, 1000)
-  }
-
-  function handleLongPressEnd(exerciseName: string) {
-    if (longPressRef.current[exerciseName]) {
-      clearTimeout(longPressRef.current[exerciseName])
-      delete longPressRef.current[exerciseName]
-    }
-  }
 
   const [calcOpen, _setCalcOpen] = useState(false)
   const setCalcOpen = useCallback((open: boolean) => {
@@ -81,367 +40,167 @@ export default function WorkoutPage() {
     return () => window.removeEventListener('calc-close', handler)
   }, [setCalcOpen])
 
-  // Get Monday of the week containing `date`
+  // ── 7일 날짜 스트립: date가 속한 주의 월요일부터 7칸 ──
   function getMondayOfWeek(d: Date) {
     const result = new Date(d)
     const dow = result.getDay()
     const offset = dow === 0 ? -6 : 1 - dow
     result.setDate(result.getDate() + offset)
+    result.setHours(0, 0, 0, 0)
     return result
   }
 
+  function shiftDays(delta: number) {
+    setDate((prev) => {
+      const d = new Date(prev)
+      d.setDate(d.getDate() + delta)
+      return d
+    })
+  }
+
   function shiftWeek(delta: number) {
-    const current = new Date(date)
-    current.setDate(current.getDate() + delta * 7)
-    setDate(toDateString(current))
-  }
-
-  const getWeekDates = () => {
-    const monday = getMondayOfWeek(new Date(date))
-    return Array.from({ length: 7 }, (_, i) => {
-      const day = new Date(monday)
-      day.setDate(monday.getDate() + i)
-      return {
-        dayNum: i + 1,
-        date: toDateString(day),
-        dayOfMonth: day.getDate(),
-        label: DAY_LABELS[i],
-        isWorkoutDay: i < 5,
-      }
+    setDate((prev) => {
+      const d = new Date(prev)
+      d.setDate(d.getDate() + delta * 7)
+      return d
     })
   }
 
-  const weekDates = getWeekDates()
+  const monday = getMondayOfWeek(date)
+  const weekDates = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday)
+    d.setDate(monday.getDate() + i)
+    return {
+      dayNum: i + 1,
+      date: d,
+      ds: toDateString(d),
+      dayOfMonth: d.getDate(),
+      label: DAY_LABELS[i],
+      isWorkoutDay: i < 5,
+    }
+  })
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (d: Date) => {
     setLoading(true)
+    const loggedIn = getLoggedInUser()
+    if (!loggedIn) {
+      setLoading(false)
+      return
+    }
+    const ds = toDateString(d)
+    const jsDay = d.getDay() // 0=일..6=토
+    const weekday = jsDay === 0 ? 7 : jsDay // 1=월..7=일
 
-    // Find week and derive day number directly from date to avoid race conditions
-    const weeks = await getWeeks()
-    const week = weeks?.find((w: Week) => date >= w.start_date && date <= w.end_date)
-    if (week) {
-      setWeekId(week.id)
-      setWeekInfo(week)
-    } else {
-      setWeekId(null)
-      setWeekInfo(null)
+    // 1) 그 요일 공용 기본운동 (월~금만 매핑됨)
+    const defaults = weekday <= 5 ? await getDefaultWorkoutsForWeekday(weekday) : []
+
+    // 2) 그 날짜 로그 (workout 조인)
+    let logs = await getWorkoutLogsWithWorkout(ds, loggedIn.id)
+
+    // 3) 공용 기본운동 중 로그 없는 것 자동 생성
+    const presentWorkoutIds = new Set(logs.map((l) => l.workout?.workout_id).filter(Boolean))
+    const missing = defaults.filter((wk) => !presentWorkoutIds.has(wk.id))
+    for (const wk of missing) {
+      await addWorkoutToDate(loggedIn.id, ds, wk.id)
+    }
+    if (missing.length > 0) {
+      logs = await getWorkoutLogsWithWorkout(ds, loggedIn.id) // 재조회
     }
 
-    if (week?.week_number && week.week_number >= 5) {
-      const cLogs = await getCardioLogs(date, userId)
-      setCardioLogs(cLogs)
-      const memos: Record<number, string> = {}
-      const memoShow: Record<number, boolean> = {}
-      for (const cl of cLogs) {
-        memos[cl.session_number] = cl.memo || ''
-        if (cl.memo) memoShow[cl.session_number] = true
+    // 4) workout_id로 그룹핑. 공용/개인은 owner_user_id(null=공용).
+    const byWorkout = new Map<string, { title: string; isShared: boolean; logs: WorkoutLogJoined[] }>()
+    const legacy: WorkoutLogJoined[] = [] // 시즌1 로그(workout 연결 없음) — 과거 날짜 읽기용
+    for (const l of logs) {
+      const wid = l.workout?.workout_id
+      if (!wid) {
+        legacy.push(l)
+        continue
       }
-      setCardioMemos(memos)
-      setShowCardioMemo(memoShow)
-    } else {
-      setCardioLogs([])
-      setCardioMemos({})
-      setShowCardioMemo({})
-    }
-
-    const d = new Date(date)
-    const dow = d.getDay()
-    const dayNum = dow === 0 ? 7 : dow
-    setSelectedDay(dayNum)
-    const isWorkoutDay = dayNum <= 5
-
-    const currentWeekId = week?.id
-    const [tmpl, existingLogs] = await Promise.all([
-      isWorkoutDay && currentWeekId ? getTemplatesByWeek(currentWeekId) : Promise.resolve([]),
-      getWorkoutLogs(date, userId),
-    ])
-
-    const dayTemplates = (tmpl || []).filter((t: TemplateEx) => t.day_number === dayNum)
-    setTemplates(dayTemplates)
-
-    let allLogs = existingLogs || []
-
-    if (isWorkoutDay) {
-      const existingTemplateIds = new Set(allLogs.map(l => l.template_id).filter(Boolean))
-      const missing = dayTemplates.filter(t => !existingTemplateIds.has(t.id))
-      if (missing.length > 0) {
-        const newLogs = await batchInsertWorkoutLogs(missing.map(t => ({
-          date,
-          user_id: userId,
-          template_id: t.id,
-          workout_exercise_id: null,
-          is_custom: false,
-          exercise_name: t.exercise_name,
-          section: t.section,
-          completed: false,
-          weight_lb: null,
-          weight_unit: 'lb' as const,
-          memo: null,
-          custom_sets: null,
-          custom_reps: null,
-        })))
-        allLogs = [...allLogs, ...(newLogs || [])]
-      }
-    }
-
-    setLogs(allLogs)
-    // Auto-open weight input for logs that already have weight
-    const openMap: Record<string, boolean> = {}
-    for (const l of allLogs || []) {
-      if (l.weight_lb != null) openMap[l.id] = true
-    }
-    setWeightOpen(openMap)
-    // Auto-open memo for logs that already have memo
-    const memoMap: Record<string, boolean> = {}
-    for (const l of allLogs || []) {
-      if (l.memo) memoMap[l.id] = true
-    }
-    setMemoOpen(memoMap)
-    setLoading(false)
-  }, [date, userId])
-
-  useEffect(() => {
-    loadData()
-  }, [loadData])
-
-  function handleToggleComplete(id: string, completed: boolean) {
-    setLogs(prev => {
-      const log = prev.find(l => l.id === id)
-      if (log) upsertWorkoutLog({ ...log, completed })
-      return prev.map(l => l.id === id ? { ...l, completed } : l)
-    })
-  }
-
-  function toggleWeightInput(id: string) {
-    setWeightOpen(prev => {
-      const wasOpen = prev[id]
-      if (wasOpen) {
-        // Closing weight input → clear weight and save
-        setLogs(p => {
-          const log = p.find(l => l.id === id)
-          if (log && log.weight_lb != null) upsertWorkoutLog({ ...log, weight_lb: null, weight_unit: 'lb' })
-          return p.map(l => l.id === id ? { ...l, weight_lb: null, weight_unit: 'lb' as const } : l)
+      if (!byWorkout.has(wid)) {
+        byWorkout.set(wid, {
+          title: l.workout!.title,
+          isShared: l.workout!.owner_user_id === null,
+          logs: [],
         })
       }
-      return { ...prev, [id]: !wasOpen }
-    })
-  }
-
-  function handleWeightChange(id: string, weight: number | null) {
-    setLogs(prev => prev.map(l => l.id === id ? { ...l, weight_lb: weight } : l))
-    if (debounceRef.current[id]) clearTimeout(debounceRef.current[id])
-    debounceRef.current[id] = setTimeout(() => {
-      setLogs(prev => {
-        const log = prev.find(l => l.id === id)
-        if (log) upsertWorkoutLog({ ...log, weight_lb: weight })
-        return prev
-      })
-    }, 500)
-  }
-
-  function handleUnitToggle(id: string) {
-    setLogs(prev => {
-      const log = prev.find(l => l.id === id)
-      if (!log) return prev
-      const newUnit = log.weight_unit === 'lb' ? 'kg' as const : 'lb' as const
-      const updated = { ...log, weight_unit: newUnit }
-      if (debounceRef.current[id]) clearTimeout(debounceRef.current[id])
-      debounceRef.current[id] = setTimeout(() => {
-        upsertWorkoutLog(updated)
-      }, 500)
-      return prev.map(l => l.id === id ? updated : l)
-    })
-  }
-
-  function handleMemoChange(logId: string, memo: string) {
-    setLogs(prev => prev.map(l => l.id === logId ? { ...l, memo } : l))
-    const key = `memo_${logId}`
-    if (debounceRef.current[key]) clearTimeout(debounceRef.current[key])
-    debounceRef.current[key] = setTimeout(() => {
-      setLogs(prev => {
-        const log = prev.find(l => l.id === logId)
-        if (log) upsertWorkoutLog({ ...log, memo: memo || null })
-        return prev
-      })
-    }, 800)
-  }
-
-  async function handleAddCustomMultiple(section: string | undefined, sectionInfo: string | undefined, rows: { type: string; name: string; info: string }[]) {
-    for (const row of rows) {
-      await addCustomExercise(
-        date,
-        row.type === 'andthen' ? '— and then —' : row.name,
-        userId,
-        section,
-        row.type === 'exercise' ? sectionInfo : undefined,
-        row.type === 'exercise' && row.info ? row.info : undefined,
-      )
+      byWorkout.get(wid)!.logs.push(l)
     }
-    loadData()
-  }
-
-  async function handleUpdateCustom(id: string, name: string, section: string | null, sets: string | null, reps: string | null) {
-    await updateCustomExercise(id, { exercise_name: name, section, custom_sets: sets, custom_reps: reps })
-    setEditingLog(null)
-    loadData()
-  }
-
-  async function handleDeleteLog(id: string) {
-    await deleteWorkoutLog(id)
-    setLogs(prev => prev.filter(l => l.id !== id))
-  }
-
-  const cardioDebounceRef = useRef<Record<number, NodeJS.Timeout>>({})
-
-  async function handleCardioToggle(sessionNum: number) {
-    const existing = cardioLogs.find(cl => cl.session_number === sessionNum)
-    const newCompleted = !existing?.completed
-    const updated = await upsertCardioLog({
-      user_id: userId,
-      date,
-      completed: newCompleted,
-      memo: cardioMemos[sessionNum] || null,
-      session_number: sessionNum,
-      ...(existing?.id ? { id: existing.id } : {}),
-    })
-    setCardioLogs(prev => {
-      const idx = prev.findIndex(cl => cl.session_number === sessionNum)
-      if (idx >= 0) return prev.map(cl => cl.session_number === sessionNum ? updated : cl)
-      return [...prev, updated].sort((a, b) => a.session_number - b.session_number)
-    })
-  }
-
-  function handleCardioMemoChange(sessionNum: number, value: string) {
-    setCardioMemos(prev => ({ ...prev, [sessionNum]: value }))
-    if (cardioDebounceRef.current[sessionNum]) clearTimeout(cardioDebounceRef.current[sessionNum])
-    cardioDebounceRef.current[sessionNum] = setTimeout(async () => {
-      const existing = cardioLogs.find(cl => cl.session_number === sessionNum)
-      const updated = await upsertCardioLog({
-        user_id: userId,
-        date,
-        completed: existing?.completed ?? false,
-        memo: value || null,
-        session_number: sessionNum,
-        ...(existing?.id ? { id: existing.id } : {}),
-      })
-      setCardioLogs(prev => {
-        const idx = prev.findIndex(cl => cl.session_number === sessionNum)
-        if (idx >= 0) return prev.map(cl => cl.session_number === sessionNum ? updated : cl)
-        return [...prev, updated].sort((a, b) => a.session_number - b.session_number)
-      })
-    }, 800)
-  }
-
-  function handleCardioAdd() {
-    const maxSession = cardioLogs.length > 0 ? Math.max(...cardioLogs.map(cl => cl.session_number)) : 0
-    const nextSession = maxSession + 1
-    setCardioLogs(prev => [...prev, { user_id: userId, date, completed: false, memo: null, session_number: nextSession }])
-    setCardioMemos(prev => ({ ...prev, [nextSession]: '' }))
-  }
-
-  async function handleCardioDelete(sessionNum: number) {
-    const existing = cardioLogs.find(cl => cl.session_number === sessionNum)
-    if (existing?.id) await deleteCardioLog(existing.id)
-    setCardioLogs(prev => prev.filter(cl => cl.session_number !== sessionNum))
-    setCardioMemos(prev => { const n = { ...prev }; delete n[sessionNum]; return n })
-    setShowCardioMemo(prev => { const n = { ...prev }; delete n[sessionNum]; return n })
-  }
-
-  const coachLogs = logs.filter(l => !l.is_custom).sort((a, b) => {
-    const tmplA = templates.find(t => t.id === a.template_id)
-    const tmplB = templates.find(t => t.id === b.template_id)
-    return (tmplA?.sort_order ?? 999) - (tmplB?.sort_order ?? 999)
-  })
-  const customLogs = logs.filter(l => l.is_custom)
-
-  // Group custom logs by section
-  const customSections: { section: string; items: WorkoutLog[] }[] = []
-  const customSectionMap = new Map<string, WorkoutLog[]>()
-  for (const log of customLogs) {
-    const sec = log.section || '개인 운동'
-    if (!customSectionMap.has(sec)) {
-      const items: WorkoutLog[] = []
-      customSectionMap.set(sec, items)
-      customSections.push({ section: sec, items })
+    const grouped: WorkoutGroup[] = [...byWorkout.entries()].map(([workoutId, g]) => ({ workoutId, ...g }))
+    // 공용 먼저, 개인 나중
+    grouped.sort((a, b) => Number(b.isShared) - Number(a.isShared))
+    // 시즌1 레거시 로그는 맨 아래 읽기 그룹으로
+    if (legacy.length) {
+      grouped.push({ workoutId: '__legacy__', title: '이전 기록', isShared: false, logs: legacy })
     }
-    customSectionMap.get(sec)!.push(log)
-  }
 
-  // Group coach logs by section (preserve order)
-  const sections: { section: string; items: (WorkoutLog & { template?: TemplateEx })[] }[] = []
-  const sectionMap = new Map<string, (WorkoutLog & { template?: TemplateEx })[]>()
-  for (const log of coachLogs) {
-    const sec = log.section || '?'
-    if (!sectionMap.has(sec)) {
-      const items: (WorkoutLog & { template?: TemplateEx })[] = []
-      sectionMap.set(sec, items)
-      sections.push({ section: sec, items })
-    }
-    const tmpl = templates.find(t => t.id === log.template_id)
-    sectionMap.get(sec)!.push({ ...log, template: tmpl })
-  }
+    setGroups(grouped)
+    setLoading(false)
+  }, [])
 
-  const totalSections = sections.length + customSections.length
-  const completedSections = sections.filter(s => s.items.every(i => i.completed)).length + customSections.filter(s => s.items.every(l => l.completed)).length
-  const isWorkoutDay = selectedDay <= 5
+  useEffect(() => {
+    // loadData는 async라 setLoading은 동기 실행되지 않음(규칙 오탐). 날짜 변경 시 재조회.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadData(date)
+  }, [date, loadData])
 
-  function handleDaySelect(dayNum: number, dayDate: string) {
-    setSelectedDay(dayNum)
-    setDate(dayDate)
-  }
+  const todayDs = toDateString(new Date())
+  const selectedDs = toDateString(date)
 
   return (
     <div className="space-y-4">
-
-      {/* Date + week info */}
+      {/* 날짜 네비 */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1">
           <button
-            onClick={() => { const d = new Date(date); d.setDate(d.getDate() - 1); setDate(toDateString(d)) }}
+            onClick={() => shiftDays(-1)}
             className="w-8 h-8 flex items-center justify-center rounded-lg border border-border bg-surface text-text-secondary"
-          ><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6" /></svg>
+          </button>
           <input
             type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="border border-border rounded-lg px-3 py-1.5 text-sm bg-surface"
+            value={selectedDs}
+            onChange={(e) => {
+              if (e.target.value) {
+                const [y, m, dd] = e.target.value.split('-').map(Number)
+                setDate(new Date(y, m - 1, dd))
+              }
+            }}
+            className="border border-border rounded-lg px-3 py-1.5 text-sm bg-surface text-foreground"
           />
           <button
-            onClick={() => { const d = new Date(date); d.setDate(d.getDate() + 1); setDate(toDateString(d)) }}
+            onClick={() => shiftDays(1)}
             className="w-8 h-8 flex items-center justify-center rounded-lg border border-border bg-surface text-text-secondary"
-          ><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
+          </button>
         </div>
-        {weekInfo && (
-          <span className="text-sm font-medium text-accent">
-            {weekInfo.week_number}주차 · {weekInfo.phase}
-          </span>
-        )}
       </div>
 
-      {/* Week nav arrows + 7-day selector */}
+      {/* 주 이동 + 7일 선택기 */}
       <div className="flex items-center gap-1">
         <button
           onClick={() => shiftWeek(-1)}
           className="w-8 h-8 flex items-center justify-center rounded-lg border border-border bg-surface text-text-secondary"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6" /></svg>
         </button>
         <div className="flex-1 grid grid-cols-7 gap-1">
-          {weekDates.map(wd => {
-            const isSelected = wd.date === date
-            const isToday = wd.date === toDateString(new Date())
+          {weekDates.map((wd) => {
+            const isSelected = wd.ds === selectedDs
+            const isToday = wd.ds === todayDs
             return (
               <button
                 key={wd.dayNum}
-                onClick={() => handleDaySelect(wd.dayNum, wd.date)}
+                onClick={() => setDate(wd.date)}
                 className={`flex flex-col items-center py-2 rounded-xl text-xs transition-colors ${
                   isSelected
                     ? 'bg-accent text-white'
                     : isToday
-                    ? 'bg-accent/10 text-accent'
-                    : wd.isWorkoutDay
-                    ? 'bg-surface border border-border text-foreground'
-                    : 'bg-background text-text-secondary'
+                      ? 'bg-accent-light text-accent'
+                      : wd.isWorkoutDay
+                        ? 'bg-surface border border-border text-foreground'
+                        : 'bg-background text-text-secondary'
                 }`}
               >
                 <span className="font-medium">{wd.label}</span>
@@ -454,735 +213,51 @@ export default function WorkoutPage() {
           onClick={() => shiftWeek(1)}
           className="w-8 h-8 flex items-center justify-center rounded-lg border border-border bg-surface text-text-secondary"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
         </button>
       </div>
 
-      {/* 저강도 유산소 (5주차~) */}
-      {weekInfo?.week_number !== undefined && weekInfo.week_number >= 5 && (
-        <div className="bg-background border border-border rounded-xl overflow-hidden">
-          {(cardioLogs.length > 0 ? cardioLogs : [{ user_id: userId, date, completed: false, memo: null, session_number: 1 }]).map((cl, idx) => {
-            const sn = cl.session_number
-            const isCompleted = cl.completed
-            const memo = cardioMemos[sn] ?? ''
-            const memoVisible = showCardioMemo[sn] ?? false
-            return (
-              <div key={sn} className={idx > 0 ? 'border-t border-border' : ''}>
-                <div className="px-4 py-2.5 flex items-center gap-2">
-                  <button
-                    onClick={() => handleCardioToggle(sn)}
-                    className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                      isCompleted ? 'bg-success border-success text-white' : 'border-border'
-                    }`}
-                  >
-                    {isCompleted && (
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    )}
-                  </button>
-                  <span className="text-xs font-bold text-accent">저강도 유산소{sn > 1 ? sn : ''}</span>
-                  <span className="text-xs text-text-secondary font-medium">45분+</span>
+      {/* 검색 */}
+      <div className="flex items-center justify-end -mb-0.5">
+        <button
+          onClick={() => setSearchOpen(true)}
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-text-secondary hover:text-accent transition-colors"
+          title="운동 이력 검색"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="10" cy="10" r="6" /><line x1="21" y1="21" x2="14.5" y2="14.5" />
+          </svg>
+        </button>
+      </div>
 
-                  <div className="flex-1" />
-                  <button
-                    onClick={() => setShowCardioMemo(prev => ({ ...prev, [sn]: !memoVisible }))}
-                    className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${
-                      memoVisible ? 'text-accent' : memo ? 'text-accent/60' : 'text-text-secondary/40'
-                    }`}
-                    title="메모"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                      <line x1="16" y1="13" x2="8" y2="13" />
-                      <line x1="16" y1="17" x2="8" y2="17" />
-                    </svg>
-                  </button>
-                  {sn > 1 && (
-                    <button
-                      onClick={() => handleCardioDelete(sn)}
-                      className="w-6 h-6 flex items-center justify-center rounded text-text-secondary/40"
-                      title="삭제"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                    </button>
-                  )}
-                  {idx === 0 && (
-                    <button
-                      onClick={handleCardioAdd}
-                      className="w-6 h-6 flex items-center justify-center rounded text-text-secondary/40"
-                      title="추가"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    </button>
-                  )}
-                </div>
-                {memoVisible && (
-                  <div className="px-4 py-2.5 bg-background/50">
-                    <textarea
-                      value={memo}
-                      onChange={(e) => {
-                        handleCardioMemoChange(sn, e.target.value)
-                        e.target.style.height = 'auto'
-                        e.target.style.height = e.target.scrollHeight + 'px'
-                      }}
-                      ref={(el) => {
-                        if (el) {
-                          el.style.height = 'auto'
-                          el.style.height = el.scrollHeight + 'px'
-                        }
-                      }}
-                      placeholder="머신 종류, 시간 등"
-                      className="w-full text-xs bg-transparent resize-none outline-none text-foreground placeholder:text-text-secondary/50"
-                      rows={1}
-                    />
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      )}
-
-      {/* Progress + Search */}
-      {totalSections > 0 && (
-        <div className={`flex items-center justify-between -mb-0.5 ${weekInfo?.week_number !== undefined && weekInfo.week_number >= 5 ? '-mt-2' : ''}`}>
-          <span className="text-xs text-text-secondary">
-            {completedSections}/{totalSections} 완료
-          </span>
-          <button
-            onClick={() => setSearchOpen(true)}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-text-secondary hover:text-accent transition-colors"
-            title="운동 이력 검색"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="10" cy="10" r="6" /><line x1="21" y1="21" x2="14.5" y2="14.5" />
-            </svg>
-          </button>
-        </div>
-      )}
-
+      {/* 운동 카드들 */}
       {loading ? (
         <div className="space-y-3">
-          {[1, 2, 3].map(i => (
+          {[1, 2, 3].map((i) => (
             <div key={i} className="bg-surface border border-border rounded-xl p-4 animate-pulse">
               <div className="h-4 bg-border rounded w-3/4" />
             </div>
           ))}
         </div>
-      ) : !isWorkoutDay ? (
-        <div className="bg-surface border border-border rounded-xl p-6 text-center">
-          <p className="text-text-secondary text-sm">휴식일입니다</p>
-          <p className="text-xs text-text-secondary mt-1">개인 운동을 추가할 수 있어요</p>
-        </div>
-      ) : sections.length === 0 && customLogs.length === 0 ? (
-        <div className="bg-surface border border-border rounded-xl p-6 text-center">
-          <p className="text-text-secondary text-sm">등록된 운동이 없습니다</p>
-        </div>
       ) : (
         <>
-          {/* Coach exercises grouped by section */}
-          {sections.map(({ section, items }) => {
-            const isGroup = items.length > 1
-            // Detect group label from first item's template
-            const firstTmpl = items[0]?.template
-            const groupSets = isGroup && firstTmpl?.sets ? firstTmpl.sets : null
-            // Detect special type from notes (Superset, EMOM, AMRAP, or any setInfo string)
-            const firstNotes = firstTmpl?.notes || ''
-            const isSuperset = isGroup && firstNotes.toLowerCase().includes('superset')
-            // Notes starting with @, *, Rest, Climbing are exercise-specific, not setInfo
-            const isExerciseNote = /^[@*]|^Rest\b|^Climbing\b/i.test(firstNotes)
-            const isSetInfo = firstNotes && !isExerciseNote && !isSuperset
-            // For setInfo notes with " / ", split: non-exercise parts → group label, exercise parts → shown below
-            const setInfoParts = isSetInfo ? firstNotes.split(' / ') : []
-            const setInfoLabel = setInfoParts.filter(p => !/^[@*]|^Rest\b|^Climbing\b|^No\s/i.test(p)).join(' / ')
-            const setInfoExerciseNotes = setInfoParts.filter(p => /^[@*]|^Rest\b|^Climbing\b|^No\s/i.test(p)).join(' / ')
-            const groupLabel = isSuperset ? `Superset${groupSets ? ` · ${groupSets} Sets` : ''}`
-              : isSetInfo && setInfoLabel ? `${groupSets ? `${groupSets} Sets · ` : ''}${setInfoLabel}`
-              : isGroup && groupSets ? `${groupSets} Sets` : null
-
-            // Group completion state
-            const allCompleted = items.length > 0 && items.every(i => i.completed)
-            const someCompleted = items.some(i => i.completed)
-
-            function handleGroupToggle() {
-              const newState = !allCompleted
-              for (const item of items) {
-                if (item.completed !== newState) {
-                  handleToggleComplete(item.id!, newState)
-                }
-              }
-            }
-
-            return (
-              <div key={section} className="bg-surface border border-border rounded-xl overflow-hidden">
-                <div className="px-4 py-2.5 bg-background border-b border-border flex items-center gap-2">
-                  {/* Group completion checkbox */}
-                  <button
-                    onClick={handleGroupToggle}
-                    className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                      allCompleted ? 'bg-success border-success text-white'
-                        : someCompleted ? 'border-success/50 bg-success/10'
-                        : 'border-border'
-                    }`}
-                  >
-                    {allCompleted && (
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    )}
-                    {someCompleted && !allCompleted && (
-                      <div className="w-2 h-0.5 bg-success rounded" />
-                    )}
-                  </button>
-                  <span className="text-xs font-bold text-accent">{section === 'WOD' ? 'WOD' : section}</span>
-                  {groupLabel && (
-                    <span className="text-xs text-text-secondary font-medium">{groupLabel}</span>
-                  )}
-                  {!isGroup && firstTmpl?.sets && (
-                    <span className="text-xs text-text-secondary font-medium">{firstTmpl.sets} Sets</span>
-                  )}
-                  <div className="flex-1" />
-                  <button
-                    onClick={() => setMemoOpen(prev => ({ ...prev, [items[0].id!]: !prev[items[0].id!] }))}
-                    className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${
-                      memoOpen[items[0].id!] ? 'text-accent' : items[0].memo ? 'text-accent/60' : 'text-text-secondary/40'
-                    }`}
-                    title="메모"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                      <line x1="16" y1="13" x2="8" y2="13" />
-                      <line x1="16" y1="17" x2="8" y2="17" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="divide-y divide-border">
-                  {items.map((log, logIndex) => {
-                    const tmpl = log.template
-                    const isWeightOpen = !!weightOpen[log.id!]
-
-                    // Separator row detection (template notes='__sep__')
-                    if (tmpl?.notes === '__sep__') {
-                      return (
-                        <div key={log.id} className="flex items-center px-4 py-1.5 border-t border-border bg-border/30">
-                          <span className="flex-1 text-[11px] text-text-secondary/50 text-center italic">{log.exercise_name}</span>
-                        </div>
-                      )
-                    }
-
-                    // For grouped exercises, show reps + rest inline (sets shown in header)
-                    // For single exercises, show sets × reps as before
-                    const showSetsInline = !isGroup
-                    // For EMOM/AMRAP, don't prepend reps (they are '1' or null)
-                    // For "Every X minutes" style, still show reps if available
-                    const showRepsPrefix = isGroup && tmpl?.reps && tmpl.reps !== '1'
-
-                    // Sub-group detection: insert divider when notes type changes or sets changes within a section
-                    const getSubType = (n: string) =>
-                      n.includes('superset') ? 'superset' : n.includes('amrap') ? 'amrap' : n.includes('emom') ? 'emom' : n.includes('every') ? 'every' : null
-                    const curNotes = (tmpl?.notes || '').toLowerCase()
-                    const prevNotes = (items[logIndex - 1]?.template?.notes || '').toLowerCase()
-                    const curSubType = getSubType(curNotes)
-                    const prevSubType = getSubType(prevNotes)
-                    const prevTmpl = items[logIndex - 1]?.template
-                    const prevIsSep = prevTmpl?.notes === '__sep__'
-                    const setsChanged = isGroup && logIndex > 0 && tmpl?.sets && prevTmpl?.sets && tmpl.sets !== prevTmpl.sets
-                    const isNewSubGroup = logIndex > 0 && ((curSubType && curSubType !== prevSubType) || setsChanged || prevIsSep)
-                    const getSetInfo = (notes: string | null | undefined) => {
-                      if (!notes) return null
-                      const first = notes.split(' / ')[0]
-                      const fl = first.toLowerCase()
-                      if (fl.startsWith('rest') || fl.startsWith('*') || fl.startsWith('@')) return null
-                      return first
-                    }
-                    const subSetInfo = prevIsSep ? getSetInfo(tmpl?.notes) : null
-                    const setsLabel = tmpl?.sets ? `${tmpl.sets} Set${tmpl.sets !== '1' ? 's' : ''}` : null
-                    const subGroupLabel = isNewSubGroup
-                      ? (setsChanged || prevIsSep) && tmpl?.sets
-                        ? subSetInfo ? `${setsLabel} (${subSetInfo})` : setsLabel
-                      : curSubType === 'superset' ? `Superset${tmpl?.sets ? ` · ${tmpl.sets} Sets` : ''}` : tmpl?.notes
-                      : null
-
-                    return (
-                      <div key={log.id}>
-                      {isNewSubGroup && (
-                        <div className="px-4 py-1.5 bg-background border-t border-border">
-                          <span className="text-xs text-text-secondary font-medium">{subGroupLabel}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-3 px-4 py-3">
-                        {/* Complete checkbox */}
-                        <button
-                          onClick={() => handleToggleComplete(log.id!, !log.completed)}
-                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                            log.completed ? 'bg-text-secondary/40 border-transparent text-white' : 'border-border'
-                          }`}
-                        >
-                          {log.completed && (
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          )}
-                        </button>
-
-                        {/* Exercise info */}
-                        <div className="flex-1 min-w-0">
-                          <p
-                            className={`text-sm font-medium select-none whitespace-pre-line ${log.completed ? 'line-through opacity-50' : ''}`}
-                            onTouchStart={() => handleLongPressStart(log.exercise_name)}
-                            onTouchEnd={() => handleLongPressEnd(log.exercise_name)}
-                            onTouchCancel={() => handleLongPressEnd(log.exercise_name)}
-                            onMouseDown={() => handleLongPressStart(log.exercise_name)}
-                            onMouseUp={() => handleLongPressEnd(log.exercise_name)}
-                            onMouseLeave={() => handleLongPressEnd(log.exercise_name)}
-                            onContextMenu={(e) => e.preventDefault()}
-                          >
-                            {showRepsPrefix ? `${tmpl!.reps} ` : ''}{log.exercise_name}
-                          </p>
-                          {showSetsInline && (tmpl?.sets || tmpl?.reps) && (
-                            <p className="text-xs text-text-secondary">
-                              {tmpl.sets && `${tmpl.sets}세트`} {tmpl.reps && `× ${tmpl.reps}`}
-                            </p>
-                          )}
-                          {tmpl?.notes && (!isNewSubGroup || setsChanged) && (() => {
-                            // For first item in superset/setInfo group, strip the group label prefix and show remainder
-                            if (tmpl === firstTmpl) {
-                              if (isSetInfo) {
-                                // Show only exercise-specific parts (already stripped from group label)
-                                if (!setInfoExerciseNotes) return null
-                                return <p className="text-[11px] text-text-secondary italic mt-0.5">{setInfoExerciseNotes}</p>
-                              }
-                              if (isSuperset) {
-                                const stripped = tmpl.notes.replace(/^Superset\s*\/?\.?\s*/i, '').replace(/^\s*\/\s*/, '').trim()
-                                if (!stripped) return null
-                                return <p className="text-[11px] text-text-secondary italic mt-0.5">{stripped}</p>
-                              }
-                            }
-                            return <p className="text-[11px] text-text-secondary italic mt-0.5">{tmpl.notes}</p>
-                          })()}
-                        </div>
-
-                        {/* Weight toggle checkbox + input */}
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                          <button
-                            onClick={() => toggleWeightInput(log.id!)}
-                            className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
-                              isWeightOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/30 bg-surface'
-                            }`}
-                            title="무게 입력"
-                          >
-                            {isWeightOpen ? (
-                              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                <polyline points="20 6 9 17 4 12" />
-                              </svg>
-                            ) : (
-                              <span className="text-[8px] font-bold text-text-secondary">{log.weight_unit ?? 'lb'}</span>
-                            )}
-                          </button>
-                          {isWeightOpen && (
-                            <>
-                              <button
-                                onClick={() => handleWeightChange(log.id!, Math.max(0, (log.weight_lb ?? 0) - (log.weight_unit === 'kg' ? 5 : 5)))}
-                                className="w-5 h-5 rounded bg-background border border-border flex items-center justify-center text-[10px] font-bold text-text-secondary active:bg-border"
-                              >−</button>
-                              <input
-                                type="number"
-                                inputMode="decimal"
-                                placeholder="0"
-                                value={log.weight_lb ?? ''}
-                                onChange={(e) => handleWeightChange(log.id!, e.target.value ? parseFloat(e.target.value) : null)}
-                                className="w-12 border border-border rounded-lg px-1 py-0.5 text-xs text-center bg-background"
-                              />
-                              <button
-                                onClick={() => handleUnitToggle(log.id!)}
-                                className="text-[9px] text-text-secondary active:text-accent"
-                              >{log.weight_unit ?? 'lb'}</button>
-                              <button
-                                onClick={() => handleWeightChange(log.id!, (log.weight_lb ?? 0) + (log.weight_unit === 'kg' ? 5 : 5))}
-                                className="w-5 h-5 rounded bg-background border border-border flex items-center justify-center text-[10px] font-bold text-text-secondary active:bg-border"
-                              >+</button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      </div>
-                    )
-                  })}
-                </div>
-                {memoOpen[items[0].id!] && (
-                  <div className="px-4 py-2.5 border-t border-border bg-background/50">
-                    <textarea
-                      placeholder="메모 입력..."
-                      value={items[0].memo || ''}
-                      onChange={(e) => {
-                        handleMemoChange(items[0].id!, e.target.value)
-                        e.target.style.height = 'auto'
-                        e.target.style.height = e.target.scrollHeight + 'px'
-                      }}
-                      ref={(el) => {
-                        if (el) {
-                          el.style.height = 'auto'
-                          el.style.height = el.scrollHeight + 'px'
-                        }
-                      }}
-                      className="w-full text-xs bg-transparent resize-none outline-none text-foreground placeholder:text-text-secondary/50"
-                      rows={1}
-                    />
-                  </div>
-                )}
-              </div>
-            )
-          })}
+          {groups.map((g) => (
+            <WorkoutCard
+              key={g.workoutId}
+              title={g.title}
+              isShared={g.isShared}
+              logs={g.logs}
+              onChanged={() => loadData(date)}
+              onExerciseLongPress={setGifModalExercise}
+            />
+          ))}
+          {groups.length === 0 && (
+            <p className="text-center text-text-secondary text-sm py-12">이 날짜에 등록된 운동이 없어요. 아래에서 운동을 추가하세요.</p>
+          )}
         </>
       )}
 
-      {/* Custom exercises grouped by section */}
-      {customSections.map(({ section: sec, items: customItems }) => {
-        const allCompleted = customItems.every(l => l.completed)
-        const someCompleted = customItems.some(l => l.completed)
-
-        function handleCustomGroupToggle() {
-          const newState = !allCompleted
-          for (const item of customItems) {
-            if (item.completed !== newState) {
-              handleToggleComplete(item.id!, newState)
-            }
-          }
-        }
-
-        // Inline edit mode for this section
-        if (editingSection === sec) {
-          return (
-            <div key={`custom-edit-${sec}`} className="bg-surface border border-accent/20 rounded-xl overflow-hidden">
-              {/* Editable header */}
-              <div className="px-4 py-1.5 bg-accent-light/50 border-b border-accent/10 flex items-center gap-2">
-                <div className="w-5 h-5 rounded border-2 border-accent/30 flex items-center justify-center flex-shrink-0">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-accent">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                </div>
-                <input
-                  autoFocus
-                  value={customItems[0].section || ''}
-                  onChange={(e) => {
-                    const newSection = e.target.value
-                    for (const item of customItems) {
-                      updateCustomExercise(item.id!, { exercise_name: item.exercise_name, section: newSection || null, custom_sets: item.custom_sets, custom_reps: item.custom_reps })
-                    }
-                    setLogs(prev => prev.map(l => customItems.some(ci => ci.id === l.id) ? { ...l, section: newSection || null } : l))
-                  }}
-                  placeholder="section (ex: A, legs)"
-                  className="text-xs font-bold text-accent bg-transparent outline-none placeholder:text-accent/40 min-w-0 flex-1"
-                />
-                <input
-                  value={customItems[0].custom_sets || ''}
-                  onChange={(e) => {
-                    const newInfo = e.target.value
-                    const first = customItems[0]
-                    updateCustomExercise(first.id!, { exercise_name: first.exercise_name, section: first.section, custom_sets: newInfo || null, custom_reps: first.custom_reps })
-                    setLogs(prev => prev.map(l => l.id === first.id ? { ...l, custom_sets: newInfo || null } : l))
-                  }}
-                  placeholder="set info (ex: 4 sets, amrap 10)"
-                  className="flex-1 text-xs text-text-secondary font-medium bg-transparent outline-none placeholder:text-text-secondary/40"
-                />
-              </div>
-              {/* Editable exercise rows */}
-              <div className="divide-y divide-border">
-                {customItems.map(log => {
-                  const isAndThen = log.exercise_name.includes('and then')
-                  if (isAndThen) {
-                    return (
-                      <div key={log.id} className="flex items-center px-4 py-1.5">
-                        <span className="flex-1 text-[11px] text-text-secondary/50 text-center italic">and then</span>
-                        <button
-                          onClick={() => handleDeleteLog(log.id!)}
-                          className="w-4 h-4 flex items-center justify-center text-text-secondary/20 hover:text-danger transition-colors flex-shrink-0"
-                        >
-                          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                          </svg>
-                        </button>
-                      </div>
-                    )
-                  }
-                  return (
-                    <div key={log.id} className="flex items-center gap-3 px-4 py-3">
-                      <div className="w-5 h-5 rounded-full border-2 border-accent/30 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <input
-                          value={log.exercise_name}
-                          onChange={(e) => {
-                            const newName = e.target.value
-                            setLogs(prev => prev.map(l => l.id === log.id ? { ...l, exercise_name: newName } : l))
-                          }}
-                          onBlur={() => {
-                            updateCustomExercise(log.id!, { exercise_name: log.exercise_name, section: log.section, custom_sets: log.custom_sets, custom_reps: log.custom_reps })
-                          }}
-                          placeholder="exercise name"
-                          className="w-full text-sm font-medium text-accent bg-transparent outline-none placeholder:text-accent/40"
-                        />
-                        <input
-                          value={log.custom_reps || ''}
-                          onChange={(e) => {
-                            const newInfo = e.target.value
-                            setLogs(prev => prev.map(l => l.id === log.id ? { ...l, custom_reps: newInfo || null } : l))
-                          }}
-                          onBlur={() => {
-                            updateCustomExercise(log.id!, { exercise_name: log.exercise_name, section: log.section, custom_sets: log.custom_sets, custom_reps: log.custom_reps })
-                          }}
-                          placeholder="exercise info (ex: 50lb, rest 60s, × 12)"
-                          className="w-full text-[11px] text-text-secondary italic bg-transparent outline-none mt-0.5 placeholder:text-text-secondary/40 placeholder:not-italic"
-                        />
-                      </div>
-                      <button
-                        onClick={() => handleDeleteLog(log.id!)}
-                        className="w-5 h-5 flex items-center justify-center text-text-secondary/30 hover:text-danger transition-colors flex-shrink-0"
-                      >
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
-              {/* Add row buttons + Done */}
-              <div className="px-4 py-2 border-t border-accent/20 flex items-center">
-                <div className="flex gap-3">
-                  <button
-                    onClick={async () => {
-                      await addCustomExercise(date, '운동명', userId, customItems[0].section || undefined, customItems[0].custom_sets || undefined, undefined)
-                      loadData()
-                    }}
-                    className="text-[11px] text-accent/40 hover:text-accent transition-colors"
-                  >
-                    + 운동
-                  </button>
-                  <button
-                    onClick={async () => {
-                      await addCustomExercise(date, '— and then —', userId, customItems[0].section || undefined, undefined, undefined)
-                      loadData()
-                    }}
-                    className="text-[11px] text-text-secondary/40 hover:text-text-secondary transition-colors"
-                  >
-                    + and then
-                  </button>
-                </div>
-                <div className="flex-1" />
-                <button
-                  onClick={() => setEditingSection(null)}
-                  className="px-4 py-1 bg-accent text-white rounded-lg text-xs font-medium"
-                >
-                  완료
-                </button>
-              </div>
-            </div>
-          )
-        }
-
-        return (
-          <div key={`custom-${sec}`} className="bg-surface border border-accent/20 rounded-xl overflow-hidden">
-            <div className="px-4 py-1.5 bg-accent-light/50 border-b border-accent/10 flex items-center gap-2">
-              <button
-                onClick={handleCustomGroupToggle}
-                className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                  allCompleted ? 'bg-success border-success text-white'
-                    : someCompleted ? 'border-success/50 bg-success/10'
-                    : 'border-accent/30'
-                }`}
-              >
-                {allCompleted && (
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                )}
-                {someCompleted && !allCompleted && (
-                  <div className="w-2 h-0.5 bg-success rounded" />
-                )}
-              </button>
-              <span className="text-xs font-medium text-accent">{sec}</span>
-              {customItems[0]?.custom_sets && (
-                <span className="text-xs text-text-secondary font-medium">{customItems[0].custom_sets}</span>
-              )}
-              <div className="flex-1" />
-              <button
-                onClick={() => setMemoOpen(prev => ({ ...prev, [customItems[0].id!]: !prev[customItems[0].id!] }))}
-                className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${
-                  memoOpen[customItems[0].id!] ? 'text-accent' : customItems[0].memo ? 'text-accent/60' : 'text-text-secondary/40'
-                }`}
-                title="메모"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" />
-                  <line x1="16" y1="17" x2="8" y2="17" />
-                </svg>
-              </button>
-              <button
-                onClick={() => setEditingSection(sec)}
-                className="w-6 h-6 flex items-center justify-center rounded text-text-secondary/40 hover:text-accent transition-colors"
-                title="수정"
-              >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                </svg>
-              </button>
-              <button
-                onClick={() => { for (const item of customItems) handleDeleteLog(item.id!) }}
-                className="w-6 h-6 flex items-center justify-center rounded text-text-secondary/40 hover:text-danger transition-colors"
-                title="삭제"
-              >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                </svg>
-              </button>
-            </div>
-            <div className="divide-y divide-border">
-              {customItems.map(log => {
-                const isAndThen = log.exercise_name.includes('and then')
-                if (isAndThen) {
-                  return (
-                    <div key={log.id} className="flex items-center px-4 py-1.5">
-                      <span className="flex-1 text-[11px] text-text-secondary/50 text-center italic">and then</span>
-                    </div>
-                  )
-                }
-                const isWeightOpen = !!weightOpen[log.id!]
-                return (
-                  <div key={log.id}>
-                    <div className="flex items-center gap-3 px-4 py-3">
-                      <button
-                        onClick={() => handleToggleComplete(log.id!, !log.completed)}
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                          log.completed ? 'bg-text-secondary/40 border-transparent text-white' : 'border-accent/30'
-                        }`}
-                      >
-                        {log.completed && (
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                        )}
-                      </button>
-                      <div className="flex-1 min-w-0">
-                        <p
-                          className={`text-sm font-medium text-accent select-none whitespace-pre-line ${log.completed ? 'line-through opacity-50' : ''}`}
-                          onTouchStart={() => handleLongPressStart(log.exercise_name)}
-                          onTouchEnd={() => handleLongPressEnd(log.exercise_name)}
-                          onTouchCancel={() => handleLongPressEnd(log.exercise_name)}
-                          onMouseDown={() => handleLongPressStart(log.exercise_name)}
-                          onMouseUp={() => handleLongPressEnd(log.exercise_name)}
-                          onMouseLeave={() => handleLongPressEnd(log.exercise_name)}
-                          onContextMenu={(e) => e.preventDefault()}
-                        >
-                          {log.exercise_name}
-                        </p>
-                        {log.custom_reps && (
-                          <p className="text-[11px] text-text-secondary italic mt-0.5">{log.custom_reps}</p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        <button
-                          onClick={() => toggleWeightInput(log.id!)}
-                          className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
-                            isWeightOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/30 bg-surface'
-                          }`}
-                        >
-                          {isWeightOpen ? (
-                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          ) : (
-                            <span className="text-[8px] font-bold text-text-secondary">{log.weight_unit ?? 'lb'}</span>
-                          )}
-                        </button>
-                        {isWeightOpen && (
-                          <>
-                            <button
-                              onClick={() => handleWeightChange(log.id!, Math.max(0, (log.weight_lb ?? 0) - 5))}
-                              className="w-5 h-5 rounded bg-background border border-border flex items-center justify-center text-[10px] font-bold text-text-secondary active:bg-border"
-                            >−</button>
-                            <input
-                              type="number"
-                              inputMode="decimal"
-                              placeholder="0"
-                              value={log.weight_lb ?? ''}
-                              onChange={(e) => handleWeightChange(log.id!, e.target.value ? parseFloat(e.target.value) : null)}
-                              className="w-12 border border-border rounded-lg px-1 py-0.5 text-xs text-center bg-background"
-                            />
-                            <button
-                              onClick={() => handleUnitToggle(log.id!)}
-                              className="text-[9px] text-text-secondary active:text-accent"
-                            >{log.weight_unit ?? 'lb'}</button>
-                            <button
-                              onClick={() => handleWeightChange(log.id!, (log.weight_lb ?? 0) + 5)}
-                              className="w-5 h-5 rounded bg-background border border-border flex items-center justify-center text-[10px] font-bold text-text-secondary active:bg-border"
-                            >+</button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-              {/* Add exercise / and then to this section */}
-              <div className="flex gap-3 px-4 py-1.5">
-                <button
-                  onClick={async () => {
-                    await addCustomExercise(date, '운동명', userId, customItems[0].section || undefined, customItems[0].custom_sets || undefined, undefined)
-                    loadData()
-                  }}
-                  className="text-[11px] text-accent/40 hover:text-accent transition-colors"
-                >
-                  + 운동
-                </button>
-                <button
-                  onClick={async () => {
-                    await addCustomExercise(date, '— and then —', userId, customItems[0].section || undefined, undefined, undefined)
-                    loadData()
-                  }}
-                  className="text-[11px] text-text-secondary/40 hover:text-text-secondary transition-colors"
-                >
-                  + and then
-                </button>
-              </div>
-            </div>
-            {memoOpen[customItems[0].id!] && (
-              <div className="px-4 py-2.5 border-t border-border bg-background/50">
-                <textarea
-                  placeholder="메모 입력..."
-                  value={customItems[0].memo || ''}
-                  onChange={(e) => {
-                    handleMemoChange(customItems[0].id!, e.target.value)
-                    e.target.style.height = 'auto'
-                    e.target.style.height = e.target.scrollHeight + 'px'
-                  }}
-                  ref={(el) => {
-                    if (el) {
-                      el.style.height = 'auto'
-                      el.style.height = el.scrollHeight + 'px'
-                    }
-                  }}
-                  className="w-full text-xs bg-transparent resize-none outline-none text-foreground placeholder:text-text-secondary/50"
-                  rows={1}
-                />
-              </div>
-            )}
-          </div>
-        )
-      })}
-
-      <CustomExerciseForm
-        onAddMultiple={handleAddCustomMultiple}
-      />
-
-      {/* Calculator panel */}
+      {/* 계산기 패널 */}
       {calcOpen && (
         <div className="fixed bottom-[4rem] left-3 right-3 z-[60] bg-surface border border-border rounded-2xl shadow-lg">
           <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-1">
@@ -1201,7 +276,7 @@ export default function WorkoutPage() {
         </div>
       )}
 
-      {/* Floating calculator button */}
+      {/* 플로팅 계산기 버튼 */}
       {!calcOpen && (
         <button
           onClick={() => setCalcOpen(true)}
@@ -1224,18 +299,10 @@ export default function WorkoutPage() {
       )}
 
       {gifModalExercise && (
-        <ExerciseGifModal
-          exerciseName={gifModalExercise}
-          onClose={() => setGifModalExercise(null)}
-        />
+        <ExerciseGifModal exerciseName={gifModalExercise} onClose={() => setGifModalExercise(null)} />
       )}
 
-      {searchOpen && (
-        <ExerciseSearchModal
-          userId={userId}
-          onClose={() => setSearchOpen(false)}
-        />
-      )}
+      {searchOpen && <ExerciseSearchModal userId={userId} onClose={() => setSearchOpen(false)} />}
     </div>
   )
 }
