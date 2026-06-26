@@ -203,22 +203,24 @@ export default function WorkoutPage() {
           {weekDates.map((wd) => {
             const isSelected = wd.ds === selectedDs
             const isToday = wd.ds === todayDs
+            // 토(dayNum 6)=파랑, 일(dayNum 7)=빨강 (선택 시에는 흰색 유지)
+            const weekendText = isSelected ? '' : wd.dayNum === 6 ? 'text-accent' : wd.dayNum === 7 ? 'text-danger' : ''
             return (
               <button
                 key={wd.dayNum}
                 onClick={() => setDate(wd.date)}
-                className={`flex flex-col items-center py-2 rounded-xl text-xs transition-colors ${
+                className={`flex flex-col items-center py-1.5 rounded-lg text-xs transition-colors ${
                   isSelected
                     ? 'bg-accent text-white'
                     : isToday
                       ? 'bg-accent-light text-accent'
                       : wd.isWorkoutDay
-                        ? 'bg-surface border border-border text-foreground'
+                        ? 'bg-surface border border-border/50 text-foreground'
                         : 'bg-background text-text-secondary'
                 }`}
               >
-                <span className="font-medium">{wd.label}</span>
-                <span className="text-lg font-bold mt-0.5">{wd.dayOfMonth}</span>
+                <span className={`font-medium ${weekendText}`}>{wd.label}</span>
+                <span className={`text-lg font-bold mt-0.5 ${weekendText}`}>{wd.dayOfMonth}</span>
               </button>
             )
           })}
@@ -259,9 +261,9 @@ export default function WorkoutPage() {
             <p className="text-center text-text-secondary text-sm py-12">이 날짜에 등록된 운동이 없어요. 아래에서 운동을 추가하세요.</p>
           ) : (
             <>
-              {/* 오늘의 공용 운동 */}
+              {/* 박스 와드 (공용) */}
               {groups.filter((g) => g.isShared).length > 0 && (
-                <h2 className="text-sm font-semibold text-accent mt-2 mb-1">추가 운동</h2>
+                <h2 className="text-sm font-semibold text-accent mt-2 mb-1">박스 와드</h2>
               )}
               {groups.filter((g) => g.isShared).map((g) => (
                 <WorkoutCard
@@ -274,9 +276,9 @@ export default function WorkoutPage() {
                 />
               ))}
 
-              {/* 내 운동 */}
+              {/* 추가 운동 (개인) */}
               {groups.filter((g) => !g.isShared && g.workoutId !== '__legacy__').length > 0 && (
-                <h2 className="text-sm font-semibold text-text-secondary mt-4 mb-1">내 운동</h2>
+                <h2 className="text-sm font-semibold text-text-secondary mt-4 mb-1">추가 운동</h2>
               )}
               {groups.filter((g) => !g.isShared && g.workoutId !== '__legacy__').map((g) => (
                 <WorkoutCard
