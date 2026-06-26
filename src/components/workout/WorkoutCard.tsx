@@ -21,7 +21,7 @@ interface Props {
 //   - custom_sets  : 세트수 / 그룹 "N Sets"
 //   - custom_reps  : 순수 반복수(동작명 앞 prefix·"N세트 × reps" 인라인 소스)
 //   - custom_notes : setInfo(Superset/EMOM/AMRAP 등 그룹 라벨 소스) / 동작별 부가 노트(@/*/Rest…) / '__sep__' 구분자
-export default function WorkoutCard({ title, isShared, logs, onChanged, onExerciseLongPress }: Props) {
+export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPress }: Props) {
   // 낙관적 로컬 상태(autosave 즉시 반영). props 변경 시 동기화.
   const [items, setItems] = useState<WorkoutLogJoined[]>(logs)
   useEffect(() => {
@@ -169,13 +169,6 @@ export default function WorkoutCard({ title, isShared, logs, onChanged, onExerci
           {someDone && !allDone && <div className="w-2 h-0.5 bg-success rounded" />}
         </button>
         {title && <span className="text-sm font-bold text-foreground truncate">{title}</span>}
-        <span
-          className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${
-            isShared ? 'bg-accent-light text-accent' : 'bg-background border border-border text-text-secondary'
-          }`}
-        >
-          {isShared ? '공용' : '개인'}
-        </span>
         <div className="flex-1" />
         {firstId && (
           <button

@@ -153,7 +153,8 @@ export async function getWorkoutLogsWithWorkout(
     .from('workout_logs')
     .select(
       'id, user_id, date, template_id, workout_exercise_id, is_custom, exercise_name, section, completed, weight_lb, weight_unit, memo, custom_sets, custom_reps, custom_notes, ' +
-        'workout_exercises ( workout_id, workouts ( title, owner_user_id ) )',
+        'workout_exercises ( workout_id, workouts ( title, owner_user_id ) ), ' +
+        'workout_templates ( sets, reps, notes )',
     )
     .eq('date', date)
     .eq('user_id', userId)
@@ -162,10 +163,17 @@ export async function getWorkoutLogsWithWorkout(
     const we = row.workout_exercises as
       | { workout_id: string; workouts?: { title: string; owner_user_id: string | null } | null }
       | null
-    const { workout_exercises, ...rest } = row
+    const tmpl = row.workout_templates as { sets: string | null; reps: string | null; notes: string | null } | null
+    const { workout_exercises, workout_templates, ...rest } = row
     void workout_exercises
+    void workout_templates
+    const base = rest as unknown as WorkoutLog
     return {
-      ...(rest as unknown as WorkoutLog),
+      ...base,
+      // 시즌1 레거시 등 template 연결 로그: 세트/횟수/노트가 workout_templates에 있음 → 렌더용 custom_*로 보강
+      custom_sets: base.custom_sets || tmpl?.sets || null,
+      custom_reps: base.custom_reps || tmpl?.reps || null,
+      custom_notes: base.custom_notes || tmpl?.notes || null,
       workout: we
         ? { workout_id: we.workout_id, title: we.workouts?.title ?? '', owner_user_id: we.workouts?.owner_user_id ?? null }
         : null,
