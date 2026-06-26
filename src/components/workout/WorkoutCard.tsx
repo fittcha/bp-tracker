@@ -3,6 +3,25 @@
 import { useEffect, useRef, useState } from 'react'
 import { upsertWorkoutLog, type WorkoutLogJoined } from '@/lib/api/workout-logs'
 
+// 그룹 라벨(섹션 setInfo/세트수) 계산 — 카드 헤더·섹션 라벨 공용
+function deriveGroupLabel(rows: WorkoutLogJoined[]): string | null {
+  const isGroup = rows.length > 1
+  const first = rows[0]
+  const groupSets = isGroup && first?.custom_sets ? first.custom_sets : null
+  const firstNotes = first?.custom_notes || ''
+  const isSuperset = isGroup && firstNotes.toLowerCase().includes('superset')
+  const isExerciseNote = /^[@*]|^Rest\b|^Climbing\b/i.test(firstNotes)
+  const isSetInfo = !!firstNotes && !isExerciseNote && !isSuperset
+  const setInfoLabel = isSetInfo
+    ? firstNotes.split(' / ').filter((p) => !/^[@*]|^Rest\b|^Climbing\b|^No\s/i.test(p)).join(' / ')
+    : ''
+  if (isSuperset) return `Superset${groupSets ? ` · ${groupSets} Sets` : ''}`
+  if (isSetInfo && setInfoLabel) return `${groupSets ? `${groupSets} Sets · ` : ''}${setInfoLabel}`
+  if (isGroup && groupSets) return `${groupSets} Sets`
+  if (!isGroup && first?.custom_sets) return `${first.custom_sets} Sets`
+  return null
+}
+
 interface Props {
   title: string
   isShared: boolean
@@ -134,6 +153,11 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
     sectionMap.get(sec)!.push(log)
   }
 
+  // 단일 섹션(레거시 등 제목 없는 카드)이면 그룹명+setInfo를 헤더(체크박스 옆)에 표시
+  const singleSection = sections.length === 1 ? sections[0] : null
+  const headerLabel = singleSection ? deriveGroupLabel(singleSection.rows) : null
+  const labelInHeader = !title && !!singleSection
+
   // 카드 전체 완료 상태
   const allDone = items.length > 0 && items.every((l) => l.completed)
   const someDone = items.some((l) => l.completed)
@@ -168,7 +192,14 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
           )}
           {someDone && !allDone && <div className="w-2 h-0.5 bg-success rounded" />}
         </button>
-        {title && <span className="text-sm font-bold text-foreground truncate">{title}</span>}
+        {title ? (
+          <span className="text-sm font-bold text-foreground truncate">{title}</span>
+        ) : singleSection ? (
+          <div className="flex items-baseline gap-2 min-w-0">
+            {singleSection.section !== '?' && <span className="text-sm font-bold text-accent shrink-0">{singleSection.section}</span>}
+            {headerLabel && <span className="text-xs text-text-secondary font-medium truncate">{headerLabel}</span>}
+          </div>
+        ) : null}
         <div className="flex-1" />
         {firstId && (
           <button
@@ -194,6 +225,7 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
           key={section}
           section={section}
           rows={rows}
+          inHeader={labelInHeader}
           weightOpen={weightOpen}
           onToggleComplete={handleToggleComplete}
           onToggleWeight={toggleWeightInput}
@@ -234,6 +266,7 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
 interface SectionGroupProps {
   section: string
   rows: WorkoutLogJoined[]
+  inHeader?: boolean
   weightOpen: Record<string, boolean>
   onToggleComplete: (id: string, completed: boolean) => void
   onToggleWeight: (id: string) => void
@@ -246,6 +279,7 @@ interface SectionGroupProps {
 function SectionGroup({
   section,
   rows,
+  inHeader,
   weightOpen,
   onToggleComplete,
   onToggleWeight,
@@ -276,8 +310,8 @@ function SectionGroup({
 
   return (
     <div className="border-t border-border first:border-t-0">
-      {/* 섹션 라벨 줄 (단일 동작이면 라벨 줄 생략, 동작 행에 인라인 표시) */}
-      {(isGroup || section !== '?') && (
+      {/* 섹션 라벨 줄 (헤더에 이미 표시된 경우 생략) */}
+      {!inHeader && (isGroup || section !== '?') && (
         <div className="px-4 py-1.5 bg-background/40 border-b border-border flex items-center gap-2">
           {section !== '?' && <span className="text-xs font-bold text-accent">{section}</span>}
           {groupLabel && <span className="text-xs text-text-secondary font-medium">{groupLabel}</span>}
