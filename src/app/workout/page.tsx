@@ -17,6 +17,7 @@ interface WorkoutGroup {
   workoutId: string
   title: string
   isShared: boolean
+  isLegacy?: boolean
   logs: WorkoutLogJoined[]
 }
 
@@ -111,9 +112,10 @@ export default function WorkoutPage() {
     // 2) 그 날짜 로그 (workout 조인)
     let logs = await getWorkoutLogsWithWorkout(ds, loggedIn.id)
 
-    // 3) 공용 기본운동 중 로그 없는 것 자동 생성
+    // 3) 공용 기본운동 중 로그 없는 것 자동 생성 (과거 날짜는 자동생성 안 함 — 과거 기록 오염 방지)
     const presentWorkoutIds = new Set(logs.map((l) => l.workout?.workout_id).filter(Boolean))
-    const missing = defaults.filter((wk) => !presentWorkoutIds.has(wk.id))
+    const isPast = ds < toDateString(new Date())
+    const missing = isPast ? [] : defaults.filter((wk) => !presentWorkoutIds.has(wk.id))
     for (const wk of missing) {
       await addWorkoutToDate(loggedIn.id, ds, wk.id)
     }
@@ -142,9 +144,17 @@ export default function WorkoutPage() {
     const grouped: WorkoutGroup[] = [...byWorkout.entries()].map(([workoutId, g]) => ({ workoutId, ...g }))
     // 공용 먼저, 개인 나중
     grouped.sort((a, b) => Number(b.isShared) - Number(a.isShared))
-    // 시즌1 레거시 로그는 맨 아래 읽기 그룹으로
+    // 시즌1 레거시 로그: 섹션(A,B,C…)별로 분리해 A→F 순으로 각각 카드 노출
     if (legacy.length) {
-      grouped.push({ workoutId: '__legacy__', title: '', isShared: false, logs: legacy })
+      const bySection = new Map<string, WorkoutLogJoined[]>()
+      for (const l of legacy) {
+        const sec = l.section || '?'
+        if (!bySection.has(sec)) bySection.set(sec, [])
+        bySection.get(sec)!.push(l)
+      }
+      for (const sec of [...bySection.keys()].sort()) {
+        grouped.push({ workoutId: `__legacy_${sec}__`, title: '', isShared: false, isLegacy: true, logs: bySection.get(sec)! })
+      }
     }
 
     setGroups(grouped)
@@ -273,11 +283,23 @@ export default function WorkoutPage() {
                 />
               ))}
 
-              {/* 추가 운동 (개인 + 이전 데이터) */}
-              {groups.filter((g) => !g.isShared).length > 0 && (
+              {/* 추가 운동 (개인, 비레거시) */}
+              {groups.filter((g) => !g.isShared && !g.isLegacy).length > 0 && (
                 <h2 className="text-sm font-semibold text-text-secondary mt-4 mb-1">추가 운동</h2>
               )}
-              {groups.filter((g) => !g.isShared).map((g) => (
+              {groups.filter((g) => !g.isShared && !g.isLegacy).map((g) => (
+                <WorkoutCard
+                  key={g.workoutId}
+                  title={g.title}
+                  isShared={g.isShared}
+                  logs={g.logs}
+                  onChanged={() => loadData(date)}
+                  onExerciseLongPress={setGifModalExercise}
+                />
+              ))}
+
+              {/* 이전 데이터 — 섹션 A~F 카드 (헤더 없이, 그룹별) */}
+              {groups.filter((g) => g.isLegacy).map((g) => (
                 <WorkoutCard
                   key={g.workoutId}
                   title={g.title}
