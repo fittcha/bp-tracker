@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { toDateString } from '@/lib/utils'
 import { getDailyLog, upsertDailyLog, DailyLog } from '@/lib/api/daily-logs'
-import { getLoggedInUser } from '@/lib/auth'
+import { getLoggedInUser, logout } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
 import WeightChart from '@/components/summary/WeightChart'
 import OneRMSection from '@/components/summary/OneRMSection'
@@ -35,6 +36,7 @@ const emptyLog = (date: string): DailyLog => ({
 })
 
 export default function DailyPage() {
+  const router = useRouter()
   const user = getLoggedInUser()
   const userId = user?.id ?? ''
   const [date, setDate] = useState(toDateString(new Date()))
@@ -207,6 +209,13 @@ export default function DailyPage() {
           style={{ fieldSizing: 'content' } as React.CSSProperties}
         />
       </Section>
+
+      <button
+        onClick={() => { logout(); router.push('/login') }}
+        className="w-full py-3 text-sm text-danger border border-border rounded-xl bg-surface"
+      >
+        로그아웃
+      </button>
     </div>
   )
 }

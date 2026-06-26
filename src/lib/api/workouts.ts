@@ -104,27 +104,3 @@ export async function archiveWorkout(workoutId: string): Promise<void> {
   if (error) throw error
 }
 
-// 운동별 본인 기록 추이: 이 운동의 동작들에 연결된 로그를 날짜순으로
-export async function getWorkoutProgress(userId: string, workoutId: string) {
-  const { data: exs, error: ee } = await supabase
-    .from('workout_exercises')
-    .select('id')
-    .eq('workout_id', workoutId)
-  if (ee) throw ee
-  const ids = (exs ?? []).map((e: { id: string }) => e.id)
-  if (ids.length === 0) return []
-  const { data, error } = await supabase
-    .from('workout_logs')
-    .select('date, exercise_name, weight_lb, weight_unit, completed')
-    .eq('user_id', userId)
-    .in('workout_exercise_id', ids)
-    .order('date', { ascending: true })
-  if (error) throw error
-  return (data ?? []) as {
-    date: string
-    exercise_name: string
-    weight_lb: number | null
-    weight_unit: 'lb' | 'kg'
-    completed: boolean
-  }[]
-}
