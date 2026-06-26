@@ -184,7 +184,7 @@ export default function MyPage() {
       </Section>
 
       {/* 체중 그래프 */}
-      <WeightChart data={weightData} mode="all" />
+      <WeightChart data={weightData} />
 
       <button
         onClick={() => { logout(); router.push('/login') }}
