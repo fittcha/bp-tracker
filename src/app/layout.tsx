@@ -3,13 +3,13 @@ import "./globals.css";
 import ClientLayout from "@/components/ClientLayout";
 
 export const metadata: Metadata = {
-  title: "BP Tracker",
-  description: "바디프로필 준비 트래커",
+  title: "ROAD TO FITTER",
+  description: "운동 기록 트래커",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "BP Tracker",
+    title: "ROAD TO FITTER",
   },
 };
 

@@ -1,7 +1,7 @@
 {
-  "name": "BP Tracker",
-  "short_name": "BP Tracker",
-  "description": "바디프로필 준비 트래커",
+  "name": "ROAD TO FITTER",
+  "short_name": "ROAD TO FITTER",
+  "description": "운동 트래커",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#2A2A2A",
