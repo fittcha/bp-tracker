@@ -42,6 +42,18 @@ export default function WorkoutPage() {
     return () => window.removeEventListener('calc-close', handler)
   }, [setCalcOpen])
 
+  // 홈 캘린더 등에서 ?date=YYYY-MM-DD로 들어오면 해당 날짜로 시작 (없거나 형식 불량이면 오늘)
+  useEffect(() => {
+    const param = new URLSearchParams(window.location.search).get('date')
+    if (param && /^\d{4}-\d{2}-\d{2}$/.test(param)) {
+      const [y, m, d] = param.split('-').map(Number)
+      const parsed = new Date(y, m - 1, d)
+      // 마운트 시 URL 파라미터로 초기 날짜 1회 설정(의도된 동작).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (!isNaN(parsed.getTime())) setDate(parsed)
+    }
+  }, [])
+
   // ── 7일 날짜 스트립: date가 속한 주의 월요일부터 7칸 ──
   function getMondayOfWeek(d: Date) {
     const result = new Date(d)
@@ -249,7 +261,7 @@ export default function WorkoutPage() {
             <>
               {/* 오늘의 공용 운동 */}
               {groups.filter((g) => g.isShared).length > 0 && (
-                <h2 className="text-sm font-semibold text-accent mt-2 mb-1">오늘의 공용 운동</h2>
+                <h2 className="text-sm font-semibold text-accent mt-2 mb-1">추가 운동</h2>
               )}
               {groups.filter((g) => g.isShared).map((g) => (
                 <WorkoutCard

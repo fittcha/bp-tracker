@@ -112,7 +112,7 @@ export default function DailyPage() {
         // Read existing row first to preserve archived season1 columns
         const existing = await getDailyLog(updated.date, userId)
         const toSave: DailyLog = existing
-          ? { ...existing, weight_kg: updated.weight_kg, memo: updated.memo }
+          ? { ...existing, weight_kg: updated.weight_kg }
           : { ...updated, user_id: userId }
         await upsertDailyLog({ ...toSave, user_id: userId })
         const saved = await getDailyLog(updated.date, userId)
@@ -132,18 +132,10 @@ export default function DailyPage() {
     })
   }
 
-  function updateMemo(value: string | null) {
-    setLog(prev => {
-      const updated = { ...prev, memo: value }
-      autoSave(updated)
-      return updated
-    })
-  }
-
   if (loading) {
     return (
       <div className="space-y-4">
-        {[1, 2, 3, 4].map(i => (
+        {[1, 2, 3].map(i => (
           <div key={i} className="bg-surface border border-border rounded-xl p-4 animate-pulse">
             <div className="h-4 bg-border rounded w-1/2 mb-2" />
             <div className="h-8 bg-border rounded" />
@@ -176,7 +168,10 @@ export default function DailyPage() {
         {saving && <span className="text-xs text-text-secondary">저장 중...</span>}
       </div>
 
-      {/* 1. 체중 입력 */}
+      {/* 1. 1RM */}
+      <OneRMSection userId={userId} />
+
+      {/* 2. 체중 입력 */}
       <Section title="체중">
         <div className="flex items-center gap-2">
           <input
@@ -192,23 +187,8 @@ export default function DailyPage() {
         </div>
       </Section>
 
-      {/* 2. 체중 그래프 */}
+      {/* 3. 체중 그래프 */}
       <WeightChart data={weightData} mode="all" />
-
-      {/* 3. 1RM */}
-      <OneRMSection userId={userId} />
-
-      {/* 4. 메모 */}
-      <Section title="메모">
-        <textarea
-          placeholder="자유 메모"
-          value={log.memo ?? ''}
-          onChange={(e) => updateMemo(e.target.value || null)}
-          rows={3}
-          className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background resize-none"
-          style={{ fieldSizing: 'content' } as React.CSSProperties}
-        />
-      </Section>
 
       <button
         onClick={() => { logout(); router.push('/login') }}

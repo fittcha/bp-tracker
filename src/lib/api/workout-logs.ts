@@ -198,3 +198,21 @@ export async function addWorkoutToDate(
   if (rows.length === 0) return []
   return batchInsertWorkoutLogs(rows)
 }
+
+// 캘린더용: 기간 내 '완료 동작이 1개 이상' 있는 날짜 목록(중복 제거).
+export async function getCompletedDatesInRange(
+  userId: string,
+  startDate: string,
+  endDate: string,
+): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('workout_logs')
+    .select('date')
+    .eq('user_id', userId)
+    .eq('completed', true)
+    .gte('date', startDate)
+    .lte('date', endDate)
+  if (error) throw error
+  const dates = (data ?? []).map((r: { date: string }) => r.date)
+  return [...new Set(dates)]
+}
