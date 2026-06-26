@@ -46,7 +46,7 @@ export default function Home() {
   }, [])
 
   return (
-    <div className="flex flex-col gap-4 max-w-lg mx-auto px-4 py-6">
+    <div className="flex flex-col gap-4 max-w-lg mx-auto px-4 pt-4 pb-6">
       {/* 운동 캘린더 */}
       <WorkoutCalendar />
 
