@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { toDateString } from '@/lib/utils'
 import { getLoggedInUser } from '@/lib/auth'
 import { getDefaultWorkoutsForWeekday } from '@/lib/api/workouts'
@@ -32,6 +33,7 @@ export default function WorkoutPage() {
   const [gifModalExercise, setGifModalExercise] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
+  const dateInputRef = useRef<HTMLInputElement>(null)
 
   const [calcOpen, _setCalcOpen] = useState(false)
   const setCalcOpen = useCallback((open: boolean) => {
@@ -65,14 +67,6 @@ export default function WorkoutPage() {
     result.setDate(result.getDate() + offset)
     result.setHours(0, 0, 0, 0)
     return result
-  }
-
-  function shiftDays(delta: number) {
-    setDate((prev) => {
-      const d = new Date(prev)
-      d.setDate(d.getDate() + delta)
-      return d
-    })
   }
 
   function shiftWeek(delta: number) {
@@ -192,16 +186,14 @@ export default function WorkoutPage() {
 
   return (
     <div className="space-y-4">
-      {/* 날짜 네비 */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => shiftDays(-1)}
-            className="w-8 h-8 flex items-center justify-center rounded-lg border border-border bg-surface text-text-secondary"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6" /></svg>
+      {/* 날짜: 월 라벨(탭→픽커) + 7일 스트립 (ddodun 스타일, 파란 accent) */}
+      <div>
+        <div className="flex items-center justify-center mb-3 relative">
+          <button onClick={() => dateInputRef.current?.showPicker()} className="text-sm font-bold">
+            {date.getFullYear() !== new Date().getFullYear() ? `${date.getFullYear()}년 ` : ''}{date.getMonth() + 1}월
           </button>
           <input
+            ref={dateInputRef}
             type="date"
             value={selectedDs}
             onChange={(e) => {
@@ -210,57 +202,51 @@ export default function WorkoutPage() {
                 setDate(new Date(y, m - 1, dd))
               }
             }}
-            className="border border-border rounded-lg px-3 py-1.5 text-sm bg-surface text-foreground"
+            className="absolute inset-0 opacity-0 w-0 h-0"
+            tabIndex={-1}
           />
-          <button
-            onClick={() => shiftDays(1)}
-            className="w-8 h-8 flex items-center justify-center rounded-lg border border-border bg-surface text-text-secondary"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
+        </div>
+
+        <div className="flex items-center gap-1 px-[5%]">
+          <button onClick={() => shiftWeek(-1)} className="p-1 text-text-secondary" aria-label="이전 주">
+            <ChevronLeft size={16} />
+          </button>
+          <div className="flex-1 grid grid-cols-7 gap-0.5">
+            {weekDates.map((wd, i) => {
+              const isSelected = wd.ds === selectedDs
+              const isToday = wd.ds === todayDs
+              return (
+                <button
+                  key={wd.dayNum}
+                  onClick={() => setDate(wd.date)}
+                  className={`flex flex-col items-center py-1 rounded-md transition-colors ${
+                    isSelected
+                      ? 'bg-accent text-white'
+                      : isToday
+                        ? 'bg-accent/10'
+                        : wd.isWorkoutDay
+                          ? 'border border-border'
+                          : ''
+                  }`}
+                >
+                  <span className={`text-[10px] ${
+                    isSelected ? 'text-white/70' : i === 5 ? 'text-accent' : i === 6 ? 'text-danger' : 'text-text-secondary'
+                  }`}>
+                    {wd.label}
+                  </span>
+                  <span className={`text-sm font-bold ${
+                    isSelected ? 'text-white' : isToday ? 'text-accent' : ''
+                  }`}>
+                    {wd.dayOfMonth}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+          <button onClick={() => shiftWeek(1)} className="p-1 text-text-secondary" aria-label="다음 주">
+            <ChevronRight size={16} />
           </button>
         </div>
-      </div>
-
-      {/* 주 이동 + 7일 선택기 */}
-      <div className="flex items-center gap-1">
-        <button
-          onClick={() => shiftWeek(-1)}
-          className="w-8 h-8 flex items-center justify-center rounded-lg border border-border bg-surface text-text-secondary"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6" /></svg>
-        </button>
-        <div className="flex-1 grid grid-cols-7 gap-1">
-          {weekDates.map((wd) => {
-            const isSelected = wd.ds === selectedDs
-            const isToday = wd.ds === todayDs
-            // 토(dayNum 6)=파랑, 일(dayNum 7)=빨강 (선택 시에는 흰색 유지)
-            const weekendText = isSelected ? '' : wd.dayNum === 6 ? 'text-accent' : wd.dayNum === 7 ? 'text-danger' : ''
-            return (
-              <button
-                key={wd.dayNum}
-                onClick={() => setDate(wd.date)}
-                className={`flex flex-col items-center py-1.5 rounded-lg text-xs transition-colors ${
-                  isSelected
-                    ? 'bg-accent text-white'
-                    : isToday
-                      ? 'bg-accent-light text-accent'
-                      : wd.isWorkoutDay
-                        ? 'bg-surface border border-border/50 text-foreground'
-                        : 'bg-background text-text-secondary'
-                }`}
-              >
-                <span className={`font-medium ${weekendText}`}>{wd.label}</span>
-                <span className={`text-lg font-bold mt-0.5 ${weekendText}`}>{wd.dayOfMonth}</span>
-              </button>
-            )
-          })}
-        </div>
-        <button
-          onClick={() => shiftWeek(1)}
-          className="w-8 h-8 flex items-center justify-center rounded-lg border border-border bg-surface text-text-secondary"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
-        </button>
       </div>
 
       {/* 검색 */}
