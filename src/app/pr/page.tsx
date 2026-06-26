@@ -213,13 +213,13 @@ export default function PRPage() {
               <div
                 key={ex.name}
                 className={`relative rounded-lg border py-2 px-1 flex flex-col items-center gap-0.5 ${
-                  hasValue ? 'border-accent-pop/50 bg-accent-pop/5' : 'border-border bg-background'
+                  hasValue ? 'border-accent/50 bg-accent/5' : 'border-border bg-background'
                 }`}
               >
-                <div className={hasValue ? 'text-accent-pop' : 'text-foreground/65'}>
+                <div className={hasValue ? 'text-accent' : 'text-foreground/65'}>
                   <Icon size={22} />
                 </div>
-                <span className={`text-[9px] leading-tight text-center ${hasValue ? 'text-accent-pop font-medium' : 'text-text-secondary'}`}>{ex.label}</span>
+                <span className={`text-[9px] leading-tight text-center ${hasValue ? 'text-accent font-medium' : 'text-text-secondary'}`}>{ex.label}</span>
                 <div className="flex items-baseline justify-center">
                   <input
                     type="text"

@@ -223,7 +223,7 @@ export default function WorkoutPage() {
                     isSelected
                       ? 'bg-accent text-white'
                       : isToday
-                        ? 'bg-accent-pop/10'
+                        ? 'bg-accent/10'
                         : wd.isWorkoutDay
                           ? 'border border-border'
                           : ''
@@ -235,7 +235,7 @@ export default function WorkoutPage() {
                     {wd.label}
                   </span>
                   <span className={`text-sm font-bold ${
-                    isSelected ? 'text-white' : isToday ? 'text-accent-pop' : ''
+                    isSelected ? 'text-white' : isToday ? 'text-accent' : ''
                   }`}>
                     {wd.dayOfMonth}
                   </span>
