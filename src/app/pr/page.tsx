@@ -13,19 +13,20 @@ import PaceAddModal from '@/components/pr/PaceAddModal'
 import WodTab from '@/components/pr/WodTab'
 import { getLoggedInUser } from '@/lib/auth'
 
+// name = DB exercise_name 키(roadtofitter 기존 1RM 데이터가 한글이라 한글로 매칭), label = 표시·아이콘용
 const DEFAULT_1RM = [
-  { name: 'Back Squat', label: '백스쿼트' },
-  { name: 'Front Squat', label: '프론트스쿼트' },
-  { name: 'Deadlift', label: '데드리프트' },
-  { name: 'Bench Press', label: '벤치프레스' },
-  { name: 'Shoulder Press', label: '숄더프레스' },
-  { name: 'Push Press', label: '푸시프레스' },
-  { name: 'Clean', label: '클린' },
-  { name: 'Power Clean', label: '파워클린' },
-  { name: 'Clean & Jerk', label: '클린앤저크' },
-  { name: 'Push Jerk', label: '푸시저크' },
-  { name: 'Snatch', label: '스내치' },
-  { name: 'Power Snatch', label: '파워스내치' },
+  { name: '백스쿼트', label: '백스쿼트' },
+  { name: '프론트스쿼트', label: '프론트스쿼트' },
+  { name: '데드리프트', label: '데드리프트' },
+  { name: '벤치프레스', label: '벤치프레스' },
+  { name: '숄더프레스', label: '숄더프레스' },
+  { name: '푸시프레스', label: '푸시프레스' },
+  { name: '클린', label: '클린' },
+  { name: '파워클린', label: '파워클린' },
+  { name: '클린앤저크', label: '클린앤저크' },
+  { name: '푸시저크', label: '푸시저크' },
+  { name: '스내치', label: '스내치' },
+  { name: '파워스내치', label: '파워스내치' },
 ]
 
 function formatTime(seconds: number): string {
