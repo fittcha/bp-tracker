@@ -315,7 +315,7 @@ export default function PRPage() {
 
         {Object.keys(paceGroups).length === 0 ? (
           <div className="bg-surface rounded-lg border border-border p-6 text-center text-text-secondary text-sm">
-            아직 등록된 PACE이 없습니다
+            아직 등록된 PACE가 없습니다
           </div>
         ) : (
           <div className="space-y-3">

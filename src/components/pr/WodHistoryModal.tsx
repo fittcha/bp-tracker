@@ -122,7 +122,7 @@ export default function WodHistoryModal({ isOpen, onClose, onAdd, onDelete, wodN
                     </div>
                     <button
                       onClick={() => onDelete(record.id)}
-                      className="p-1.5 text-text-secondary hover:text-red-500 shrink-0"
+                      className="p-1.5 text-text-secondary hover:text-danger shrink-0"
                       aria-label="삭제"
                     >
                       <Trash2 size={16} />
