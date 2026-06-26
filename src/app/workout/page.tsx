@@ -276,9 +276,9 @@ export default function WorkoutPage() {
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
               )}
             </button>
-            <span className="text-sm font-bold text-foreground">저강도 유산소</span>
+            <span className="text-xs font-medium text-foreground">저강도 유산소</span>
           </div>
-          {c.memo && <div className="px-4 py-3 text-sm text-foreground whitespace-pre-line">{c.memo}</div>}
+          {c.memo && <div className="px-4 py-3 text-xs text-foreground whitespace-pre-line">{c.memo}</div>}
         </div>
       ))}
 
