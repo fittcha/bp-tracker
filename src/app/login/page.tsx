@@ -96,7 +96,7 @@ export default function LoginPage() {
   if (step === 'username') {
     return (
       <div className="flex flex-col items-center justify-center min-h-dvh bg-background px-4 pb-[10vh]">
-        <h1 className="text-2xl font-bold text-foreground mb-8">Road to Fitter</h1>
+        <h1 className="text-2xl font-bold text-foreground mb-8">Road to Rx&apos;d</h1>
 
         <div className="w-full max-w-[320px] space-y-4">
           <input
@@ -151,7 +151,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-dvh bg-background px-4 pb-[10vh]">
-      <h1 className="text-2xl font-bold text-foreground mb-2">Road to Fitter</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-2">Road to Rx&apos;d</h1>
       <PinInput
         key={step}
         title={pinTitle}

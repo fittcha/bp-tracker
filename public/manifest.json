@@ -1,7 +1,7 @@
 {
-  "name": "R2F",
-  "short_name": "R2F",
-  "description": "ROAD TO FITTER 운동 트래커",
+  "name": "R2R",
+  "short_name": "R2R",
+  "description": "Road to Rx'd 운동 트래커",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#2A2A2A",
