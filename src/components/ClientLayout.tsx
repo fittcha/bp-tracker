@@ -5,8 +5,6 @@ import { usePathname } from 'next/navigation'
 import Header from '@/components/Header'
 import BottomNav from '@/components/BottomNav'
 import AuthGuard from '@/components/auth/AuthGuard'
-import AnnouncementPopup from '@/components/AnnouncementPopup'
-import FinalWeekCheerPopup from '@/components/FinalWeekCheerPopup'
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -26,8 +24,6 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         {children}
       </main>
       {!isLogin && <BottomNav />}
-      {!isLogin && <AnnouncementPopup />}
-      {!isLogin && <FinalWeekCheerPopup />}
       {overlayVisible && (
         <div
           className="fixed inset-0 bg-black/40 z-[55]"
