@@ -193,10 +193,10 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
           {someDone && !allDone && <div className="w-2 h-0.5 bg-success rounded" />}
         </button>
         {title ? (
-          <span className="text-sm font-bold text-foreground truncate">{title}</span>
+          <span className="text-sm font-medium text-foreground truncate">{title}</span>
         ) : singleSection ? (
           <div className="flex items-baseline gap-2 min-w-0">
-            {singleSection.section !== '?' && <span className="text-sm font-bold text-accent shrink-0">{singleSection.section}</span>}
+            {singleSection.section !== '?' && <span className="text-sm font-medium text-accent shrink-0">{singleSection.section}</span>}
             {headerLabel && <span className="text-xs text-text-secondary font-medium truncate">{headerLabel}</span>}
           </div>
         ) : null}
@@ -313,7 +313,7 @@ function SectionGroup({
       {/* 섹션 라벨 줄 (헤더에 이미 표시된 경우 생략) */}
       {!inHeader && (isGroup || section !== '?') && (
         <div className="px-4 py-1.5 bg-background/40 border-b border-border flex items-center gap-2">
-          {section !== '?' && <span className="text-xs font-bold text-accent">{section}</span>}
+          {section !== '?' && <span className="text-xs font-medium text-accent">{section}</span>}
           {groupLabel && <span className="text-xs text-text-secondary font-medium">{groupLabel}</span>}
           {!isGroup && first?.custom_sets && (
             <span className="text-xs text-text-secondary font-medium">{first.custom_sets} Sets</span>
