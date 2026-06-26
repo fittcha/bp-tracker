@@ -216,3 +216,20 @@ export async function getCompletedDatesInRange(
   const dates = (data ?? []).map((r: { date: string }) => r.date)
   return [...new Set(dates)]
 }
+
+// 캘린더용: 기간 내 운동 로그가 '있는' 모든 날짜(완료 무관, 중복 제거).
+export async function getWorkoutDatesInRange(
+  userId: string,
+  startDate: string,
+  endDate: string,
+): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('workout_logs')
+    .select('date')
+    .eq('user_id', userId)
+    .gte('date', startDate)
+    .lte('date', endDate)
+  if (error) throw error
+  const dates = (data ?? []).map((r: { date: string }) => r.date)
+  return [...new Set(dates)]
+}

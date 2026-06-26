@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getLoggedInUser } from '@/lib/auth'
-import { getCompletedDatesInRange } from '@/lib/api/workout-logs'
+import { getCompletedDatesInRange, getWorkoutDatesInRange } from '@/lib/api/workout-logs'
 import { toDateString } from '@/lib/utils'
 
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
@@ -26,6 +26,7 @@ export default function WorkoutCalendar() {
     return d
   })
   const [completed, setCompleted] = useState<Set<string>>(new Set())
+  const [worked, setWorked] = useState<Set<string>>(new Set())
 
   const year = monthStart.getFullYear()
   const month = monthStart.getMonth() // 0-based
@@ -44,12 +45,21 @@ export default function WorkoutCalendar() {
     const ge = new Date(gs)
     ge.setDate(gs.getDate() + 41)
     let cancelled = false
-    getCompletedDatesInRange(user.id, toDateString(gs), toDateString(ge))
-      .then((dates) => {
-        if (!cancelled) setCompleted(new Set(dates))
+    Promise.all([
+      getCompletedDatesInRange(user.id, toDateString(gs), toDateString(ge)),
+      getWorkoutDatesInRange(user.id, toDateString(gs), toDateString(ge)),
+    ])
+      .then(([completedDates, workedDates]) => {
+        if (!cancelled) {
+          setCompleted(new Set(completedDates))
+          setWorked(new Set(workedDates))
+        }
       })
       .catch(() => {
-        if (!cancelled) setCompleted(new Set())
+        if (!cancelled) {
+          setCompleted(new Set())
+          setWorked(new Set())
+        }
       })
     return () => {
       cancelled = true
@@ -95,22 +105,21 @@ export default function WorkoutCalendar() {
           const inMonth = d.getMonth() === month
           const isToday = ds === todayDs
           const isCompleted = completed.has(ds)
-          const circleClass = isCompleted
-            ? 'bg-accent text-white font-semibold'
-            : isToday
-              ? 'ring-1 ring-accent text-accent font-semibold'
-              : inMonth
-                ? 'text-foreground'
-                : 'text-text-secondary/30'
+          const hasWorkout = worked.has(ds)
+          const dotClass = isCompleted ? 'bg-accent' : hasWorkout ? 'bg-text-secondary/40' : 'bg-transparent'
+          const numClass = isToday
+            ? 'bg-accent text-white'
+            : inMonth ? 'text-foreground' : 'text-text-secondary/30'
           return (
             <button
               key={ds}
               onClick={() => router.push(`/workout?date=${ds}`)}
-              className="flex items-center justify-center h-10"
+              className="flex flex-col items-center justify-start gap-0.5 h-11 pt-1"
             >
-              <span className={`flex items-center justify-center w-8 h-8 rounded-full text-sm transition-colors ${circleClass}`}>
+              <span className={`flex items-center justify-center w-7 h-7 rounded-full text-sm ${numClass}`}>
                 {d.getDate()}
               </span>
+              <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
             </button>
           )
         })}
