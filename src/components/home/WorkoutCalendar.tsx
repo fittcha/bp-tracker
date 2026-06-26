@@ -31,7 +31,11 @@ export default function WorkoutCalendar() {
   const year = monthStart.getFullYear()
   const month = monthStart.getMonth() // 0-based
   const gridStart = gridStartOf(monthStart)
-  const cells = Array.from({ length: 42 }, (_, i) => {
+  // 그 달에 필요한 주 수만큼만(일요일 시작) — 다음 달만 있는 줄 제거
+  const leadingDays = monthStart.getDay() // 0=일..6=토
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const cellCount = Math.ceil((leadingDays + daysInMonth) / 7) * 7
+  const cells = Array.from({ length: cellCount }, (_, i) => {
     const d = new Date(gridStart)
     d.setDate(gridStart.getDate() + i)
     return d
