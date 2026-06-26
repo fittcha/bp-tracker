@@ -7,7 +7,6 @@ const tabs = [
   { href: '/', label: '홈', icon: HomeIcon },
   { href: '/workout', label: '운동', icon: WorkoutIcon },
   { href: '/daily', label: '기록', icon: DailyIcon },
-  { href: '/summary', label: '요약', icon: SummaryIcon },
 ]
 
 export default function BottomNav() {
@@ -70,16 +69,6 @@ function DailyIcon({ active }: { active: boolean }) {
       <line x1="16" y1="13" x2="8" y2="13" />
       <line x1="16" y1="17" x2="8" y2="17" />
       <polyline points="10 9 9 9 8 9" />
-    </svg>
-  )
-}
-
-function SummaryIcon({ active }: { active: boolean }) {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="20" x2="18" y2="10" />
-      <line x1="12" y1="20" x2="12" y2="4" />
-      <line x1="6" y1="20" x2="6" y2="14" />
     </svg>
   )
 }
