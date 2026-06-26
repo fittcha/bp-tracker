@@ -9,6 +9,7 @@ import WorkoutCard from '@/components/workout/WorkoutCard'
 import Calculator from '@/components/workout/Calculator'
 import ExerciseGifModal from '@/components/workout/ExerciseGifModal'
 import ExerciseSearchModal from '@/components/workout/ExerciseSearchModal'
+import AddWorkoutPopup from '@/components/workout/AddWorkoutPopup'
 
 const DAY_LABELS = ['월', '화', '수', '목', '금', '토', '일']
 
@@ -27,6 +28,7 @@ export default function WorkoutPage() {
   const [loading, setLoading] = useState(true)
   const [gifModalExercise, setGifModalExercise] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [addOpen, setAddOpen] = useState(false)
 
   const [calcOpen, _setCalcOpen] = useState(false)
   const setCalcOpen = useCallback((open: boolean) => {
@@ -292,6 +294,24 @@ export default function WorkoutPage() {
             </>
           )}
         </>
+      )}
+
+      {/* 운동 추가 버튼 */}
+      {!loading && (
+        <button
+          onClick={() => setAddOpen(true)}
+          className="w-full rounded-xl border border-border py-3 text-sm text-accent"
+        >
+          + 운동 추가
+        </button>
+      )}
+      {addOpen && (
+        <AddWorkoutPopup
+          userId={userId}
+          date={toDateString(date)}
+          onAdded={() => { setAddOpen(false); loadData(date) }}
+          onClose={() => setAddOpen(false)}
+        />
       )}
 
       {/* 계산기 패널 */}
