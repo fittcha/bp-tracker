@@ -1,24 +1,17 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { toDateString, calcSleepHours } from '@/lib/utils'
+import { toDateString } from '@/lib/utils'
 import { getDailyLog, upsertDailyLog, DailyLog } from '@/lib/api/daily-logs'
-import { getWeeks } from '@/lib/api/workout-templates'
 import { getLoggedInUser } from '@/lib/auth'
-import FoodImageUpload from '@/components/daily/FoodImageUpload'
-import MacroDonutChart from '@/components/daily/MacroDonutChart'
-import KakaoShareText from '@/components/daily/KakaoShareText'
-import { getMealSlotNames, upsertMealSlotConfig } from '@/lib/api/meal-slots'
-import { getWeeklyCardioCount } from '@/lib/api/cardio-logs'
+import { supabase } from '@/lib/supabase'
+import WeightChart from '@/components/summary/WeightChart'
+import OneRMSection from '@/components/summary/OneRMSection'
 
-const SUPPLEMENTS = [
-  '비타민B',
-  '비타민D',
-  '비타민C',
-  '오메가3',
-  '마그네슘',
-  '유산균',
-]
+interface DailyLogRow {
+  date: string
+  weight_kg: number | null
+}
 
 const emptyLog = (date: string): DailyLog => ({
   date,
@@ -41,16 +34,6 @@ const emptyLog = (date: string): DailyLog => ({
   meal_checked: null,
 })
 
-function parseSupplements(str: string | null): Set<string> {
-  if (!str) return new Set()
-  return new Set(str.split(',').map(s => s.trim()).filter(Boolean))
-}
-
-function serializeSupplements(set: Set<string>): string | null {
-  if (set.size === 0) return null
-  return Array.from(set).join(', ')
-}
-
 export default function DailyPage() {
   const user = getLoggedInUser()
   const userId = user?.id ?? ''
@@ -58,16 +41,7 @@ export default function DailyPage() {
   const [log, setLog] = useState<DailyLog>(emptyLog(date))
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [sugarToggle, setSugarToggle] = useState(true)
-  const [checkedSupps, setCheckedSupps] = useState<Set<string>>(new Set())
-  const [weekLabel, setWeekLabel] = useState<string | null>(null)
-  const [weekNumber, setWeekNumber] = useState<number | null>(null)
-  const [mealSlotNames, setMealSlotNames] = useState<string[]>([])
-  const [mealCheckedSet, setMealCheckedSet] = useState<Set<string>>(new Set())
-  const [weeklyCardioCount, setWeeklyCardioCount] = useState(0)
-  const [showMealInput, setShowMealInput] = useState(false)
-  const [newMealName, setNewMealName] = useState('')
-  const [mealEditMode, setMealEditMode] = useState(false)
+  const [weightData, setWeightData] = useState<{ date: string; weight: number | null }[]>([])
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
   const isLoadedRef = useRef(false)
 
@@ -79,12 +53,8 @@ export default function DailyPage() {
         const existing = await getDailyLog(date, userId)
         if (existing) {
           setLog(existing)
-          setSugarToggle(existing.sugar_processed === 'X')
-          setCheckedSupps(parseSupplements(existing.supplements))
         } else {
           setLog(emptyLog(date))
-          setSugarToggle(true)
-          setCheckedSupps(new Set())
         }
       } catch (err) {
         console.error('Load failed:', err)
@@ -93,63 +63,43 @@ export default function DailyPage() {
       setLoading(false)
       isLoadedRef.current = true
     }
-    async function loadWeek() {
-      const weeks = await getWeeks()
-      if (!weeks) return
-      const week = weeks.find((w: { start_date: string; end_date: string }) => date >= w.start_date && date <= w.end_date)
-      setWeekLabel(week ? `${week.week_number}주차 · ${week.phase}` : null)
-      const wn = week?.week_number ?? null
-      setWeekNumber(wn)
-      if (wn !== null && wn >= 5) {
-        // Calculate week range (Mon-Sun) for cardio count
-        const d = new Date(date + 'T00:00:00')
-        const dayOfWeek = d.getDay() // 0=Sun, 1=Mon...
-        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
-        const monday = new Date(d)
-        monday.setDate(d.getDate() + mondayOffset)
-        const sunday = new Date(monday)
-        sunday.setDate(monday.getDate() + 6)
-        const startDate = toDateString(monday)
-        const endDate = toDateString(sunday)
-
-        const [slotNames, fetchedLog, cardioCount] = await Promise.all([
-          getMealSlotNames(date, userId),
-          getDailyLog(date, userId),
-          getWeeklyCardioCount(startDate, endDate, userId),
-        ])
-        setMealSlotNames(slotNames)
-        const checked = (fetchedLog?.meal_checked as string[]) ?? []
-        setMealCheckedSet(new Set(checked))
-        setWeeklyCardioCount(cardioCount)
-      } else {
-        setMealSlotNames([])
-        setMealCheckedSet(new Set())
-        setWeeklyCardioCount(0)
-      }
-    }
     load()
-    loadWeek()
   }, [date, userId])
 
-  // Refresh cardio count when tab becomes visible (e.g. after checking in workout tab)
+  // Load all weight logs for chart (mode="all", no program date bounds)
   useEffect(() => {
-    function handleVisibility() {
-      if (document.visibilityState !== 'visible') return
-      if (weekNumber === null || weekNumber < 5) return
-      const d = new Date(date + 'T00:00:00')
-      const dayOfWeek = d.getDay()
-      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
-      const monday = new Date(d)
-      monday.setDate(d.getDate() + mondayOffset)
-      const sunday = new Date(monday)
-      sunday.setDate(monday.getDate() + 6)
-      const startDate = toDateString(monday)
-      const endDate = toDateString(sunday)
-      getWeeklyCardioCount(startDate, endDate, userId).then(setWeeklyCardioCount)
+    async function loadWeightData() {
+      if (!userId) return
+      try {
+        const { data } = await supabase
+          .from('daily_logs')
+          .select('date, weight_kg')
+          .eq('user_id', userId)
+          .order('date', { ascending: true })
+
+        const rows: DailyLogRow[] = data || []
+        const weighedLogs = rows.filter(l => l.weight_kg != null)
+        if (!weighedLogs.length) {
+          setWeightData([])
+          return
+        }
+        const logMap = new Map(weighedLogs.map(l => [l.date, l.weight_kg!]))
+        const start = new Date(weighedLogs[0].date)
+        // x-axis end: last weight date + 2 days (label padding)
+        const end = new Date(weighedLogs[weighedLogs.length - 1].date)
+        end.setDate(end.getDate() + 2)
+        const days: { date: string; weight: number | null }[] = []
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+          const dateStr = d.toISOString().slice(0, 10)
+          days.push({ date: dateStr, weight: logMap.get(dateStr) ?? null })
+        }
+        setWeightData(days)
+      } catch (err) {
+        console.error('Failed to load weight data:', err)
+      }
     }
-    document.addEventListener('visibilitychange', handleVisibility)
-    return () => document.removeEventListener('visibilitychange', handleVisibility)
-  }, [date, userId, weekNumber])
+    loadWeightData()
+  }, [userId])
 
   const autoSave = useCallback((updated: DailyLog) => {
     if (!isLoadedRef.current) return
@@ -157,7 +107,12 @@ export default function DailyPage() {
     debounceRef.current = setTimeout(async () => {
       setSaving(true)
       try {
-        await upsertDailyLog({ ...updated, user_id: userId })
+        // Read existing row first to preserve archived season1 columns
+        const existing = await getDailyLog(updated.date, userId)
+        const toSave: DailyLog = existing
+          ? { ...existing, weight_kg: updated.weight_kg, memo: updated.memo }
+          : { ...updated, user_id: userId }
+        await upsertDailyLog({ ...toSave, user_id: userId })
         const saved = await getDailyLog(updated.date, userId)
         if (saved) setLog(saved)
       } catch (err) {
@@ -167,86 +122,26 @@ export default function DailyPage() {
     }, 800)
   }, [userId])
 
-  function updateField<K extends keyof DailyLog>(field: K, value: DailyLog[K]) {
+  function updateWeight(value: number | null) {
     setLog(prev => {
-      const updated = { ...prev, [field]: value }
-      if ((field === 'sleep_time' || field === 'wake_time') && updated.sleep_time && updated.wake_time) {
-        updated.sleep_hours = calcSleepHours(updated.sleep_time, updated.wake_time)
-      }
+      const updated = { ...prev, weight_kg: value }
       autoSave(updated)
       return updated
     })
   }
 
-  function toggleSupplement(name: string) {
-    setCheckedSupps(prev => {
-      const next = new Set(prev)
-      if (next.has(name)) next.delete(name)
-      else next.add(name)
-      setLog(l => {
-        const updated = { ...l, supplements: serializeSupplements(next) }
-        autoSave(updated)
-        return updated
-      })
-      return next
-    })
-  }
-
-  function handleOcrResult(result: { totalCalories: number | null; carbs: number | null; protein: number | null; fat: number | null }) {
+  function updateMemo(value: string | null) {
     setLog(prev => {
-      const updated = {
-        ...prev,
-        total_calories: result.totalCalories ?? prev.total_calories,
-        carbs_g: result.carbs ?? prev.carbs_g,
-        protein_g: result.protein ?? prev.protein_g,
-        fat_g: result.fat ?? prev.fat_g,
-      }
+      const updated = { ...prev, memo: value }
       autoSave(updated)
       return updated
-    })
-  }
-
-  async function handleAddMealSlot() {
-    const name = newMealName.trim()
-    if (!name) return
-    if (mealSlotNames.includes(name)) return
-    const newNames = [...mealSlotNames, name]
-    await upsertMealSlotConfig(userId, date, newNames)
-    setMealSlotNames(newNames)
-    setNewMealName('')
-    setShowMealInput(false)
-  }
-
-  function toggleMealSlot(name: string) {
-    setMealCheckedSet(prev => {
-      const next = new Set(prev)
-      if (next.has(name)) next.delete(name)
-      else next.add(name)
-      const checkedArr = Array.from(next)
-      setLog(l => {
-        const updated = { ...l, meal_completed: checkedArr.length, meal_total: mealSlotNames.length, meal_checked: checkedArr }
-        autoSave(updated)
-        return updated
-      })
-      return next
-    })
-  }
-
-  async function handleRemoveMealSlot(name: string) {
-    const newNames = mealSlotNames.filter(n => n !== name)
-    await upsertMealSlotConfig(userId, date, newNames)
-    setMealSlotNames(newNames)
-    setMealCheckedSet(prev => {
-      const next = new Set(prev)
-      next.delete(name)
-      return next
     })
   }
 
   if (loading) {
     return (
       <div className="space-y-4">
-        {[1, 2, 3].map(i => (
+        {[1, 2, 3, 4].map(i => (
           <div key={i} className="bg-surface border border-border rounded-xl p-4 animate-pulse">
             <div className="h-4 bg-border rounded w-1/2 mb-2" />
             <div className="h-8 bg-border rounded" />
@@ -258,7 +153,7 @@ export default function DailyPage() {
 
   return (
     <div className="space-y-4 pb-4">
-      {/* Date picker + week info */}
+      {/* Date picker */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1">
           <button
@@ -276,12 +171,10 @@ export default function DailyPage() {
             className="w-8 h-8 flex items-center justify-center rounded-lg border border-border bg-surface text-text-secondary"
           ><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg></button>
         </div>
-        {weekLabel && (
-          <span className="text-sm font-medium text-accent">{weekLabel}</span>
-        )}
+        {saving && <span className="text-xs text-text-secondary">저장 중...</span>}
       </div>
 
-      {/* 체중 */}
+      {/* 1. 체중 입력 */}
       <Section title="체중">
         <div className="flex items-center gap-2">
           <input
@@ -290,403 +183,48 @@ export default function DailyPage() {
             step="0.1"
             placeholder="0.0"
             value={log.weight_kg ?? ''}
-            onChange={(e) => updateField('weight_kg', e.target.value ? parseFloat(e.target.value) : null)}
+            onChange={(e) => updateWeight(e.target.value ? parseFloat(e.target.value) : null)}
             className="w-24 border border-border rounded-lg px-3 py-2 text-sm bg-background"
           />
           <span className="text-sm text-text-secondary">kg</span>
         </div>
       </Section>
 
-      {/* 수면 */}
-      <Section title="수면">
-        <div className="grid grid-cols-2 gap-10">
-          <TimeInput24 label="취침시간" value={log.sleep_time} onChange={(v) => updateField('sleep_time', v)} />
-          <TimeInput24 label="기상시간" value={log.wake_time} onChange={(v) => updateField('wake_time', v)} />
-        </div>
-        {log.sleep_hours != null && log.sleep_hours > 0 && (
-          <p className={`text-sm font-medium mt-2 ${log.sleep_hours >= 7 ? 'text-success' : 'text-danger'}`}>
-            총 수면시간: {formatSleepHours(log.sleep_hours)}
-          </p>
-        )}
-      </Section>
+      {/* 2. 체중 그래프 */}
+      <WeightChart data={weightData} mode="all" />
 
-      {/* 운동 여부 */}
-      <Section title="운동 여부">
-        <div className="flex gap-3">
-          <button
-            onClick={() => updateField('workout_done', true)}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-              log.workout_done ? 'bg-success text-white' : 'bg-background border border-border text-text-secondary'
-            }`}
-          >
-            O
-          </button>
-          <button
-            onClick={() => updateField('workout_done', false)}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-              !log.workout_done ? 'bg-danger text-white' : 'bg-background border border-border text-text-secondary'
-            }`}
-          >
-            X
-          </button>
-        </div>
-      </Section>
+      {/* 3. 1RM */}
+      <OneRMSection userId={userId} />
 
-      {/* 당/가공식품 */}
-      <Section title="당/가공식품 섭취 여부">
-        <div className="flex gap-3 mb-2">
-          <button
-            onClick={() => { setSugarToggle(true); updateField('sugar_processed', 'X') }}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-              sugarToggle ? 'bg-success text-white' : 'bg-background border border-border text-text-secondary'
-            }`}
-          >
-            X (미섭취)
-          </button>
-          <button
-            onClick={() => { setSugarToggle(false); updateField('sugar_processed', '') }}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-              !sugarToggle ? 'bg-danger text-white' : 'bg-background border border-border text-text-secondary'
-            }`}
-          >
-            섭취함
-          </button>
-        </div>
-        {!sugarToggle && (
-          <input
-            placeholder="섭취 항목 입력"
-            value={log.sugar_processed === 'X' ? '' : log.sugar_processed}
-            onChange={(e) => updateField('sugar_processed', e.target.value)}
-            className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background"
-          />
-        )}
-      </Section>
-
-      {/* 식단 횟수 (5주차~) */}
-      {weekNumber !== null && weekNumber >= 5 && (
-        <Section title="식단 횟수" right={
-          <div className="flex items-center gap-2">
-            {mealSlotNames.length > 0 && (
-              <button
-                onClick={() => { setMealEditMode(!mealEditMode); setShowMealInput(false) }}
-                className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${mealEditMode ? 'text-success' : 'text-text-secondary/50'}`}
-              >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                </svg>
-              </button>
-            )}
-            <button onClick={() => { setShowMealInput(!showMealInput); setMealEditMode(false) }} className="text-xs text-accent font-medium">+추가</button>
-          </div>
-        }>
-          {showMealInput && (
-            <div className="flex gap-2 mb-3">
-              <input
-                type="text"
-                placeholder="식사 이름 (예: 아침, 간식)"
-                value={newMealName}
-                onChange={(e) => setNewMealName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleAddMealSlot() }}
-                className="flex-1 border border-border rounded-lg px-3 py-2 text-sm bg-background"
-                autoFocus
-              />
-              <button
-                onClick={handleAddMealSlot}
-                className="px-3 py-2 rounded-lg text-sm font-medium bg-accent text-white"
-              >
-                추가
-              </button>
-            </div>
-          )}
-          {mealSlotNames.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {mealSlotNames.map(name => {
-                const checked = mealCheckedSet.has(name)
-                return (
-                  <div key={name} className="relative">
-                    <button
-                      onClick={() => !mealEditMode && toggleMealSlot(name)}
-                      className={`px-3 h-10 rounded-lg border flex items-center justify-center transition-colors text-sm ${
-                        mealEditMode ? 'border-danger/30 bg-surface text-text-secondary' :
-                        checked ? 'border-blue-500 bg-surface text-blue-500' : 'border-border bg-surface text-text-secondary'
-                      }`}
-                    >
-                      {name}
-                    </button>
-                    {mealEditMode && (
-                      <button
-                        onClick={() => handleRemoveMealSlot(name)}
-                        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-danger text-white flex items-center justify-center text-xs"
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          ) : (
-            <p className="text-xs text-text-secondary">+추가 버튼으로 식사 루틴을 추가하세요</p>
-          )}
-        </Section>
-      )}
-
-      {/* 식단 이미지 + OCR */}
-      <Section title="식단">
-        <FoodImageUpload
-          imageUrl={log.food_image_url}
-          onUploaded={(url) => updateField('food_image_url', url)}
-          onOcrResult={handleOcrResult}
-          userId={userId}
+      {/* 4. 메모 */}
+      <Section title="메모">
+        <textarea
+          placeholder="자유 메모"
+          value={log.memo ?? ''}
+          onChange={(e) => updateMemo(e.target.value || null)}
+          rows={3}
+          className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background resize-none"
+          style={{ fieldSizing: 'content' } as React.CSSProperties}
         />
-        <div className="flex gap-3 mt-3">
-          <div className="w-1/3 space-y-2">
-            <NumberInput label="칼로리" value={log.total_calories} onChange={(v) => updateField('total_calories', v)} unit="kcal" />
-            <NumberInput label="탄수화물" value={log.carbs_g} onChange={(v) => updateField('carbs_g', v)} unit="g" />
-            <NumberInput label="단백질" value={log.protein_g} onChange={(v) => updateField('protein_g', v)} unit="g" />
-            <NumberInput label="지방" value={log.fat_g} onChange={(v) => updateField('fat_g', v)} unit="g" />
-          </div>
-          <div className="w-2/3 flex items-center justify-center">
-            <MacroDonutChart
-              calories={log.total_calories}
-              carbs={log.carbs_g}
-              protein={log.protein_g}
-              fat={log.fat_g}
-            />
-          </div>
-        </div>
       </Section>
-
-      {/* 영양제 체크리스트 */}
-      <Section title="영양제" collapsible defaultOpen={false} badge={`${checkedSupps.size}/${SUPPLEMENTS.length}`}>
-        <div className="grid grid-cols-2 gap-2">
-          {SUPPLEMENTS.map(name => (
-            <button
-              key={name}
-              onClick={() => toggleSupplement(name)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-                checkedSupps.has(name)
-                  ? 'bg-success/10 text-success border border-success/30'
-                  : 'bg-background border border-border text-text-secondary'
-              }`}
-            >
-              <span className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
-                checkedSupps.has(name) ? 'bg-success border-success text-white' : 'border-border'
-              }`}>
-                {checkedSupps.has(name) && (
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                )}
-              </span>
-              {name}
-            </button>
-          ))}
-        </div>
-      </Section>
-
-      {/* 수분 + 메모 */}
-      <Section title="추가" collapsible defaultOpen={false} badge={log.water_liters ? `${(log.water_liters).toFixed(2)}L` : undefined}>
-        <div className="space-y-3">
-          <WaterCups value={log.water_liters} onChange={(v) => updateField('water_liters', v)} />
-          <div>
-            <label className="text-xs text-text-secondary">메모</label>
-            <textarea
-              placeholder="자유 메모"
-              value={log.memo ?? ''}
-              onChange={(e) => updateField('memo', e.target.value || null)}
-              rows={3}
-              className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background mt-1 resize-none"
-            />
-          </div>
-        </div>
-      </Section>
-
-      {/* Kakao share */}
-      {<KakaoShareText log={log} weekNumber={weekNumber} weeklyCardioCount={weeklyCardioCount} />}
     </div>
   )
 }
 
-function Section({ title, right, children, collapsible, defaultOpen = true, badge }: {
-  title: string; right?: React.ReactNode; children: React.ReactNode
-  collapsible?: boolean; defaultOpen?: boolean; badge?: string
+function Section({ title, right, children }: {
+  title: string
+  right?: React.ReactNode
+  children: React.ReactNode
 }) {
-  const [open, setOpen] = useState(defaultOpen)
   return (
     <div className="bg-surface border border-border rounded-xl p-4">
       {title && (
-        <div
-          className={`flex items-center justify-between ${open ? 'mb-3' : ''}`}
-          onClick={collapsible ? () => setOpen(!open) : undefined}
-          style={collapsible ? { cursor: 'pointer' } : undefined}
-        >
-          <div className="flex items-center gap-2">
-            {collapsible && (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                className={`text-text-secondary transition-transform ${open ? 'rotate-90' : ''}`}>
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            )}
-            <p className="text-sm font-medium">{title}</p>
-            {badge && !open && <span className="text-xs text-text-secondary">{badge}</span>}
-          </div>
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-medium">{title}</p>
           {right}
         </div>
       )}
-      {open && children}
-    </div>
-  )
-}
-
-function formatSleepHours(hours: number): string {
-  const h = Math.floor(hours)
-  const m = Math.round((hours - h) * 60)
-  if (m === 0) return `${h}시간`
-  return `${h}시간 ${m}분`
-}
-
-const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
-const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'))
-
-function TimeInput24({
-  label,
-  value,
-  onChange,
-}: {
-  label: string
-  value: string | null
-  onChange: (v: string | null) => void
-}) {
-  const [h, m] = (value ?? '').split(':')
-  const hour = h ?? ''
-  const min = m ?? ''
-
-  function update(newH: string, newM: string) {
-    if (!newH && !newM) { onChange(null); return }
-    onChange(`${newH.padStart(2, '0')}:${newM.padStart(2, '0')}`)
-  }
-
-  return (
-    <div>
-      <label className="text-xs text-text-secondary">{label}</label>
-      <div className="flex items-center justify-center gap-1 mt-1">
-        <select
-          value={hour}
-          onChange={(e) => update(e.target.value, min || '00')}
-          className="flex-1 border border-border rounded-lg px-2 py-2 text-sm bg-background text-center appearance-none [text-align-last:center]"
-        >
-          <option value="">시</option>
-          {HOURS.map(h => <option key={h} value={h}>{h}</option>)}
-        </select>
-        <span className="text-sm font-medium">:</span>
-        <select
-          value={min}
-          onChange={(e) => update(hour || '00', e.target.value)}
-          className="flex-1 border border-border rounded-lg px-2 py-2 text-sm bg-background text-center appearance-none [text-align-last:center]"
-        >
-          <option value="">분</option>
-          {MINUTES.map(m => <option key={m} value={m}>{m}</option>)}
-        </select>
-      </div>
-    </div>
-  )
-}
-
-function WaterCups({
-  value,
-  onChange,
-}: {
-  value: number | null
-  onChange: (v: number | null) => void
-}) {
-  const cups = Math.round((value ?? 0) / 0.25)
-
-  function toggle(index: number) {
-    const clicked = index + 1
-    const newCups = cups === clicked ? clicked - 1 : clicked
-    onChange(newCups > 0 ? newCups * 0.25 : null)
-  }
-
-  return (
-    <div>
-      <label className="text-xs text-text-secondary">수분 섭취량</label>
-      <div className="flex items-center gap-2 mt-2 flex-wrap">
-        {[0, 1, 2, 3, 4, 5, 6, 7].map(i => {
-          const filled = i < cups
-          return (
-            <button key={i} onClick={() => toggle(i)} className="flex flex-col items-center gap-1">
-              <svg width="26" height="32" viewBox="0 0 38 48" fill="none">
-                {/* Shadow */}
-                <ellipse cx="19" cy="46" rx="10" ry="2" fill={filled ? '#BFDBFE' : '#E5E7EB'} opacity="0.5" />
-                {/* Cup body - rounded tumbler */}
-                <path d="M8 10 C8 8, 9 7, 11 7 L27 7 C29 7, 30 8, 30 10 L28 38 C28 41, 26 43, 23 43 L15 43 C12 43, 10 41, 10 38 Z"
-                  fill={filled ? '#DBEAFE' : '#F5F5F5'}
-                  stroke={filled ? '#60A5FA' : '#D1D5DB'}
-                  strokeWidth="1.5"
-                />
-                {/* Water fill with wave */}
-                {filled && (
-                  <>
-                    <path d="M10 20 C13 17, 16 23, 19 20 C22 17, 25 23, 28 20 L27 38 C27 40, 25 42, 23 42 L15 42 C13 42, 11 40, 11 38 Z"
-                      fill="#60A5FA" opacity="0.45"
-                    />
-                    <path d="M10 20 C13 17, 16 23, 19 20 C22 17, 25 23, 28 20 L27 38 C27 40, 25 42, 23 42 L15 42 C13 42, 11 40, 11 38 Z"
-                      fill="#3B82F6" opacity="0.25"
-                    />
-                  </>
-                )}
-                {/* Lid */}
-                <rect x="6" y="4" width="26" height="5" rx="2.5"
-                  fill={filled ? '#93C5FD' : '#E5E7EB'}
-                  stroke={filled ? '#60A5FA' : '#D1D5DB'}
-                  strokeWidth="1.5"
-                />
-                {/* Straw */}
-                <rect x="22" y="0" width="2.5" height="12" rx="1.25"
-                  fill={filled ? '#60A5FA' : '#D1D5DB'}
-                />
-                {/* Shine */}
-                <path d="M13 12 L13 30" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />
-              </svg>
-              <span className="text-[9px] text-text-secondary">250</span>
-            </button>
-          )
-        })}
-        <span className="text-sm font-medium ml-1 text-success">
-          {(cups * 0.25).toFixed(2)}L
-        </span>
-      </div>
-    </div>
-  )
-}
-
-function NumberInput({
-  label,
-  value,
-  onChange,
-  unit,
-}: {
-  label: string
-  value: number | null
-  onChange: (v: number | null) => void
-  unit?: string
-}) {
-  return (
-    <div>
-      <label className="text-xs text-text-secondary">{label}</label>
-      <div className="flex items-center gap-1 mt-1">
-        <input
-          type="number"
-          inputMode="decimal"
-          placeholder="0"
-          value={value ?? ''}
-          onChange={(e) => onChange(e.target.value ? parseFloat(e.target.value) : null)}
-          className="w-full border border-border rounded-lg px-2 py-1.5 text-sm bg-background"
-        />
-        {unit && <span className="text-[10px] text-text-secondary flex-shrink-0">{unit}</span>}
-      </div>
+      {children}
     </div>
   )
 }
