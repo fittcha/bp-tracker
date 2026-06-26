@@ -1,28 +1,17 @@
 'use client'
 
-import { getCurrentWeek, getCurrentPhase, getDday } from '@/lib/utils'
 import { getLoggedInUser } from '@/lib/auth'
+import { toDateString } from '@/lib/utils'
 
 export default function Header() {
-  const week = getCurrentWeek()
-  const phase = getCurrentPhase()
-  const dday = getDday()
   const user = getLoggedInUser()
+  const todayLabel = user?.username ?? toDateString(new Date())
 
   return (
     <header className="sticky top-0 z-50 bg-surface border-b border-border px-4 py-3">
       <div className="flex items-center justify-between max-w-lg mx-auto">
-        <div>
-          <h1 className="text-sm font-bold text-foreground">
-            {week > 0 && week <= 15 ? `${week}주차` : '준비중'} · {phase}
-          </h1>
-          {user && (
-            <p className="text-xs text-text-secondary">user: {user.username}</p>
-          )}
-        </div>
-        <div className="text-sm font-semibold text-accent-pop">
-          D{dday <= 0 ? '+' : '-'}{Math.abs(dday)}
-        </div>
+        <h1 className="text-sm font-bold text-foreground">ROAD TO FITTER</h1>
+        <span className="text-xs text-text-secondary">{todayLabel}</span>
       </div>
     </header>
   )
