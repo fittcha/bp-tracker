@@ -13,6 +13,7 @@ import { addWorkoutToDate } from '@/lib/api/workout-logs'
 export const WORKOUT_CATEGORIES = ['전신', '가슴', '등', '어깨', '팔', '하체', '코어', '유산소']
 
 interface ExerciseRow {
+  id: string
   section: string
   exercise_name: string
   sets: string
@@ -21,7 +22,7 @@ interface ExerciseRow {
 }
 
 function emptyRow(): ExerciseRow {
-  return { section: '', exercise_name: '', sets: '', reps: '', notes: '' }
+  return { id: crypto.randomUUID(), section: '', exercise_name: '', sets: '', reps: '', notes: '' }
 }
 
 interface AddWorkoutPopupProps {
@@ -34,6 +35,8 @@ interface AddWorkoutPopupProps {
 export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddWorkoutPopupProps) {
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
+  const [addError, setAddError] = useState<string | null>(null)
   const [selectedCat, setSelectedCat] = useState<string>('전체')
   const [addingId, setAddingId] = useState<string | null>(null)
 
@@ -48,6 +51,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
   useEffect(() => {
     getPersonalWorkouts(userId)
       .then(setWorkouts)
+      .catch((e) => setFetchError(e instanceof Error ? e.message : '운동 목록을 불러오지 못했습니다.'))
       .finally(() => setLoading(false))
   }, [userId])
 
@@ -64,9 +68,12 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
   async function handleAddWorkout(workoutId: string) {
     if (addingId) return
     setAddingId(workoutId)
+    setAddError(null)
     try {
       await addWorkoutToDate(userId, date, workoutId)
       onAdded()
+    } catch (e) {
+      setAddError(e instanceof Error ? e.message : '운동을 담지 못했습니다.')
     } finally {
       setAddingId(null)
     }
@@ -94,12 +101,12 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
     try {
       const exercises: Omit<WorkoutExercise, 'id' | 'workout_id'>[] = rows
         .filter((r) => r.exercise_name.trim())
-        .map((r, i) => ({
-          section: r.section.trim() || null,
-          exercise_name: r.exercise_name.trim(),
-          sets: r.sets.trim() || null,
-          reps: r.reps.trim() || null,
-          notes: r.notes.trim() || null,
+        .map(({ section, exercise_name, sets, reps, notes }, i) => ({
+          section: section.trim() || null,
+          exercise_name: exercise_name.trim(),
+          sets: sets.trim() || null,
+          reps: reps.trim() || null,
+          notes: notes.trim() || null,
           sort_order: i,
         }))
       const w = await createPersonalWorkout(
@@ -196,7 +203,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
                   <span>메모</span>
                 </div>
                 {rows.map((row, i) => (
-                  <div key={i} className="flex items-center gap-1 px-3 py-2 border-b border-border last:border-b-0">
+                  <div key={row.id} className="flex items-center gap-1 px-3 py-2 border-b border-border last:border-b-0">
                     <div className="grid grid-cols-[2fr_1fr_1fr_2fr] gap-1 flex-1">
                       <input
                         placeholder="ex: 벤치프레스"
@@ -289,11 +296,18 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
               </div>
 
               {/* ── 카드 그리드 ── */}
+              {addError && (
+                <p className="px-4 pt-3 text-xs text-danger">{addError}</p>
+              )}
               {loading ? (
                 <div className="px-4 pb-4 space-y-2">
                   {[1, 2, 3].map((i) => (
                     <div key={i} className="bg-accent-light rounded-xl h-16 animate-pulse" />
                   ))}
+                </div>
+              ) : fetchError ? (
+                <div className="px-4 pb-8 pt-4 text-center">
+                  <p className="text-sm text-danger">{fetchError}</p>
                 </div>
               ) : filtered.length === 0 ? (
                 <div className="px-4 pb-8 pt-4 text-center">
