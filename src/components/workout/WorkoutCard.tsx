@@ -168,7 +168,7 @@ export default function WorkoutCard({ title, isShared, logs, onChanged, onExerci
           )}
           {someDone && !allDone && <div className="w-2 h-0.5 bg-success rounded" />}
         </button>
-        <span className="text-sm font-bold text-foreground truncate">{title}</span>
+        {title && <span className="text-sm font-bold text-foreground truncate">{title}</span>}
         <span
           className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${
             isShared ? 'bg-accent-light text-accent' : 'bg-background border border-border text-text-secondary'

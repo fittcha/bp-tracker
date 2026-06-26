@@ -144,7 +144,7 @@ export default function WorkoutPage() {
     grouped.sort((a, b) => Number(b.isShared) - Number(a.isShared))
     // 시즌1 레거시 로그는 맨 아래 읽기 그룹으로
     if (legacy.length) {
-      grouped.push({ workoutId: '__legacy__', title: '이전 기록', isShared: false, logs: legacy })
+      grouped.push({ workoutId: '__legacy__', title: '', isShared: false, logs: legacy })
     }
 
     setGroups(grouped)
@@ -159,11 +159,6 @@ export default function WorkoutPage() {
 
   const todayDs = toDateString(new Date())
   const selectedDs = toDateString(date)
-
-  // 그날 전체 동작 중 완료 개수 (레거시 제외)
-  const dayLogs = groups.filter((g) => g.workoutId !== '__legacy__').flatMap((g) => g.logs)
-  const doneCount = dayLogs.filter((l) => l.completed).length
-  const totalCount = dayLogs.length
 
   return (
     <div className="space-y-4">
@@ -238,9 +233,8 @@ export default function WorkoutPage() {
         </button>
       </div>
 
-      {/* 진행 카운터 + 검색 */}
-      <div className="flex items-center justify-between -mb-0.5">
-        <span className="text-sm font-medium text-text-secondary">{doneCount}/{totalCount} 완료</span>
+      {/* 검색 */}
+      <div className="flex items-center justify-end -mb-0.5">
         <button
           onClick={() => setSearchOpen(true)}
           className="w-8 h-8 flex items-center justify-center rounded-lg text-text-secondary hover:text-accent transition-colors"
@@ -267,10 +261,7 @@ export default function WorkoutPage() {
             <p className="text-center text-text-secondary text-sm py-12">이 날짜에 등록된 운동이 없어요. 아래에서 운동을 추가하세요.</p>
           ) : (
             <>
-              {/* 박스 와드 (공용) */}
-              {groups.filter((g) => g.isShared).length > 0 && (
-                <h2 className="text-sm font-semibold text-accent mt-2 mb-1">박스 와드</h2>
-              )}
+              {/* 공용 운동 (WOD 등) — 헤더 없이 카드만 */}
               {groups.filter((g) => g.isShared).map((g) => (
                 <WorkoutCard
                   key={g.workoutId}
@@ -282,26 +273,11 @@ export default function WorkoutPage() {
                 />
               ))}
 
-              {/* 추가 운동 (개인) */}
-              {groups.filter((g) => !g.isShared && g.workoutId !== '__legacy__').length > 0 && (
+              {/* 추가 운동 (개인 + 이전 데이터) */}
+              {groups.filter((g) => !g.isShared).length > 0 && (
                 <h2 className="text-sm font-semibold text-text-secondary mt-4 mb-1">추가 운동</h2>
               )}
-              {groups.filter((g) => !g.isShared && g.workoutId !== '__legacy__').map((g) => (
-                <WorkoutCard
-                  key={g.workoutId}
-                  title={g.title}
-                  isShared={g.isShared}
-                  logs={g.logs}
-                  onChanged={() => loadData(date)}
-                  onExerciseLongPress={setGifModalExercise}
-                />
-              ))}
-
-              {/* 이전 기록 */}
-              {groups.filter((g) => g.workoutId === '__legacy__').length > 0 && (
-                <h2 className="text-sm font-semibold text-text-secondary mt-4 mb-1">이전 기록</h2>
-              )}
-              {groups.filter((g) => g.workoutId === '__legacy__').map((g) => (
+              {groups.filter((g) => !g.isShared).map((g) => (
                 <WorkoutCard
                   key={g.workoutId}
                   title={g.title}
