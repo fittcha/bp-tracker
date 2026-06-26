@@ -112,7 +112,7 @@ export default function WorkoutCalendar() {
           const hasWorkout = worked.has(ds)
           const dotClass = isCompleted ? 'bg-accent' : hasWorkout ? 'bg-text-secondary/40' : 'bg-transparent'
           const numClass = isToday
-            ? 'bg-accent text-white'
+            ? 'border-2 border-accent-pop text-foreground'
             : inMonth ? 'text-foreground' : 'text-text-secondary/30'
           return (
             <button
