@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import WorkoutCalendar from '@/components/home/WorkoutCalendar'
 import { getLoggedInUser } from '@/lib/auth'
 import { getCompletedDatesInRange } from '@/lib/api/workout-logs'
@@ -67,14 +66,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
-      {/* 운동 탭으로 이동 */}
-      <Link
-        href="/workout"
-        className="block text-center bg-accent-light text-accent font-semibold text-sm rounded-xl py-3 hover:opacity-80 transition-opacity"
-      >
-        운동하러 가기 →
-      </Link>
     </div>
   )
 }
