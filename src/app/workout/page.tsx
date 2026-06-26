@@ -160,6 +160,11 @@ export default function WorkoutPage() {
   const todayDs = toDateString(new Date())
   const selectedDs = toDateString(date)
 
+  // 그날 전체 동작 중 완료 개수 (레거시 제외)
+  const dayLogs = groups.filter((g) => g.workoutId !== '__legacy__').flatMap((g) => g.logs)
+  const doneCount = dayLogs.filter((l) => l.completed).length
+  const totalCount = dayLogs.length
+
   return (
     <div className="space-y-4">
       {/* 날짜 네비 */}
@@ -233,8 +238,9 @@ export default function WorkoutPage() {
         </button>
       </div>
 
-      {/* 검색 */}
-      <div className="flex items-center justify-end -mb-0.5">
+      {/* 진행 카운터 + 검색 */}
+      <div className="flex items-center justify-between -mb-0.5">
+        <span className="text-sm font-medium text-text-secondary">{doneCount}/{totalCount} 완료</span>
         <button
           onClick={() => setSearchOpen(true)}
           className="w-8 h-8 flex items-center justify-center rounded-lg text-text-secondary hover:text-accent transition-colors"
