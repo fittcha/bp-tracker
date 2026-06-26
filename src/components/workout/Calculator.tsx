@@ -43,12 +43,12 @@ export default function Calculator({ userId }: CalculatorProps) {
       {/* Row 1: Radio + Select */}
       <div className="flex items-center gap-3 h-7">
         <button onClick={() => setMode('direct')} className="flex items-center gap-1.5 shrink-0">
-          <span className={`w-2.5 h-2.5 rounded-full ${mode === 'direct' ? 'bg-success' : 'bg-text-secondary/40'}`} />
-          <span className={`text-sm ${mode === 'direct' ? 'text-success font-medium' : 'text-text-secondary'}`}>직접입력</span>
+          <span className={`w-2.5 h-2.5 rounded-full ${mode === 'direct' ? 'bg-accent-pop' : 'bg-text-secondary/40'}`} />
+          <span className={`text-sm ${mode === 'direct' ? 'text-accent-pop font-medium' : 'text-text-secondary'}`}>직접입력</span>
         </button>
         <button onClick={() => setMode('1rm')} className="flex items-center gap-1.5 shrink-0">
-          <span className={`w-2.5 h-2.5 rounded-full ${mode === '1rm' ? 'bg-success' : 'bg-text-secondary/40'}`} />
-          <span className={`text-sm ${mode === '1rm' ? 'text-success font-medium' : 'text-text-secondary'}`}>1RM</span>
+          <span className={`w-2.5 h-2.5 rounded-full ${mode === '1rm' ? 'bg-accent-pop' : 'bg-text-secondary/40'}`} />
+          <span className={`text-sm ${mode === '1rm' ? 'text-accent-pop font-medium' : 'text-text-secondary'}`}>1RM</span>
         </button>
         <select
           value={selectedExercise}
@@ -95,7 +95,7 @@ export default function Calculator({ userId }: CalculatorProps) {
         </div>
         <span className="text-sm text-text-secondary">%</span>
         <span className="text-sm text-text-secondary">=</span>
-        <span className={`px-2.5 py-0.5 rounded-lg text-base font-bold ${result > 0 ? 'text-success bg-success/10' : 'text-text-secondary'}`}>
+        <span className={`px-2.5 py-0.5 rounded-lg text-base font-bold ${result > 0 ? 'text-accent-pop bg-accent-pop/10' : 'text-text-secondary'}`}>
           {result > 0 ? (result % 1 === 0 ? result.toString() : result.toFixed(1)) : '0'}
         </span>
       </div>
