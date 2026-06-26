@@ -20,7 +20,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   return (
     <AuthGuard>
       {!isLogin && <Header />}
-      <main className={isLogin ? '' : 'max-w-lg mx-auto px-3 pt-2 pb-20'}>
+      <main className={isLogin ? '' : 'max-w-lg mx-auto px-4 pt-3 pb-20'}>
         {children}
       </main>
       {!isLogin && <BottomNav />}
