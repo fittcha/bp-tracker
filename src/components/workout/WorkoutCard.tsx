@@ -394,7 +394,7 @@ function SectionGroup({
                 {/* 동작 정보 */}
                 <div className="flex-1 min-w-0">
                   <p
-                    className={`text-sm font-medium select-none whitespace-pre-line ${log.completed ? 'line-through opacity-50' : ''}`}
+                    className={`text-xs font-medium select-none whitespace-pre-line ${log.completed ? 'line-through opacity-50' : ''}`}
                     onTouchStart={() => onLongPressStart(log.exercise_name)}
                     onTouchEnd={() => onLongPressEnd(log.exercise_name)}
                     onTouchCancel={() => onLongPressEnd(log.exercise_name)}
