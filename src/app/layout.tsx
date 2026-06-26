@@ -3,13 +3,13 @@ import "./globals.css";
 import ClientLayout from "@/components/ClientLayout";
 
 export const metadata: Metadata = {
-  title: "ROAD TO FITTER",
+  title: "R2F",
   description: "운동 기록 트래커",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "ROAD TO FITTER",
+    title: "R2F",
   },
 };
 
