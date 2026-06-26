@@ -13,7 +13,7 @@ import PaceAddModal from '@/components/pr/PaceAddModal'
 import WodTab from '@/components/pr/WodTab'
 import { getLoggedInUser } from '@/lib/auth'
 
-// name = DB exercise_name 키(roadtofitter 기존 1RM 데이터가 한글이라 한글로 매칭), label = 표시·아이콘용
+// name = DB exercise_name 키(roadtorxd 기존 1RM 데이터가 한글이라 한글로 매칭), label = 표시·아이콘용
 const DEFAULT_1RM = [
   { name: '백스쿼트', label: '백스쿼트' },
   { name: '프론트스쿼트', label: '프론트스쿼트' },

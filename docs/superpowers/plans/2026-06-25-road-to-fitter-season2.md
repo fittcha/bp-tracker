@@ -58,14 +58,14 @@ export interface WorkoutExercise {
 ### Task A1: DB 마이그레이션 SQL 작성·적용
 
 **Files:**
-- Create: `supabase/migration-roadtofitter-season2.sql`
+- Create: `supabase/migration-roadtorxd-season2.sql`
 
 **Interfaces:**
 - Produces: 테이블 `workouts`, `workout_exercises`; 컬럼 `workout_logs.workout_exercise_id`. 이후 모든 태스크가 의존.
 
 - [ ] **Step 1: 마이그레이션 SQL 작성**
 
-`supabase/migration-roadtofitter-season2.sql`:
+`supabase/migration-roadtorxd-season2.sql`:
 
 ```sql
 -- ROAD TO FITTER 시즌2: 운동 라이브러리(공용+개인) + workout_logs 연결 컬럼
@@ -137,7 +137,7 @@ Expected: `workout_exercise_id` 1행 반환, 두 count 모두 0(에러 없이).
 - [ ] **Step 4: Commit**
 
 ```bash
-git add supabase/migration-roadtofitter-season2.sql
+git add supabase/migration-roadtorxd-season2.sql
 git commit -m "feat(db): 시즌2 운동 라이브러리 테이블 + workout_logs.workout_exercise_id 마이그레이션
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"

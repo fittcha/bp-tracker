@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** ddodun의 화면 포맷을 roadtofitter에 차용한다 — 5탭 네비(홈/운동/챌린지/PR/MY), 홈 캘린더 2색 점, ddodun PR 탭(1RM/nRM/PACE/WOD) 이식, MY 탭. 색은 우리 파란색 유지.
+**Goal:** ddodun의 화면 포맷을 roadtorxd에 차용한다 — 5탭 네비(홈/운동/챌린지/PR/MY), 홈 캘린더 2색 점, ddodun PR 탭(1RM/nRM/PACE/WOD) 이식, MY 탭. 색은 우리 파란색 유지.
 
-**Architecture:** ddodun과 roadtofitter는 같은 Supabase 프로젝트(`qaiammqgkrrgfstqadef`)를 쓰되 ddodun=`ddodun` 스키마, roadtofitter=`public` 스키마. ddodun PR 파일들은 `@/lib/supabase`(앱별 클라이언트)·`@/lib/auth`(앱별 getLoggedInUser)를 동일 경로로 import하므로 **복사하면 우리 public 클라이언트+우리 auth로 자동 적응**된다. PR의 1RM은 우리 `public.user_1rm`(컬럼 일치)을 그대로 써서 기존 데이터 보존, nRM/PACE/WOD는 public에 신규 테이블 생성.
+**Architecture:** ddodun과 roadtorxd는 같은 Supabase 프로젝트(`qaiammqgkrrgfstqadef`)를 쓰되 ddodun=`ddodun` 스키마, roadtorxd=`public` 스키마. ddodun PR 파일들은 `@/lib/supabase`(앱별 클라이언트)·`@/lib/auth`(앱별 getLoggedInUser)를 동일 경로로 import하므로 **복사하면 우리 public 클라이언트+우리 auth로 자동 적응**된다. PR의 1RM은 우리 `public.user_1rm`(컬럼 일치)을 그대로 써서 기존 데이터 보존, nRM/PACE/WOD는 public에 신규 테이블 생성.
 
 **Tech Stack:** Next.js 16.1.6 (App Router) · React 19 · TypeScript 5 (strict) · Tailwind CSS v4 · Supabase JS (anon, public 스키마) · lucide-react ^0.577.0 · recharts.
 
@@ -17,7 +17,7 @@
 - **기존 로그인 보존**: localStorage `bp-*` 키 불변.
 - **작업트리 주의**: 세션 이전 untracked 파일 다수 → **`git add -A` 금지, 변경 경로만 stage**.
 - 커밋 메시지 한국어 + 끝에 `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`.
-- ddodun 소스 루트: `/Users/chacha/lab/ddodun/app` (포팅 원본). roadtofitter 루트: `/Users/chacha/lab/roadtofitter/app`.
+- ddodun 소스 루트: `/Users/chacha/lab/ddodun/app` (포팅 원본). roadtorxd 루트: `/Users/chacha/lab/roadtorxd/app`.
 
 ---
 
@@ -105,12 +105,12 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 - [ ] **Step 1: 3개 파일 그대로 복사**
 
-ddodun → roadtofitter로 **내용 변경 없이** 복사:
+ddodun → roadtorxd로 **내용 변경 없이** 복사:
 - `/Users/chacha/lab/ddodun/app/src/lib/api/pr.ts` → `src/lib/api/pr.ts`
 - `/Users/chacha/lab/ddodun/app/src/lib/api/wod.ts` → `src/lib/api/wod.ts`
 - `/Users/chacha/lab/ddodun/app/src/lib/date-utils.ts` → `src/lib/date-utils.ts`
 
-이 파일들은 `import { supabase } from '@/lib/supabase'`를 쓴다. roadtofitter의 `@/lib/supabase`는 public 클라이언트라, 복사만으로 public 테이블을 조회한다. **스키마 관련 코드 수정 불필요.**
+이 파일들은 `import { supabase } from '@/lib/supabase'`를 쓴다. roadtorxd의 `@/lib/supabase`는 public 클라이언트라, 복사만으로 public 테이블을 조회한다. **스키마 관련 코드 수정 불필요.**
 
 - [ ] **Step 2: 빌드·린트**
 
@@ -170,7 +170,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 `/Users/chacha/lab/ddodun/app/src/app/pr/page.tsx` → `src/app/pr/page.tsx` (내용 변경 없이).
 - `getLoggedInUser` import는 `@/lib/auth`로 동일 → 우리 auth가 자동 적용(우리 user.id 사용 → 우리 데이터).
-- 1RM API(`getAll1RM` 등)는 `public.user_1rm`(컬럼 일치)을 조회 → **기존 roadtofitter 1RM 데이터 그대로 노출**.
+- 1RM API(`getAll1RM` 등)는 `public.user_1rm`(컬럼 일치)을 조회 → **기존 roadtorxd 1RM 데이터 그대로 노출**.
 
 - [ ] **Step 2: 빌드·린트**
 
