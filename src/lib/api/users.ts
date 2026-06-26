@@ -6,6 +6,7 @@ export interface User {
   pin_hash: string | null
   created_by: string | null
   created_at: string
+  active?: boolean
 }
 
 export async function getUserByUsername(username: string): Promise<User | null> {
@@ -13,6 +14,7 @@ export async function getUserByUsername(username: string): Promise<User | null> 
     .from('users')
     .select('*')
     .eq('username', username)
+    .eq('active', true) // 비활성(소프트 삭제) 유저는 로그인 불가
     .single()
   if (error && error.code !== 'PGRST116') throw error
   return data
