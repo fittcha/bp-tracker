@@ -53,7 +53,10 @@ export async function getAllWodRecords(userId: string): Promise<WodRecord[]> {
     .select('*')
     .eq('user_id', userId)
     .order('recorded_at', { ascending: false })
-  if (error) throw error
+  if (error) {
+    if (error.code === 'PGRST205') return [] // 테이블 미생성(마이그레이션 PENDING) 시 빈 목록
+    throw error
+  }
   return data || []
 }
 
@@ -64,7 +67,10 @@ export async function getWodRecords(userId: string, wodName: string): Promise<Wo
     .eq('user_id', userId)
     .eq('wod_name', wodName)
     .order('recorded_at', { ascending: false })
-  if (error) throw error
+  if (error) {
+    if (error.code === 'PGRST205') return [] // 테이블 미생성(마이그레이션 PENDING) 시 빈 목록
+    throw error
+  }
   return data || []
 }
 

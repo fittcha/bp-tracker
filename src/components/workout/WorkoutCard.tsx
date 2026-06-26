@@ -40,7 +40,7 @@ interface Props {
 //   - custom_sets  : 세트수 / 그룹 "N Sets"
 //   - custom_reps  : 순수 반복수(동작명 앞 prefix·"N세트 × reps" 인라인 소스)
 //   - custom_notes : setInfo(Superset/EMOM/AMRAP 등 그룹 라벨 소스) / 동작별 부가 노트(@/*/Rest…) / '__sep__' 구분자
-export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPress }: Props) {
+export default function WorkoutCard({ title, logs, onExerciseLongPress }: Props) {
   // 낙관적 로컬 상태(autosave 즉시 반영). props 변경 시 동기화.
   const [items, setItems] = useState<WorkoutLogJoined[]>(logs)
   useEffect(() => {
@@ -168,7 +168,7 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
     for (const item of items) {
       if (item.id && item.completed !== newState) handleToggleComplete(item.id, newState)
     }
-    onChanged?.()
+    // 즉시 재조회(onChanged) 하지 않음 — upsert 완료 전 재조회가 낙관적 상태를 되돌리는 레이스 방지
   }
 
   return (

@@ -71,7 +71,10 @@ export async function getAllNRM(userId: string): Promise<NRM[]> {
     .eq('user_id', userId)
     .order('rep_max')
     .order('exercise_name')
-  if (error) throw error
+  if (error) {
+    if (error.code === 'PGRST205') return [] // 테이블 미생성(마이그레이션 PENDING) 시 빈 목록
+    throw error
+  }
   return data || []
 }
 
@@ -126,7 +129,10 @@ export async function getAllPaceRecords(userId: string): Promise<PaceRecord[]> {
     .eq('user_id', userId)
     .order('equipment')
     .order('distance')
-  if (error) throw error
+  if (error) {
+    if (error.code === 'PGRST205') return [] // 테이블 미생성(마이그레이션 PENDING) 시 빈 목록
+    throw error
+  }
   return data || []
 }
 
