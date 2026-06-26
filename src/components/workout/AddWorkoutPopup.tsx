@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react'
 import {
   getPersonalWorkouts,
   createPersonalWorkout,
+  getWorkoutExercises,
+  updatePersonalWorkout,
+  archiveWorkout,
   type Workout,
   type WorkoutExercise,
 } from '@/lib/api/workouts'
@@ -40,13 +43,15 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
   const [selectedCat, setSelectedCat] = useState<string>('전체')
   const [addingId, setAddingId] = useState<string | null>(null)
 
-  // 새 운동 생성 폼
+  // 새 운동 생성/수정 폼
   const [showCreate, setShowCreate] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [newTitle, setNewTitle] = useState('')
   const [newCategory, setNewCategory] = useState<string>('')
   const [rows, setRows] = useState<ExerciseRow[]>([emptyRow()])
   const [submitting, setSubmitting] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
 
   useEffect(() => {
     getPersonalWorkouts(userId)
@@ -90,7 +95,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
     setRows((prev) => (prev.length <= 1 ? prev : prev.filter((_, idx) => idx !== i)))
   }
 
-  // ── 새 운동 생성 + 담기 ──
+  // ── 새 운동 생성 + 담기 (create) / 수정 저장 (edit) ──
   async function handleCreate() {
     if (!newTitle.trim()) {
       setCreateError('운동 이름을 입력하세요.')
@@ -109,26 +114,77 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
           notes: notes.trim() || null,
           sort_order: i,
         }))
-      const w = await createPersonalWorkout(
-        userId,
-        newTitle.trim(),
-        newCategory || null,
-        exercises,
-      )
-      await addWorkoutToDate(userId, date, w.id)
-      onAdded()
+
+      if (editingId) {
+        // 수정 모드: 업데이트 후 목록 새로고침
+        await updatePersonalWorkout(editingId, newTitle.trim(), newCategory || null, exercises)
+        const updated = await getPersonalWorkouts(userId)
+        setWorkouts(updated)
+        resetCreate()
+      } else {
+        // 생성 모드: 만들고 담기
+        const w = await createPersonalWorkout(
+          userId,
+          newTitle.trim(),
+          newCategory || null,
+          exercises,
+        )
+        await addWorkoutToDate(userId, date, w.id)
+        onAdded()
+      }
     } catch (e) {
-      setCreateError(e instanceof Error ? e.message : '생성에 실패했습니다.')
+      setCreateError(e instanceof Error ? e.message : editingId ? '수정에 실패했습니다.' : '생성에 실패했습니다.')
       setSubmitting(false)
     }
   }
 
   function resetCreate() {
     setShowCreate(false)
+    setEditingId(null)
     setNewTitle('')
     setNewCategory('')
     setRows([emptyRow()])
     setCreateError(null)
+  }
+
+  // ── 카드 ⋯ 메뉴 — 수정 ──
+  async function handleEditWorkout(w: Workout) {
+    setMenuOpenId(null)
+    setCreateError(null)
+    try {
+      const exercises = await getWorkoutExercises(w.id)
+      setEditingId(w.id)
+      setNewTitle(w.title)
+      setNewCategory(w.category ?? '')
+      setRows(
+        exercises.length > 0
+          ? exercises.map((ex) => ({
+              id: crypto.randomUUID(),
+              section: ex.section ?? '',
+              exercise_name: ex.exercise_name,
+              sets: ex.sets ?? '',
+              reps: ex.reps ?? '',
+              notes: ex.notes ?? '',
+            }))
+          : [emptyRow()],
+      )
+      setShowCreate(true)
+    } catch (e) {
+      setAddError(e instanceof Error ? e.message : '운동 정보를 불러오지 못했습니다.')
+    }
+  }
+
+  // ── 카드 ⋯ 메뉴 — 보관 ──
+  async function handleArchiveWorkout(workoutId: string, title: string) {
+    setMenuOpenId(null)
+    if (!window.confirm(`"${title}" 운동을 보관하시겠습니까? 보관된 운동은 목록에서 사라집니다.`)) return
+    try {
+      await archiveWorkout(workoutId)
+      const updated = await getPersonalWorkouts(userId)
+      setWorkouts(updated)
+    } catch (e) {
+      setAddError(e instanceof Error ? e.message : '보관에 실패했습니다.')
+    }
   }
 
   return (
@@ -166,11 +222,13 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
         </div>
 
         {/* 스크롤 영역 */}
-        <div className="flex-1 overflow-y-auto">
-          {/* ── 새 운동 생성 폼 ── */}
+        <div className="flex-1 overflow-y-auto" onClick={() => setMenuOpenId(null)}>
+          {/* ── 새 운동 생성/수정 폼 ── */}
           {showCreate && (
             <div className="px-4 pt-4 pb-2 border-b border-border space-y-3">
-              <h3 className="text-sm font-semibold text-accent">새 개인 운동 만들기</h3>
+              <h3 className="text-sm font-semibold text-accent">
+                {editingId ? '개인 운동 수정' : '새 개인 운동 만들기'}
+              </h3>
 
               {/* 제목 + 카테고리 */}
               <div className="flex gap-2">
@@ -270,7 +328,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
                   disabled={submitting || !newTitle.trim()}
                   className="px-4 py-2 text-sm font-medium bg-accent text-white rounded-lg disabled:opacity-50"
                 >
-                  {submitting ? '저장 중…' : '만들고 담기'}
+                  {submitting ? '저장 중…' : editingId ? '수정 저장' : '만들고 담기'}
                 </button>
               </div>
             </div>
@@ -320,22 +378,64 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
               ) : (
                 <div className="px-4 pb-6 grid grid-cols-2 gap-2 pt-1">
                   {filtered.map((w) => (
-                    <button
+                    <div
                       key={w.id}
-                      onClick={() => handleAddWorkout(w.id)}
-                      disabled={addingId === w.id}
-                      className="text-left bg-surface border border-border rounded-xl p-3 transition-colors active:bg-accent-light disabled:opacity-60"
+                      className="relative bg-surface border border-border rounded-xl transition-colors"
                     >
-                      <p className="text-sm font-semibold text-foreground leading-snug line-clamp-2">
-                        {w.title}
-                      </p>
-                      {w.category && (
-                        <p className="text-[11px] text-text-secondary mt-1">{w.category}</p>
+                      {/* 카드 탭 영역 → 담기 */}
+                      <button
+                        onClick={() => handleAddWorkout(w.id)}
+                        disabled={addingId === w.id}
+                        className="text-left w-full p-3 pr-8 rounded-xl active:bg-accent-light disabled:opacity-60"
+                      >
+                        <p className="text-sm font-semibold text-foreground leading-snug line-clamp-2">
+                          {w.title}
+                        </p>
+                        {w.category && (
+                          <p className="text-[11px] text-text-secondary mt-1">{w.category}</p>
+                        )}
+                        {addingId === w.id && (
+                          <p className="text-[11px] text-accent mt-1">담는 중…</p>
+                        )}
+                      </button>
+
+                      {/* ⋯ 메뉴 버튼 */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setMenuOpenId(menuOpenId === w.id ? null : w.id)
+                        }}
+                        className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center text-text-secondary rounded"
+                        aria-label="더보기"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                          <circle cx="5" cy="12" r="2" />
+                          <circle cx="12" cy="12" r="2" />
+                          <circle cx="19" cy="12" r="2" />
+                        </svg>
+                      </button>
+
+                      {/* ⋯ 드롭다운 */}
+                      {menuOpenId === w.id && (
+                        <div
+                          className="absolute top-8 right-2 z-10 bg-surface border border-border rounded-xl shadow-lg overflow-hidden min-w-[80px]"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            onClick={() => handleEditWorkout(w)}
+                            className="w-full text-left px-3 py-2 text-xs font-medium text-foreground hover:bg-accent-light transition-colors"
+                          >
+                            수정
+                          </button>
+                          <button
+                            onClick={() => handleArchiveWorkout(w.id, w.title)}
+                            className="w-full text-left px-3 py-2 text-xs font-medium text-danger hover:bg-accent-light transition-colors"
+                          >
+                            보관
+                          </button>
+                        </div>
                       )}
-                      {addingId === w.id && (
-                        <p className="text-[11px] text-accent mt-1">담는 중…</p>
-                      )}
-                    </button>
+                    </div>
                   ))}
                 </div>
               )}
