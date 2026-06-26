@@ -264,7 +264,7 @@ export default function WorkoutPage() {
 
               {/* 내 운동 */}
               {groups.filter((g) => !g.isShared && g.workoutId !== '__legacy__').length > 0 && (
-                <h2 className="text-sm font-semibold text-secondary mt-4 mb-1">내 운동</h2>
+                <h2 className="text-sm font-semibold text-text-secondary mt-4 mb-1">내 운동</h2>
               )}
               {groups.filter((g) => !g.isShared && g.workoutId !== '__legacy__').map((g) => (
                 <WorkoutCard
@@ -279,7 +279,7 @@ export default function WorkoutPage() {
 
               {/* 이전 기록 */}
               {groups.filter((g) => g.workoutId === '__legacy__').length > 0 && (
-                <h2 className="text-sm font-semibold text-secondary mt-4 mb-1">이전 기록</h2>
+                <h2 className="text-sm font-semibold text-text-secondary mt-4 mb-1">이전 기록</h2>
               )}
               {groups.filter((g) => g.workoutId === '__legacy__').map((g) => (
                 <WorkoutCard
