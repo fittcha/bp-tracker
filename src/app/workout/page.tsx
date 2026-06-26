@@ -5,6 +5,7 @@ import { toDateString } from '@/lib/utils'
 import { getLoggedInUser } from '@/lib/auth'
 import { getDefaultWorkoutsForWeekday } from '@/lib/api/workouts'
 import { getWorkoutLogsWithWorkout, addWorkoutToDate, type WorkoutLogJoined } from '@/lib/api/workout-logs'
+import { getCardioLogs, setCardioCompleted, type CardioLog } from '@/lib/api/cardio-logs'
 import WorkoutCard from '@/components/workout/WorkoutCard'
 import Calculator from '@/components/workout/Calculator'
 import ExerciseGifModal from '@/components/workout/ExerciseGifModal'
@@ -26,6 +27,7 @@ export default function WorkoutPage() {
   const userId = user?.id ?? ''
   const [date, setDate] = useState<Date>(() => new Date())
   const [groups, setGroups] = useState<WorkoutGroup[]>([])
+  const [cardio, setCardio] = useState<CardioLog[]>([])
   const [loading, setLoading] = useState(true)
   const [gifModalExercise, setGifModalExercise] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
@@ -152,10 +154,19 @@ export default function WorkoutPage() {
         if (!bySection.has(sec)) bySection.set(sec, [])
         bySection.get(sec)!.push(l)
       }
-      for (const sec of [...bySection.keys()].sort()) {
+      // WOD 최상위, 나머지 A→F 순
+      const sortedSecs = [...bySection.keys()].sort((a, b) => {
+        if (a === 'WOD') return -1
+        if (b === 'WOD') return 1
+        return a.localeCompare(b)
+      })
+      for (const sec of sortedSecs) {
         grouped.push({ workoutId: `__legacy_${sec}__`, title: '', isShared: false, isLegacy: true, logs: bySection.get(sec)! })
       }
     }
+
+    // 시즌1 저강도 유산소(레거시 날짜) 조회
+    setCardio(await getCardioLogs(ds, loggedIn.id))
 
     setGroups(grouped)
     setLoading(false)
@@ -166,6 +177,15 @@ export default function WorkoutPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData(date)
   }, [date, loadData])
+
+  async function toggleCardio(id: string, completed: boolean) {
+    setCardio((prev) => prev.map((c) => (c.id === id ? { ...c, completed } : c)))
+    try {
+      await setCardioCompleted(id, completed)
+    } catch {
+      setCardio((prev) => prev.map((c) => (c.id === id ? { ...c, completed: !completed } : c)))
+    }
+  }
 
   const todayDs = toDateString(new Date())
   const selectedDs = toDateString(date)
@@ -255,6 +275,26 @@ export default function WorkoutPage() {
           </svg>
         </button>
       </div>
+
+      {/* 저강도 유산소 (시즌1 레거시 날짜) */}
+      {cardio.map((c) => (
+        <div key={c.id} className="bg-surface border border-border rounded-xl overflow-hidden">
+          <div className="px-4 py-2.5 bg-background border-b border-border flex items-center gap-2">
+            <button
+              onClick={() => toggleCardio(c.id, !c.completed)}
+              className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                c.completed ? 'bg-success border-success text-white' : 'border-border'
+              }`}
+            >
+              {c.completed && (
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
+              )}
+            </button>
+            <span className="text-sm font-bold text-foreground">저강도 유산소</span>
+          </div>
+          {c.memo && <div className="px-4 py-3 text-sm text-foreground whitespace-pre-line">{c.memo}</div>}
+        </div>
+      ))}
 
       {/* 운동 카드들 */}
       {loading ? (
