@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList, ReferenceLine } from 'recharts'
 import { toDateString } from '@/lib/utils'
 
@@ -17,18 +18,34 @@ interface WeightChartProps {
 
 const DAY_LABELS = ['월', '화', '수', '목', '금', '토', '일']
 
-export default function WeightChart({ data, mode, weeks, dday }: WeightChartProps) {
-  const hasData = data.some(d => d.weight != null)
+export default function WeightChart(props: WeightChartProps) {
+  const [open, setOpen] = useState(false) // 기본 접힘(아코디언)
+  const hasData = props.data.some(d => d.weight != null)
 
-  if (!hasData) {
-    return (
-      <div className="bg-surface border border-border rounded-xl p-4">
-        <p className="text-sm font-medium mb-2">체중 변화 (kg)</p>
-        <p className="text-sm text-text-secondary">데이터가 없습니다</p>
-      </div>
-    )
-  }
+  return (
+    <div className="bg-surface border border-border rounded-xl">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between p-4"
+      >
+        <span className="text-sm font-medium">체중 변화 (kg)</span>
+        <svg
+          width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+          className={`text-text-secondary transition-transform ${open ? 'rotate-180' : ''}`}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <div className="px-4 pb-4">
+          {hasData ? <WeightChartBody {...props} /> : <p className="text-sm text-text-secondary">데이터가 없습니다</p>}
+        </div>
+      )}
+    </div>
+  )
+}
 
+function WeightChartBody({ data, mode, weeks, dday }: WeightChartProps) {
   const isAll = mode === 'all'
   const weights = data.filter(d => d.weight != null).map(d => d.weight!)
   // For "all" mode: snap domain to 0.5 boundaries
@@ -132,9 +149,7 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
     : undefined
 
   return (
-    <div className="bg-surface border border-border rounded-xl p-4">
-      <p className="text-sm font-medium mb-2">체중 변화 (kg)</p>
-      <ResponsiveContainer width="100%" height={isAll ? Math.max(180, Math.ceil(range) * 20 + 40) : 140}>
+    <ResponsiveContainer width="100%" height={isAll ? Math.max(180, Math.ceil(range) * 20 + 40) : 140}>
         <LineChart data={data} margin={isAll ? { top: 14, right: 4, bottom: 0, left: -8 } : { top: 24, right: 20, bottom: -8, left: 20 }}>
           {isAll && (
             <CartesianGrid
@@ -184,7 +199,6 @@ export default function WeightChart({ data, mode, weeks, dday }: WeightChartProp
             <LabelList content={renderLabel} />
           </Line>
         </LineChart>
-      </ResponsiveContainer>
-    </div>
+    </ResponsiveContainer>
   )
 }
