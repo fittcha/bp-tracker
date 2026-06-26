@@ -74,10 +74,15 @@ export default function WorkoutCalendar() {
     setMonthStart(new Date(year, month + delta, 1))
   }
 
+  function goToday() {
+    const d = new Date()
+    setMonthStart(new Date(d.getFullYear(), d.getMonth(), 1))
+  }
+
   return (
-    <div className="bg-surface border border-border rounded-xl p-4">
+    <div className="bg-surface border border-border rounded-xl px-4 py-5">
       {/* 월 네비 */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-4">
         <button
           onClick={() => shiftMonth(-1)}
           aria-label="이전 달"
@@ -85,7 +90,15 @@ export default function WorkoutCalendar() {
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6" /></svg>
         </button>
-        <p className="text-sm font-semibold text-foreground">{year}년 {month + 1}월</p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-semibold text-foreground">{year}년 {month + 1}월</p>
+          <button
+            onClick={goToday}
+            className="text-xs font-medium px-2 py-0.5 rounded-full bg-accent-soft text-accent-soft-fg"
+          >
+            오늘
+          </button>
+        </div>
         <button
           onClick={() => shiftMonth(1)}
           aria-label="다음 달"
@@ -96,29 +109,30 @@ export default function WorkoutCalendar() {
       </div>
 
       {/* 요일 헤더 */}
-      <div className="grid grid-cols-7 gap-1 mb-1">
+      <div className="grid grid-cols-7 gap-1 mb-2">
         {WEEKDAY_LABELS.map((label) => (
           <div key={label} className="text-center text-xs text-text-secondary py-1">{label}</div>
         ))}
       </div>
 
-      {/* 날짜 그리드 (6주) */}
+      {/* 날짜 그리드 */}
       <div className="grid grid-cols-7 gap-1">
         {cells.map((d) => {
           const ds = toDateString(d)
           const inMonth = d.getMonth() === month
+          if (!inMonth) {
+            return <div key={ds} className="h-12" />
+          }
           const isToday = ds === todayDs
           const isCompleted = completed.has(ds)
           const hasWorkout = worked.has(ds)
           const dotClass = isCompleted ? 'bg-accent' : hasWorkout ? 'bg-text-secondary/40' : 'bg-transparent'
-          const numClass = isToday
-            ? 'bg-accent text-white'
-            : inMonth ? 'text-foreground' : 'text-text-secondary/30'
+          const numClass = isToday ? 'bg-accent text-white' : 'text-foreground'
           return (
             <button
               key={ds}
               onClick={() => router.push(`/workout?date=${ds}`)}
-              className="flex flex-col items-center justify-start gap-0.5 h-11 pt-1"
+              className="flex flex-col items-center justify-start gap-1 h-12 pt-1.5"
             >
               <span className={`flex items-center justify-center w-7 h-7 rounded-full text-sm ${numClass}`}>
                 {d.getDate()}

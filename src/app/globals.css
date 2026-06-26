@@ -7,7 +7,9 @@
   --text-secondary: #6B7280;
   --accent: #1E3A5F;
   --accent-light: #E8EDF3;
-  --accent-pop: #F97316;
+  --accent-pop: #2B6CB0;
+  --accent-soft: #F3ECDC;
+  --accent-soft-fg: #8C7349;
   --success: #3B82F6;
   --border: #E5E7EB;
   --danger: #F15B5B;
@@ -21,6 +23,8 @@
   --color-accent: var(--accent);
   --color-accent-light: var(--accent-light);
   --color-accent-pop: var(--accent-pop);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-soft-fg: var(--accent-soft-fg);
   --color-success: var(--success);
   --color-border: var(--border);
   --color-danger: var(--danger);
