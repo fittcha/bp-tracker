@@ -13,7 +13,8 @@ with p as (
 )
 insert into challenge_program_days (program_id, day_no, target_reps)
 select p.id, d.day_no, d.target_reps from p,
-  (values (1,3),(2,4),(3,4),(4,5),(5,5),(6,6),(7,7),(8,8),(9,9),(10,10)) as d(day_no, target_reps);
+  (values (1,3),(2,4),(3,4),(4,5),(5,5),(6,6),(7,7),(8,8),(9,9),(10,10)) as d(day_no, target_reps)
+on conflict (program_id, day_no) do nothing;
 
 -- 푸쉬업: 구간별 프로그램 (니/풀 예시 2개)
 with p as (
@@ -24,7 +25,8 @@ with p as (
 )
 insert into challenge_program_days (program_id, day_no, target_reps)
 select p.id, d.day_no, d.target_reps from p,
-  (values (1,5),(2,6),(3,8),(4,10),(5,12)) as d(day_no, target_reps);
+  (values (1,5),(2,6),(3,8),(4,10),(5,12)) as d(day_no, target_reps)
+on conflict (program_id, day_no) do nothing;
 
 with p as (
   insert into challenge_programs (template_key, difficulty_key, label)
@@ -34,4 +36,5 @@ with p as (
 )
 insert into challenge_program_days (program_id, day_no, target_reps)
 select p.id, d.day_no, d.target_reps from p,
-  (values (1,10),(2,12),(3,15),(4,18),(5,20)) as d(day_no, target_reps);
+  (values (1,10),(2,12),(3,15),(4,18),(5,20)) as d(day_no, target_reps)
+on conflict (program_id, day_no) do nothing;
