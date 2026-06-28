@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { X } from 'lucide-react'
+import { X, Check, Timer, RotateCcw } from 'lucide-react'
 import { toDateString } from '@/lib/utils'
 import type { DayStatus } from '@/lib/challenge/derive'
 
@@ -16,6 +16,8 @@ interface DayStatusSheetProps {
   onLog: (result: 'success' | 'fail', doneDate: string) => void
   onUpdateDate: (attemptId: string, doneDate: string) => void
 }
+
+const EYEBROW = 'text-[11px] font-semibold uppercase tracking-wider text-text-secondary/70'
 
 export default function DayStatusSheet({
   isOpen, weekNo, dayInWeek, setsText, restSeconds, state, onClose, onLog, onUpdateDate,
@@ -33,66 +35,101 @@ export default function DayStatusSheet({
   if (!isOpen) return null
 
   const sets = setsText ? setsText.split('·') : []
+  const hasAmrap = setsText.includes('+')
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full max-w-lg bg-surface rounded-2xl p-6 max-h-[85vh] overflow-y-auto animate-slide-up">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold">WEEK {weekNo} · DAY {dayInWeek}</h3>
-          <button onClick={onClose} className="p-1 text-text-secondary" aria-label="닫기"><X size={20} /></button>
+      <div className="relative w-full max-w-md bg-surface rounded-2xl p-6 max-h-[85vh] overflow-y-auto animate-slide-up">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-lg font-bold text-foreground">
+            WEEK {weekNo} <span className="text-text-secondary/50">·</span> DAY {dayInWeek}
+          </h3>
+          <button onClick={onClose} className="-mr-1 p-1 text-text-secondary/60 hover:text-text-secondary transition-colors" aria-label="닫기"><X size={20} /></button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* 세트 구성 */}
           {sets.length > 0 && (
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-sm text-text-secondary">세트 구성</span>
-                {restSeconds != null && <span className="text-xs text-text-secondary">세트간 휴식 {restSeconds}초</span>}
+              <div className="flex items-baseline justify-between mb-2">
+                <span className={EYEBROW}>세트 구성</span>
+                {restSeconds != null && (
+                  <span className="inline-flex items-center gap-1 text-xs text-text-secondary">
+                    <Timer size={13} /> 휴식 {restSeconds}초
+                  </span>
+                )}
               </div>
               <div className="flex flex-wrap gap-1.5">
-                {sets.map((s, i) => (
-                  <span key={i} className="px-2.5 py-1 rounded-md bg-background border border-border text-sm font-medium text-foreground">
-                    {s}
-                  </span>
-                ))}
+                {sets.map((s, i) => {
+                  const amrap = s.includes('+')
+                  return (
+                    <span
+                      key={i}
+                      className={`min-w-[2.75rem] text-center px-2 py-2 rounded-xl text-base font-bold tabular-nums border ${
+                        amrap ? 'bg-accent-pop/10 text-accent-pop border-accent-pop/40' : 'bg-background text-foreground border-border'
+                      }`}
+                    >
+                      {s}
+                    </span>
+                  )
+                })}
               </div>
-              {setsText.includes('+') && (
-                <p className="text-[11px] text-text-secondary mt-1">마지막 <b>+</b>는 가능한 만큼(AMRAP).</p>
+              {hasAmrap && (
+                <p className="text-[11px] text-text-secondary/70 mt-2">
+                  <span className="text-accent-pop font-bold">+</span> 가능한 만큼 (AMRAP)
+                </p>
               )}
             </div>
           )}
 
+          {/* 날짜 */}
           <div>
-            <label className="block text-sm text-text-secondary mb-1">날짜</label>
+            <label className={`block ${EYEBROW} mb-2`}>날짜</label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-accent"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:border-accent"
             />
           </div>
 
+          {/* 액션 */}
           {status === 'success' ? (
-            <>
-              <p className="text-sm text-success font-medium">✓ 성공 완료 (날짜만 수정 가능)</p>
+            <div className="space-y-3">
+              <p className="inline-flex items-center gap-1.5 text-sm font-medium text-success">
+                <Check size={16} /> 성공 완료 · 날짜만 수정
+              </p>
               <button
                 onClick={() => state?.successAttemptId && onUpdateDate(state.successAttemptId, date)}
                 disabled={!state?.successAttemptId}
-                className="w-full py-2.5 rounded-lg bg-accent text-white font-medium disabled:opacity-50"
+                className="w-full py-3 rounded-xl bg-accent text-white font-semibold disabled:opacity-50"
               >
                 날짜 저장
               </button>
-            </>
+            </div>
           ) : (
-            <>
-              {status === 'fail' && <p className="text-sm text-danger font-medium">✗ 실패 — 재도전할 수 있어요</p>}
-              <div className="flex gap-2">
-                <button onClick={() => onLog('success', date)} className="flex-1 py-2.5 rounded-lg bg-success text-white font-medium">성공</button>
-                <button onClick={() => onLog('fail', date)} className="flex-1 py-2.5 rounded-lg bg-danger text-white font-medium">실패</button>
+            <div className="space-y-3">
+              {status === 'fail' && (
+                <p className="inline-flex items-center gap-1.5 text-sm font-medium text-danger">
+                  <RotateCcw size={14} /> 실패 — 재도전
+                </p>
+              )}
+              <div className="grid grid-cols-2 gap-2.5">
+                <button
+                  onClick={() => onLog('success', date)}
+                  className="inline-flex items-center justify-center gap-1.5 py-3 rounded-xl bg-success text-white font-semibold active:opacity-80 transition"
+                >
+                  <Check size={18} /> 성공
+                </button>
+                <button
+                  onClick={() => onLog('fail', date)}
+                  className="inline-flex items-center justify-center gap-1.5 py-3 rounded-xl bg-danger text-white font-semibold active:opacity-80 transition"
+                >
+                  <X size={18} /> 실패
+                </button>
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>

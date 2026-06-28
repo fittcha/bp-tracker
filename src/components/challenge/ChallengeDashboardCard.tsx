@@ -97,13 +97,13 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
         </button>
       </div>
 
-      {/* 주차별 트레이닝 표: 요일=열(내용폭), 세트=세로 */}
-      <div className="px-4 pt-3 pb-4 space-y-3.5">
-        {weeks.length === 0 && <p className="text-xs text-text-secondary py-2">프로그램 데이터가 없어요.</p>}
+      {/* 주차 2열 그리드, 각 주: 요일=열 / 세트=세로 */}
+      <div className="px-4 pt-3 pb-4 grid grid-cols-2 gap-x-3 gap-y-4">
+        {weeks.length === 0 && <p className="col-span-2 text-xs text-text-secondary py-2">프로그램 데이터가 없어요.</p>}
         {weeks.map(({ week, days: wd }) => (
           <div key={week}>
             <p className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary/70 mb-1.5">Week {week}</p>
-            <div className="flex gap-1.5">
+            <div className="flex gap-1">
               {wd.map((d) => (
                 <DayColumn
                   key={d.day_no}
@@ -151,14 +151,14 @@ function DayColumn({ dayInWeek, setsText, state, onTap }: {
     : 'bg-text-secondary/30'
   const sets = setsText ? setsText.split('·') : []
   return (
-    <button onClick={onTap} className={`w-12 shrink-0 rounded-lg border overflow-hidden transition active:opacity-70 ${tint}`}>
-      <div className="flex items-center justify-center gap-1 py-1">
+    <button onClick={onTap} className={`flex-1 min-w-0 rounded-lg border overflow-hidden transition active:opacity-70 ${tint}`}>
+      <div className="flex items-center justify-center gap-0.5 py-0.5">
         <span className="text-[10px] font-semibold text-text-secondary">D{dayInWeek}</span>
         <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
       </div>
-      <div className="flex flex-col items-center pb-1.5 tabular-nums">
+      <div className="flex flex-col items-center pb-1 tabular-nums">
         {sets.map((s, i) => (
-          <span key={i} className="text-xs leading-5 text-foreground">{s}</span>
+          <span key={i} className="text-[11px] leading-tight text-foreground">{s}</span>
         ))}
       </div>
     </button>
