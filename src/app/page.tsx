@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import WorkoutCalendar from '@/components/home/WorkoutCalendar'
+import ChallengeWidgets from '@/components/home/ChallengeWidgets'
 import { getLoggedInUser } from '@/lib/auth'
 import { getCompletedDatesInRange } from '@/lib/api/workout-logs'
 import { toDateString } from '@/lib/utils'
@@ -66,6 +67,9 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* 도전 중 챌린지 위젯 */}
+      <ChallengeWidgets />
     </div>
   )
 }
