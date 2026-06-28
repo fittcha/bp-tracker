@@ -172,17 +172,26 @@ function DayColumn({ dayInWeek, setsText, state, onTap }: {
     : status === 'fail' ? 'bg-danger'
     : 'bg-text-secondary/30'
   const sets = setsText ? setsText.split('·') : []
+  const md = state?.doneDate ? mdLabel(state.doneDate) : ''
   return (
-    <button onClick={onTap} className={`flex-1 min-w-0 rounded-lg border overflow-hidden transition active:opacity-70 ${tint}`}>
-      <div className="flex items-center justify-center gap-0.5 py-0.5">
-        <span className="text-[10px] font-semibold text-text-secondary">D{dayInWeek}</span>
-        <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      </div>
-      <div className="flex flex-col items-center pb-1 tabular-nums">
+    <button onClick={onTap} className={`flex-1 min-w-0 flex flex-col rounded-lg border overflow-hidden transition active:opacity-70 ${tint}`}>
+      <div className="py-0.5 text-center text-[10px] font-semibold text-text-secondary">D{dayInWeek}</div>
+      <div className="flex-1 flex flex-col items-center pb-1 tabular-nums">
         {sets.map((s, i) => (
           <span key={i} className="text-[11px] leading-tight text-foreground">{s}</span>
         ))}
       </div>
+      {/* 상태 구역: 회색 도트 → 성공/실패 시 색칠 + 날짜 */}
+      <div className="border-t border-border/60 py-1 flex flex-col items-center gap-0.5">
+        <span className={`w-2 h-2 rounded-full ${dot}`} />
+        <span className="text-[9px] leading-none text-text-secondary tabular-nums">{md || ' '}</span>
+      </div>
     </button>
   )
+}
+
+// done_date(YYYY-MM-DD) → 'M/D'
+function mdLabel(s: string): string {
+  const p = s.split('-')
+  return p.length === 3 ? `${Number(p[1])}/${Number(p[2])}` : s
 }
