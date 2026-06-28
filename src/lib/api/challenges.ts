@@ -13,13 +13,17 @@ export interface ChallengeProgram {
   template_key: string
   difficulty_key: string | null
   label: string | null
+  sort_order: number
 }
 
 export interface ChallengeProgramDay {
   id: string
   program_id: string
-  day_no: number
-  target_reps: number
+  day_no: number        // 프로그램 내 1-based 전체 순번
+  week_no: number        // 1-based 주차
+  day_in_week: number    // 주차 내 1-based 일
+  sets_text: string      // 세트/라운드 구성, '·' 구분 (예: "5·4·3·2·1", "17·19·15·15·20+")
+  rest_seconds: number | null  // 세트간 휴식(초). 없으면 null
 }
 
 export interface UserChallenge {
@@ -65,7 +69,7 @@ export async function getProgramsForTemplate(templateKey: string): Promise<Chall
     .from('challenge_programs')
     .select('*')
     .eq('template_key', templateKey)
-    .order('difficulty_key', { ascending: true, nullsFirst: true })
+    .order('sort_order', { ascending: true })
   if (error) {
     if (error.code === MISSING) return []
     throw error

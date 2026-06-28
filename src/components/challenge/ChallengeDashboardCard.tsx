@@ -6,18 +6,13 @@ import { toDateString } from '@/lib/utils'
 import { deriveDayStates, computeStreak, monthlyAttemptCount, type DayState } from '@/lib/challenge/derive'
 import {
   addAttempt, updateAttemptDate, resetChallenge,
-  type ActiveChallenge, type ChallengeTemplate,
+  type ActiveChallenge, type ChallengeTemplate, type ChallengeProgramDay,
 } from '@/lib/api/challenges'
 import DayStatusSheet from './DayStatusSheet'
 
-// 난이도 jsonb → 사람이 읽는 요약 (Task 8 위젯에서도 재사용)
+// 난이도 jsonb → 사람이 읽는 요약 (홈 위젯에서도 재사용). 난이도는 항상 {label} 보유.
 export function formatDifficulty(difficulty: Record<string, unknown>): string {
-  const t = difficulty.type
-  if (t === 'band') return `${String(difficulty.color)}밴드 ${String(difficulty.count)}개`
-  if (t === 'bodyweight') return '맨몸'
-  if (t === 'weighted') return `중량 ${String(difficulty.weight_kg)}kg`
-  if (t === 'range') return String(difficulty.label ?? difficulty.difficulty_key ?? '')
-  return ''
+  return String(difficulty.label ?? difficulty.difficulty_key ?? '')
 }
 
 interface ChallengeDashboardCardProps {
@@ -39,8 +34,20 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
   const name = template?.name ?? challenge.template_key
   const diffLabel = formatDifficulty(challenge.difficulty)
 
+  // 주차별 그룹 (등장 순서 보존, 주차 내 day_in_week 순)
+  const weeks: { week: number; days: ChallengeProgramDay[] }[] = []
+  const byWeek = new Map<number, ChallengeProgramDay[]>()
+  for (const d of [...days].sort((a, b) => a.day_no - b.day_no)) {
+    if (!byWeek.has(d.week_no)) {
+      const arr: ChallengeProgramDay[] = []
+      byWeek.set(d.week_no, arr)
+      weeks.push({ week: d.week_no, days: arr })
+    }
+    byWeek.get(d.week_no)!.push(d)
+  }
+
+  const openDayObj = openDay != null ? (days.find((d) => d.day_no === openDay) ?? null) : null
   const openState: DayState | null = openDay != null ? (dayStates.get(openDay) ?? null) : null
-  const openTarget = openDay != null ? (days.find((d) => d.day_no === openDay)?.target_reps ?? 0) : 0
 
   async function handleLog(result: 'success' | 'fail', doneDate: string) {
     if (openDay == null) return
@@ -77,19 +84,32 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
         </button>
       </div>
 
-      {/* day 그리드 (7개씩) */}
-      <div className="grid grid-cols-7 gap-1.5 p-3">
-        {days.map((d) => (
-          <DayCell key={d.day_no} dayNo={d.day_no} target={d.target_reps}
-            state={dayStates.get(d.day_no) ?? null} onTap={() => setOpenDay(d.day_no)} />
+      {/* 주차별 day 그룹 */}
+      <div className="p-3 space-y-3">
+        {weeks.length === 0 && <p className="text-xs text-text-secondary text-center py-2">프로그램 데이터가 없어요.</p>}
+        {weeks.map(({ week, days: wd }) => (
+          <div key={week}>
+            <p className="text-[11px] font-semibold text-text-secondary mb-1">WEEK {week}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {wd.map((d) => (
+                <DayCell
+                  key={d.day_no}
+                  dayInWeek={d.day_in_week}
+                  state={dayStates.get(d.day_no) ?? null}
+                  onTap={() => setOpenDay(d.day_no)}
+                />
+              ))}
+            </div>
+          </div>
         ))}
-        {days.length === 0 && <p className="col-span-7 text-xs text-text-secondary text-center py-2">프로그램 데이터가 없어요.</p>}
       </div>
 
       <DayStatusSheet
         isOpen={openDay != null}
-        dayNo={openDay ?? 0}
-        targetReps={openTarget}
+        weekNo={openDayObj?.week_no ?? 0}
+        dayInWeek={openDayObj?.day_in_week ?? 0}
+        setsText={openDayObj?.sets_text ?? ''}
+        restSeconds={openDayObj?.rest_seconds ?? null}
         state={openState ? { status: openState.status, doneDate: openState.doneDate, successAttemptId: openState.successAttemptId } : null}
         onClose={() => setOpenDay(null)}
         onLog={handleLog}
@@ -100,9 +120,8 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
 }
 
 // ── day 셀 (내부 서브컴포넌트) ──
-function DayCell({ dayNo, target, state, onTap }: {
-  dayNo: number
-  target: number
+function DayCell({ dayInWeek, state, onTap }: {
+  dayInWeek: number
   state: DayState | null
   onTap: () => void
 }) {
@@ -113,10 +132,9 @@ function DayCell({ dayNo, target, state, onTap }: {
     : 'border-border bg-background text-text-secondary'
   const icon = status === 'success' ? '✓' : status === 'fail' ? '✗' : '·'
   return (
-    <button onClick={onTap} className={`aspect-square rounded-lg border flex flex-col items-center justify-center ${ring}`}>
-      <span className="text-[10px] leading-none opacity-70">D{dayNo}</span>
-      <span className="text-sm font-bold leading-tight">{icon}</span>
-      <span className="text-[10px] leading-none opacity-70">{target}</span>
+    <button onClick={onTap} className={`w-12 h-12 rounded-lg border flex flex-col items-center justify-center ${ring}`}>
+      <span className="text-[10px] leading-none opacity-70">D{dayInWeek}</span>
+      <span className="text-base font-bold leading-tight">{icon}</span>
     </button>
   )
 }
