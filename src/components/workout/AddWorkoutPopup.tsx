@@ -17,15 +17,21 @@ export const WORKOUT_CATEGORIES = ['전신', '가슴', '등', '어깨', '팔', '
 
 interface ExerciseRow {
   id: string
-  section: string
   exercise_name: string
-  sets: string
-  reps: string
-  notes: string
+  reps: string // 횟수/시간
+  notes: string // 메모
+}
+interface SetGroup {
+  id: string
+  setInfo: string // 그룹 헤더 (예: '3 Sets', 'AMRAP 10')
+  rows: ExerciseRow[]
 }
 
 function emptyRow(): ExerciseRow {
-  return { id: crypto.randomUUID(), section: '', exercise_name: '', sets: '', reps: '', notes: '' }
+  return { id: crypto.randomUUID(), exercise_name: '', reps: '', notes: '' }
+}
+function emptyGroup(): SetGroup {
+  return { id: crypto.randomUUID(), setInfo: '', rows: [emptyRow()] }
 }
 
 interface AddWorkoutPopupProps {
@@ -43,12 +49,12 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
   const [selectedCat, setSelectedCat] = useState<string>('전체')
   const [addingId, setAddingId] = useState<string | null>(null)
 
-  // 새 운동 생성/수정 폼
+  // 새 운동 생성/수정 폼 (세트 그룹 빌더)
   const [showCreate, setShowCreate] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [newTitle, setNewTitle] = useState('')
   const [newCategory, setNewCategory] = useState<string>('')
-  const [rows, setRows] = useState<ExerciseRow[]>([emptyRow()])
+  const [groups, setGroups] = useState<SetGroup[]>([emptyGroup()])
   const [submitting, setSubmitting] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
@@ -84,15 +90,58 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
     }
   }
 
-  // ── 동작 행 관리 ──
-  function updateRow(i: number, field: keyof ExerciseRow, value: string) {
-    setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, [field]: value } : r)))
+  // ── 세트 그룹 / 동작 행 관리 ──
+  function updateGroupInfo(gi: number, value: string) {
+    setGroups((prev) => prev.map((g, i) => (i === gi ? { ...g, setInfo: value } : g)))
   }
-  function addRow() {
-    setRows((prev) => [...prev, emptyRow()])
+  function addGroup() {
+    setGroups((prev) => [...prev, emptyGroup()])
   }
-  function removeRow(i: number) {
-    setRows((prev) => (prev.length <= 1 ? prev : prev.filter((_, idx) => idx !== i)))
+  function removeGroup(gi: number) {
+    setGroups((prev) => (prev.length <= 1 ? prev : prev.filter((_, i) => i !== gi)))
+  }
+  function updateRow(gi: number, ri: number, field: keyof ExerciseRow, value: string) {
+    setGroups((prev) =>
+      prev.map((g, i) =>
+        i === gi ? { ...g, rows: g.rows.map((r, j) => (j === ri ? { ...r, [field]: value } : r)) } : g,
+      ),
+    )
+  }
+  function addRow(gi: number) {
+    setGroups((prev) => prev.map((g, i) => (i === gi ? { ...g, rows: [...g.rows, emptyRow()] } : g)))
+  }
+  function removeRow(gi: number, ri: number) {
+    setGroups((prev) =>
+      prev.map((g, i) =>
+        i === gi ? { ...g, rows: g.rows.length <= 1 ? g.rows : g.rows.filter((_, j) => j !== ri) } : g,
+      ),
+    )
+  }
+
+  // 빌더 상태 → 저장용 동작 배열 (그룹 순서대로 set_group 부여, 유효 동작만)
+  function buildExercises(): Omit<WorkoutExercise, 'id' | 'workout_id'>[] {
+    const exercises: Omit<WorkoutExercise, 'id' | 'workout_id'>[] = []
+    let order = 0
+    let groupNo = 0
+    for (const g of groups) {
+      const validRows = g.rows.filter((r) => r.exercise_name.trim())
+      if (validRows.length === 0) continue
+      groupNo++
+      const info = g.setInfo.trim() || null
+      for (const r of validRows) {
+        exercises.push({
+          section: null,
+          exercise_name: r.exercise_name.trim(),
+          sets: null,
+          reps: r.reps.trim() || null,
+          notes: r.notes.trim() || null,
+          sort_order: order++,
+          set_group: groupNo,
+          set_info: info,
+        })
+      }
+    }
+    return exercises
   }
 
   // ── 새 운동 생성 + 담기 (create) / 수정 저장 (edit) ──
@@ -101,34 +150,21 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
       setCreateError('운동 이름을 입력하세요.')
       return
     }
+    const exercises = buildExercises()
+    if (exercises.length === 0) {
+      setCreateError('동작을 하나 이상 입력하세요.')
+      return
+    }
     setSubmitting(true)
     setCreateError(null)
     try {
-      const exercises: Omit<WorkoutExercise, 'id' | 'workout_id'>[] = rows
-        .filter((r) => r.exercise_name.trim())
-        .map(({ section, exercise_name, sets, reps, notes }, i) => ({
-          section: section.trim() || null,
-          exercise_name: exercise_name.trim(),
-          sets: sets.trim() || null,
-          reps: reps.trim() || null,
-          notes: notes.trim() || null,
-          sort_order: i,
-        }))
-
       if (editingId) {
-        // 수정 모드: 업데이트 후 목록 새로고침
         await updatePersonalWorkout(editingId, newTitle.trim(), newCategory || null, exercises)
         const updated = await getPersonalWorkouts(userId)
         setWorkouts(updated)
         resetCreate()
       } else {
-        // 생성 모드: 만들고 담기
-        const w = await createPersonalWorkout(
-          userId,
-          newTitle.trim(),
-          newCategory || null,
-          exercises,
-        )
+        const w = await createPersonalWorkout(userId, newTitle.trim(), newCategory || null, exercises)
         await addWorkoutToDate(userId, date, w.id)
         onAdded()
       }
@@ -143,31 +179,37 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
     setEditingId(null)
     setNewTitle('')
     setNewCategory('')
-    setRows([emptyRow()])
+    setGroups([emptyGroup()])
     setCreateError(null)
+    setSubmitting(false)
   }
 
-  // ── 카드 ⋯ 메뉴 — 수정 ──
+  // ── 카드 ⋯ 메뉴 — 수정 (동작들을 set_group으로 묶어 그룹 복원) ──
   async function handleEditWorkout(w: Workout) {
     setMenuOpenId(null)
     setCreateError(null)
     try {
-      const exercises = await getWorkoutExercises(w.id)
+      const exercises = await getWorkoutExercises(w.id) // sort_order 순
+      const order: number[] = []
+      const byGroup = new Map<number, SetGroup>()
+      for (const ex of exercises) {
+        const gNo = ex.set_group ?? 1
+        if (!byGroup.has(gNo)) {
+          byGroup.set(gNo, { id: crypto.randomUUID(), setInfo: ex.set_info ?? '', rows: [] })
+          order.push(gNo)
+        }
+        byGroup.get(gNo)!.rows.push({
+          id: crypto.randomUUID(),
+          exercise_name: ex.exercise_name,
+          reps: ex.reps ?? '',
+          notes: ex.notes ?? '',
+        })
+      }
+      const loaded = order.map((g) => byGroup.get(g)!)
       setEditingId(w.id)
       setNewTitle(w.title)
       setNewCategory(w.category ?? '')
-      setRows(
-        exercises.length > 0
-          ? exercises.map((ex) => ({
-              id: crypto.randomUUID(),
-              section: ex.section ?? '',
-              exercise_name: ex.exercise_name,
-              sets: ex.sets ?? '',
-              reps: ex.reps ?? '',
-              notes: ex.notes ?? '',
-            }))
-          : [emptyRow()],
-      )
+      setGroups(loaded.length > 0 ? loaded : [emptyGroup()])
       setShowCreate(true)
     } catch (e) {
       setAddError(e instanceof Error ? e.message : '운동 정보를 불러오지 못했습니다.')
@@ -187,6 +229,9 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
     }
   }
 
+  const exInputCls =
+    'min-w-0 border border-border rounded-md px-2 py-1.5 text-sm bg-surface text-foreground placeholder:text-text-secondary/40 outline-none focus:border-accent'
+
   return (
     // 딤 배경
     <div
@@ -195,7 +240,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      {/* 팝업 시트 */}
+      {/* 중앙 모달 */}
       <div className="w-full max-w-lg bg-surface rounded-2xl max-h-[85vh] flex flex-col overflow-hidden">
         {/* 헤더 */}
         <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-border flex-shrink-0">
@@ -223,7 +268,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
 
         {/* 스크롤 영역 */}
         <div className="flex-1 overflow-y-auto" onClick={() => setMenuOpenId(null)}>
-          {/* ── 새 운동 생성/수정 폼 ── */}
+          {/* ── 새 운동 생성/수정 폼 (세트 그룹 빌더) ── */}
           {showCreate && (
             <div className="px-4 pt-4 pb-4 border-b border-border space-y-3">
               <h3 className="text-sm font-semibold text-accent">
@@ -251,77 +296,98 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
                 </select>
               </div>
 
-              {/* 동작 입력 — 한 줄 grid + 테두리 입력칸(탭/입력 쉽게) */}
-              <div className="border border-border rounded-xl overflow-hidden">
-                <div className="grid grid-cols-[1.8fr_0.7fr_0.9fr_1.4fr_auto] gap-1.5 items-center px-2.5 py-1.5 bg-accent-light/50 text-[10px] text-text-secondary font-medium">
-                  <span>동작명</span>
-                  <span>세트</span>
-                  <span>횟수/시간</span>
-                  <span>메모</span>
-                  <span className="w-5" />
-                </div>
-                {rows.map((row, i) => (
-                  <div key={row.id} className="grid grid-cols-[1.8fr_0.7fr_0.9fr_1.4fr_auto] gap-1.5 items-center px-2.5 py-1.5 border-t border-border">
-                    <input
-                      placeholder="벤치프레스"
-                      value={row.exercise_name}
-                      onChange={(e) => updateRow(i, 'exercise_name', e.target.value)}
-                      className="min-w-0 border border-border rounded-md px-2 py-1.5 text-sm bg-surface text-foreground placeholder:text-text-secondary/40 outline-none focus:border-accent"
-                    />
-                    <input
-                      placeholder="3"
-                      value={row.sets}
-                      onChange={(e) => updateRow(i, 'sets', e.target.value)}
-                      className="min-w-0 border border-border rounded-md px-1 py-1.5 text-sm text-center bg-surface text-foreground placeholder:text-text-secondary/40 outline-none focus:border-accent"
-                    />
-                    <input
-                      placeholder="12"
-                      value={row.reps}
-                      onChange={(e) => updateRow(i, 'reps', e.target.value)}
-                      className="min-w-0 border border-border rounded-md px-1 py-1.5 text-sm text-center bg-surface text-foreground placeholder:text-text-secondary/40 outline-none focus:border-accent"
-                    />
-                    <input
-                      placeholder="50lb"
-                      value={row.notes}
-                      onChange={(e) => updateRow(i, 'notes', e.target.value)}
-                      className="min-w-0 border border-border rounded-md px-2 py-1.5 text-sm bg-surface text-foreground placeholder:text-text-secondary/40 outline-none focus:border-accent"
-                    />
-                    {rows.length > 1 ? (
-                      <button
-                        onClick={() => removeRow(i)}
-                        className="w-5 h-5 flex items-center justify-center text-text-secondary/40 hover:text-danger flex-shrink-0"
-                        aria-label="동작 삭제"
+              {/* 세트 그룹들 */}
+              {groups.map((g, gi) => (
+                <div key={g.id}>
+                  {gi > 0 && (
+                    <div className="text-center text-[11px] text-text-secondary/50 italic py-1">– into –</div>
+                  )}
+                  <div className="border border-border rounded-xl overflow-hidden">
+                    {/* 그룹 헤더: 세트 info + 그룹 삭제 */}
+                    <div className="flex items-center gap-2 px-2.5 py-2 bg-accent-light/50 border-b border-border">
+                      <input
+                        placeholder="세트 정보 (예: 3 Sets, AMRAP 10)"
+                        value={g.setInfo}
+                        onChange={(e) => updateGroupInfo(gi, e.target.value)}
+                        className="flex-1 min-w-0 bg-transparent text-xs font-semibold text-accent outline-none placeholder:text-accent/40"
+                      />
+                      {groups.length > 1 && (
+                        <button
+                          onClick={() => removeGroup(gi)}
+                          className="w-5 h-5 flex items-center justify-center text-text-secondary/40 hover:text-danger flex-shrink-0"
+                          aria-label="세트 그룹 삭제"
+                        >
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    {/* 동작 행들 */}
+                    {g.rows.map((row, ri) => (
+                      <div
+                        key={row.id}
+                        className="grid grid-cols-[1.7fr_0.9fr_1.4fr_auto] gap-1.5 items-center px-2.5 py-1.5 border-t border-border"
                       >
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                          <line x1="18" y1="6" x2="6" y2="18" />
-                          <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                      </button>
-                    ) : (
-                      <span className="w-5" />
-                    )}
+                        <input
+                          placeholder="동작명"
+                          value={row.exercise_name}
+                          onChange={(e) => updateRow(gi, ri, 'exercise_name', e.target.value)}
+                          className={exInputCls}
+                        />
+                        <input
+                          placeholder="횟수/시간"
+                          value={row.reps}
+                          onChange={(e) => updateRow(gi, ri, 'reps', e.target.value)}
+                          className={`${exInputCls} text-center`}
+                        />
+                        <input
+                          placeholder="메모"
+                          value={row.notes}
+                          onChange={(e) => updateRow(gi, ri, 'notes', e.target.value)}
+                          className={exInputCls}
+                        />
+                        {g.rows.length > 1 ? (
+                          <button
+                            onClick={() => removeRow(gi, ri)}
+                            className="w-5 h-5 flex items-center justify-center text-text-secondary/40 hover:text-danger flex-shrink-0"
+                            aria-label="동작 삭제"
+                          >
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                              <line x1="18" y1="6" x2="6" y2="18" />
+                              <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                          </button>
+                        ) : (
+                          <span className="w-5" />
+                        )}
+                      </div>
+                    ))}
+                    {/* 그룹에 동작 추가 */}
+                    <button
+                      onClick={() => addRow(gi)}
+                      className="w-full text-[11px] font-medium text-accent/70 hover:text-accent py-1.5 border-t border-border"
+                    >
+                      + 동작 추가
+                    </button>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
 
+              {/* 세트 그룹 추가 */}
               <button
-                onClick={addRow}
-                className="text-[11px] text-accent/60 hover:text-accent transition-colors"
+                onClick={addGroup}
+                className="w-full text-xs font-medium text-accent py-2 rounded-lg border border-dashed border-accent/40 hover:bg-accent/5 transition-colors"
               >
-                + 동작 추가
+                + 세트 추가
               </button>
 
-              {createError && (
-                <p className="text-xs text-danger">{createError}</p>
-              )}
+              {createError && <p className="text-xs text-danger">{createError}</p>}
 
               {/* 액션 버튼 */}
               <div className="flex items-center justify-end gap-2 pb-1">
-                <button
-                  onClick={resetCreate}
-                  disabled={submitting}
-                  className="px-4 py-2 text-sm text-text-secondary rounded-lg"
-                >
+                <button onClick={resetCreate} disabled={submitting} className="px-4 py-2 text-sm text-text-secondary rounded-lg">
                   취소
                 </button>
                 <button
@@ -344,9 +410,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
                     key={cat}
                     onClick={() => setSelectedCat(cat)}
                     className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                      selectedCat === cat
-                        ? 'bg-accent text-white'
-                        : 'bg-accent-light text-accent'
+                      selectedCat === cat ? 'bg-accent text-white' : 'bg-accent-light text-accent'
                     }`}
                   >
                     {cat}
@@ -355,9 +419,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
               </div>
 
               {/* ── 카드 그리드 ── */}
-              {addError && (
-                <p className="px-4 pt-3 text-xs text-danger">{addError}</p>
-              )}
+              {addError && <p className="px-4 pt-3 text-xs text-danger">{addError}</p>}
               {loading ? (
                 <div className="px-4 pb-4 space-y-2">
                   {[1, 2, 3].map((i) => (
@@ -379,28 +441,17 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
               ) : (
                 <div className="px-4 pb-6 grid grid-cols-2 gap-2 pt-1">
                   {filtered.map((w) => (
-                    <div
-                      key={w.id}
-                      className="relative bg-surface border border-border rounded-xl transition-colors"
-                    >
-                      {/* 카드 탭 영역 → 담기 */}
+                    <div key={w.id} className="relative bg-surface border border-border rounded-xl transition-colors">
                       <button
                         onClick={() => handleAddWorkout(w.id)}
                         disabled={addingId === w.id}
                         className="text-left w-full p-3 pr-8 rounded-xl active:bg-accent-light disabled:opacity-60"
                       >
-                        <p className="text-sm font-semibold text-foreground leading-snug line-clamp-2">
-                          {w.title}
-                        </p>
-                        {w.category && (
-                          <p className="text-[11px] text-text-secondary mt-1">{w.category}</p>
-                        )}
-                        {addingId === w.id && (
-                          <p className="text-[11px] text-accent mt-1">담는 중…</p>
-                        )}
+                        <p className="text-sm font-semibold text-foreground leading-snug line-clamp-2">{w.title}</p>
+                        {w.category && <p className="text-[11px] text-text-secondary mt-1">{w.category}</p>}
+                        {addingId === w.id && <p className="text-[11px] text-accent mt-1">담는 중…</p>}
                       </button>
 
-                      {/* ⋯ 메뉴 버튼 */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
@@ -416,7 +467,6 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
                         </svg>
                       </button>
 
-                      {/* ⋯ 드롭다운 */}
                       {menuOpenId === w.id && (
                         <div
                           className="absolute top-8 right-2 z-10 bg-surface border border-border rounded-xl shadow-lg overflow-hidden min-w-[80px]"
