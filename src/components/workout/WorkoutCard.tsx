@@ -153,26 +153,28 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
     sectionMap.get(sec)!.push(log)
   }
 
-  // ── 개인 운동 분기: set_group 단위 그룹핑(없으면 1그룹). 세트info 끌어올리기 안 함. ──
-  // 공용(코치)·시즌1 템플릿(workout 없음 또는 owner_user_id == null)은 아래 섹션 로직 그대로.
-  const isPersonal = !!items[0]?.workout?.owner_user_id
-  const personalGroups: { key: number; setInfo: string | null; rows: WorkoutLogJoined[] }[] = []
-  if (isPersonal) {
-    const pgMap = new Map<number, WorkoutLogJoined[]>()
+  // ── 그룹 렌더: 로그에 set_group이 있으면(개인 + 공용 프로그램) 세트 그룹으로 묶는다. ──
+  // set_group 없으면(레거시 요일반복 공용·시즌1 템플릿) 아래 섹션 로직 그대로.
+  const isPersonal = !!items[0]?.workout?.owner_user_id // 휴지통(그날에서 빼기) 조건용
+  const hasGroups = items.some((l) => l.set_group != null)
+  const groups: { key: number; setInfo: string | null; setLead: string | null; rows: WorkoutLogJoined[] }[] = []
+  if (hasGroups) {
+    const gMap = new Map<number, WorkoutLogJoined[]>()
     for (const log of items) {
       const g = log.set_group ?? 1
-      if (!pgMap.has(g)) {
+      if (!gMap.has(g)) {
         const rows: WorkoutLogJoined[] = []
-        pgMap.set(g, rows)
-        personalGroups.push({ key: g, setInfo: log.set_info ?? null, rows })
+        gMap.set(g, rows)
+        groups.push({ key: g, setInfo: log.set_info ?? null, setLead: log.set_lead ?? null, rows })
       }
-      pgMap.get(g)!.push(log)
+      gMap.get(g)!.push(log)
     }
-    personalGroups.sort((a, b) => a.key - b.key)
+    groups.sort((a, b) => a.key - b.key)
   }
+  const programLabel = items[0]?.workout?.program_label ?? null
 
   // 단일 섹션(레거시 등 제목 없는 카드)이면 그룹명+setInfo를 헤더(체크박스 옆)에 표시
-  const singleSection = !isPersonal && sections.length === 1 ? sections[0] : null
+  const singleSection = !hasGroups && sections.length === 1 ? sections[0] : null
   const headerLabel = singleSection ? deriveGroupLabel(singleSection.rows) : null
   const labelInHeader = !title && !!singleSection
 
@@ -227,7 +229,10 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
           {someDone && !allDone && <div className="w-2 h-0.5 bg-success rounded" />}
         </button>
         {title ? (
-          <span className="text-xs font-medium text-foreground truncate">{title}</span>
+          <div className="flex flex-col min-w-0">
+            {programLabel && <span className="text-[10px] font-medium text-accent/70 truncate">{programLabel}</span>}
+            <span className="text-xs font-medium text-foreground truncate">{title}</span>
+          </div>
         ) : singleSection ? (
           <div className="flex items-baseline gap-2 min-w-0">
             {singleSection.section !== '?' && <span className="text-xs font-medium text-accent shrink-0">{singleSection.section}</span>}
@@ -269,18 +274,24 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
         )}
       </div>
 
-      {/* 개인 운동: 세트 그룹 (– into – 로 연결) · 그 외: 섹션 그룹 */}
-      {isPersonal
-        ? personalGroups.map((g, gi) => (
+      {/* set_group 있으면 세트 그룹(연결자=set_lead) · 그 외 섹션 그룹 */}
+      {hasGroups
+        ? groups.map((g, gi) => (
             <div key={g.key}>
-              {gi > 0 && (
+              {gi > 0 && g.setLead === 'into' && (
                 <div className="px-4 py-1.5 flex items-center gap-2 border-t border-border">
                   <span className="h-px flex-1 bg-border" />
                   <span className="text-[10px] text-text-secondary/50 italic tracking-wide">into</span>
                   <span className="h-px flex-1 bg-border" />
                 </div>
               )}
-              <PersonalGroup
+              {gi > 0 && g.setLead && g.setLead !== 'into' && (
+                <div className="px-4 py-1.5 border-t border-border">
+                  <span className="text-[10px] text-text-secondary/60 italic">{g.setLead}</span>
+                </div>
+              )}
+              {gi > 0 && !g.setLead && <div className="border-t border-border" />}
+              <ExerciseGroup
                 setInfo={g.setInfo}
                 rows={g.rows}
                 weightOpen={weightOpen}
@@ -558,8 +569,8 @@ function SectionGroup({
   )
 }
 
-// ── 개인 운동 세트 그룹 (set_info 헤더 + 동작들; 끌어올리기 없음) ──
-interface PersonalGroupProps {
+// ── 운동 세트 그룹 (set_info 헤더 + 동작들; 끌어올리기 없음) ──
+interface ExerciseGroupProps {
   setInfo: string | null
   rows: WorkoutLogJoined[]
   weightOpen: Record<string, boolean>
@@ -571,7 +582,7 @@ interface PersonalGroupProps {
   onLongPressEnd: (name: string) => void
 }
 
-function PersonalGroup({
+function ExerciseGroup({
   setInfo,
   rows,
   weightOpen,
@@ -581,9 +592,9 @@ function PersonalGroup({
   onUnitToggle,
   onLongPressStart,
   onLongPressEnd,
-}: PersonalGroupProps) {
+}: ExerciseGroupProps) {
   return (
-    <div className="border-t border-border first:border-t-0">
+    <div>
       {/* 그룹 헤더 = set_info (있을 때만) */}
       {setInfo && (
         <div className="px-4 py-1.5 bg-border/50 border-b border-border">
