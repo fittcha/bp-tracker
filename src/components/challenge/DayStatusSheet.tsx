@@ -61,7 +61,7 @@ export default function DayStatusSheet({
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {sets.map((s, i) => (
-                  <span key={i} className="min-w-[2.75rem] text-center px-2.5 py-2 rounded-lg border border-border text-foreground text-base font-medium tabular-nums">
+                  <span key={i} className="min-w-[2.75rem] text-center px-2.5 py-2 rounded-lg border border-accent/40 text-foreground text-base font-medium tabular-nums">
                     {s}
                   </span>
                 ))}
