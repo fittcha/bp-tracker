@@ -251,53 +251,55 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
                 </select>
               </div>
 
-              {/* 동작 입력 — 모바일에서 쉽게 입력하도록 동작별 세로 스택 */}
-              <div className="space-y-2.5">
+              {/* 동작 입력 — 한 줄 grid + 테두리 입력칸(탭/입력 쉽게) */}
+              <div className="border border-border rounded-xl overflow-hidden">
+                <div className="grid grid-cols-[1.8fr_0.7fr_0.9fr_1.4fr_auto] gap-1.5 items-center px-2.5 py-1.5 bg-accent-light/50 text-[10px] text-text-secondary font-medium">
+                  <span>동작명</span>
+                  <span>세트</span>
+                  <span>횟수/시간</span>
+                  <span>메모</span>
+                  <span className="w-5" />
+                </div>
                 {rows.map((row, i) => (
-                  <div key={row.id} className="bg-surface border border-border rounded-xl p-3 space-y-2">
-                    {/* 동작명 (전체폭) + 삭제 */}
-                    <div className="flex items-center gap-2">
-                      <input
-                        placeholder="동작명 (ex: 벤치프레스)"
-                        value={row.exercise_name}
-                        onChange={(e) => updateRow(i, 'exercise_name', e.target.value)}
-                        className="flex-1 min-w-0 border border-border rounded-lg px-2.5 py-2 text-sm bg-surface text-foreground placeholder:text-text-secondary/40 outline-none focus:border-accent"
-                      />
-                      {rows.length > 1 && (
-                        <button
-                          onClick={() => removeRow(i)}
-                          className="w-8 h-8 flex items-center justify-center text-text-secondary/40 hover:text-danger flex-shrink-0"
-                          aria-label="동작 삭제"
-                        >
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                            <line x1="18" y1="6" x2="6" y2="18" />
-                            <line x1="6" y1="6" x2="18" y2="18" />
-                          </svg>
-                        </button>
-                      )}
-                    </div>
-                    {/* 세트 · 횟수/시간 (반반) */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        placeholder="세트 (ex: 3)"
-                        value={row.sets}
-                        onChange={(e) => updateRow(i, 'sets', e.target.value)}
-                        className="w-full border border-border rounded-lg px-2.5 py-2 text-sm bg-surface text-foreground placeholder:text-text-secondary/40 outline-none focus:border-accent"
-                      />
-                      <input
-                        placeholder="횟수/시간 (ex: 12)"
-                        value={row.reps}
-                        onChange={(e) => updateRow(i, 'reps', e.target.value)}
-                        className="w-full border border-border rounded-lg px-2.5 py-2 text-sm bg-surface text-foreground placeholder:text-text-secondary/40 outline-none focus:border-accent"
-                      />
-                    </div>
-                    {/* 메모 (전체폭) */}
+                  <div key={row.id} className="grid grid-cols-[1.8fr_0.7fr_0.9fr_1.4fr_auto] gap-1.5 items-center px-2.5 py-1.5 border-t border-border">
                     <input
-                      placeholder="메모 (ex: 50lb)"
+                      placeholder="벤치프레스"
+                      value={row.exercise_name}
+                      onChange={(e) => updateRow(i, 'exercise_name', e.target.value)}
+                      className="min-w-0 border border-border rounded-md px-2 py-1.5 text-sm bg-surface text-foreground placeholder:text-text-secondary/40 outline-none focus:border-accent"
+                    />
+                    <input
+                      placeholder="3"
+                      value={row.sets}
+                      onChange={(e) => updateRow(i, 'sets', e.target.value)}
+                      className="min-w-0 border border-border rounded-md px-1 py-1.5 text-sm text-center bg-surface text-foreground placeholder:text-text-secondary/40 outline-none focus:border-accent"
+                    />
+                    <input
+                      placeholder="12"
+                      value={row.reps}
+                      onChange={(e) => updateRow(i, 'reps', e.target.value)}
+                      className="min-w-0 border border-border rounded-md px-1 py-1.5 text-sm text-center bg-surface text-foreground placeholder:text-text-secondary/40 outline-none focus:border-accent"
+                    />
+                    <input
+                      placeholder="50lb"
                       value={row.notes}
                       onChange={(e) => updateRow(i, 'notes', e.target.value)}
-                      className="w-full border border-border rounded-lg px-2.5 py-2 text-sm bg-surface text-foreground placeholder:text-text-secondary/40 outline-none focus:border-accent"
+                      className="min-w-0 border border-border rounded-md px-2 py-1.5 text-sm bg-surface text-foreground placeholder:text-text-secondary/40 outline-none focus:border-accent"
                     />
+                    {rows.length > 1 ? (
+                      <button
+                        onClick={() => removeRow(i)}
+                        className="w-5 h-5 flex items-center justify-center text-text-secondary/40 hover:text-danger flex-shrink-0"
+                        aria-label="동작 삭제"
+                      >
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    ) : (
+                      <span className="w-5" />
+                    )}
                   </div>
                 ))}
               </div>
