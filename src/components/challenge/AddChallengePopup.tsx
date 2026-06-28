@@ -75,9 +75,9 @@ export default function AddChallengePopup({ isOpen, onClose, onStarted }: AddCha
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full max-w-lg bg-surface rounded-t-2xl p-6 pb-8 animate-slide-up">
+      <div className="relative w-full max-w-lg bg-surface rounded-2xl p-6 max-h-[85vh] overflow-y-auto animate-slide-up">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold">
             {step === 1 ? '챌린지 선택' : step === 2 ? '난이도 선택' : '훈련 요일'}
