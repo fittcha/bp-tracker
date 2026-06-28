@@ -190,3 +190,26 @@ export async function resetChallenge(userChallengeId: string): Promise<void> {
     .eq('user_challenge_id', userChallengeId)
   if (error) throw error
 }
+
+// 수정: 훈련 요일 + 난이도 메타(밴드/중량). 트랙/변형(program)은 변경하지 않음.
+export async function updateChallenge(userChallengeId: string, p: {
+  trainingWeekdays: number[]
+  difficulty: Record<string, unknown>
+}): Promise<void> {
+  const { error } = await supabase
+    .from('user_challenges')
+    .update({ training_weekdays: p.trainingWeekdays, difficulty: p.difficulty })
+    .eq('id', userChallengeId)
+    .select()
+    .single()
+  if (error) throw error
+}
+
+// 삭제: 인스턴스 + attempts(FK cascade) 전부 제거
+export async function deleteChallenge(userChallengeId: string): Promise<void> {
+  const { error } = await supabase
+    .from('user_challenges')
+    .delete()
+    .eq('id', userChallengeId)
+  if (error) throw error
+}

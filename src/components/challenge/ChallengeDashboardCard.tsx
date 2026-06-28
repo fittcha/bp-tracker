@@ -1,14 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { RotateCcw, Flame } from 'lucide-react'
+import { RotateCcw, Flame, MoreVertical, Pencil, Trash2 } from 'lucide-react'
 import { toDateString } from '@/lib/utils'
 import { deriveDayStates, computeStreak, monthlyAttemptCount, type DayState } from '@/lib/challenge/derive'
 import {
-  addAttempt, updateAttemptDate, resetChallenge,
+  addAttempt, updateAttemptDate, resetChallenge, deleteChallenge,
   type ActiveChallenge, type ChallengeTemplate, type ChallengeProgramDay,
 } from '@/lib/api/challenges'
 import DayStatusSheet from './DayStatusSheet'
+import EditChallengePopup from './EditChallengePopup'
 
 // 난이도 jsonb → 사람이 읽는 요약 (홈 위젯에서도 재사용).
 // 항상 {label} 보유. 풀업 밴디드=bands[], 웨이티드=weight_kg 부가 표시.
@@ -35,6 +36,8 @@ interface ChallengeDashboardCardProps {
 export default function ChallengeDashboardCard({ active, template, onChanged }: ChallengeDashboardCardProps) {
   const { challenge, days, attempts } = active
   const [openDay, setOpenDay] = useState<number | null>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
 
   const dayStates = deriveDayStates(attempts)
   const attemptDates = attempts.map((a) => a.done_date)
@@ -80,9 +83,14 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
     await resetChallenge(challenge.id)
     onChanged()
   }
+  async function handleDelete() {
+    if (!confirm('이 챌린지를 삭제할까요? 모든 기록이 함께 삭제돼요. (되돌릴 수 없어요)')) return
+    await deleteChallenge(challenge.id)
+    onChanged()
+  }
 
   return (
-    <div className="bg-surface border border-border rounded-xl overflow-hidden">
+    <div className="bg-surface border border-border rounded-xl">
       {/* 헤더: 종목 + 난이도 / 스트릭(골드) · 이번 달 / 초기화 */}
       <div className="px-4 py-3.5 border-b border-border flex items-start gap-3">
         <div className="min-w-0 flex-1">
@@ -96,9 +104,27 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
           </div>
           <span className="text-[11px] text-text-secondary mt-0.5 tabular-nums">이번 달 {monthCount}회</span>
         </div>
-        <button onClick={handleReset} className="shrink-0 -mr-1 p-1 text-text-secondary/50 hover:text-text-secondary transition-colors" aria-label="전체 초기화">
-          <RotateCcw size={15} />
-        </button>
+        <div className="relative shrink-0">
+          <button onClick={() => setMenuOpen((o) => !o)} className="-mr-1 p-1 text-text-secondary/50 hover:text-text-secondary transition-colors" aria-label="메뉴">
+            <MoreVertical size={16} />
+          </button>
+          {menuOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+              <div className="absolute right-0 top-full mt-1 z-50 w-36 bg-surface border border-border rounded-xl shadow-lg py-1">
+                <button onClick={() => { setMenuOpen(false); setEditOpen(true) }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-background">
+                  <Pencil size={14} /> 수정
+                </button>
+                <button onClick={() => { setMenuOpen(false); handleReset() }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-background">
+                  <RotateCcw size={14} /> 전체 초기화
+                </button>
+                <button onClick={() => { setMenuOpen(false); handleDelete() }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-danger hover:bg-background">
+                  <Trash2 size={14} /> 삭제
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* 주차 2열 그리드, 각 주: 요일=열 / 세트=세로 */}
@@ -132,6 +158,13 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
         onClose={() => setOpenDay(null)}
         onLog={handleLog}
         onUpdateDate={handleUpdateDate}
+      />
+
+      <EditChallengePopup
+        isOpen={editOpen}
+        challenge={challenge}
+        onClose={() => setEditOpen(false)}
+        onSaved={onChanged}
       />
     </div>
   )
