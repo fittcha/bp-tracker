@@ -100,10 +100,10 @@ where p.template_key = 'pushup' and p.difficulty_key = '11to20';
 
 -- ── 3) 풀업: 변형 4단계 (횟수 동일, 변형만 다름. 시작 시 택1, 상향은 새 인스턴스) ──
 insert into challenge_programs (template_key, difficulty_key, label, sort_order) values
-  ('pullup', 'banded',   '밴디드',      1),
-  ('pullup', 'strict',   '스트릭',      2),
-  ('pullup', 'c2b',      '체스트 투 바', 3),
-  ('pullup', 'weighted', '웨이티드',    4);
+  ('pullup', 'banded',   '밴디드 스트릭 풀업',     1),
+  ('pullup', 'strict',   '스트릭 풀업',           2),
+  ('pullup', 'c2b',      '스트릭 체스트 투 바',    3),
+  ('pullup', 'weighted', '웨이티드 스트릭 풀업',   4);
 
 -- 풀업 day 데이터(4주×5일, R1~R5). 4개 변형 프로그램에 동일 복제(cross join). 휴식 표기 없음(null).
 insert into challenge_program_days (program_id, day_no, week_no, day_in_week, sets_text, rest_seconds)
