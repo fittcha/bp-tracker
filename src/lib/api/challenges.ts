@@ -88,6 +88,7 @@ async function getAttempts(userChallengeId: string): Promise<ChallengeAttempt[]>
     .from('challenge_attempts')
     .select('*')
     .eq('user_challenge_id', userChallengeId)
+    .order('created_at', { ascending: true })
   if (error) throw error
   return (data ?? []) as ChallengeAttempt[]
 }

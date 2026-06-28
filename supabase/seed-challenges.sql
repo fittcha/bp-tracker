@@ -1,4 +1,5 @@
 -- ⚠️ target_reps / 푸쉬업 구간은 임시 샘플. 표 이미지 수령 후 실제 값으로 교체할 것.
+-- ⚠️ 부분 실패 후 재실행 시: 이미 생성된 program 행이 있으면 그 day 행은 CTE가 backfill하지 않음 → 수동 정리 필요.
 insert into challenge_templates (key, name, exercise, difficulty_mode, sort_order) values
   ('pullup', '풀업 챌린지',  '풀업',  'equipment', 1),
   ('pushup', '푸쉬업 챌린지', '푸쉬업', 'range',     2)
