@@ -274,7 +274,7 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
         ? personalGroups.map((g, gi) => (
             <div key={g.key}>
               {gi > 0 && (
-                <div className="px-4 py-1.5 flex items-center gap-2">
+                <div className="px-4 py-1.5 flex items-center gap-2 border-t border-border">
                   <span className="h-px flex-1 bg-border" />
                   <span className="text-[10px] text-text-secondary/50 italic tracking-wide">into</span>
                   <span className="h-px flex-1 bg-border" />
