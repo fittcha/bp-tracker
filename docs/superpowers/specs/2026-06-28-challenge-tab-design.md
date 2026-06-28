@@ -95,18 +95,30 @@ create table user_challenges (
   created_at       timestamptz not null default now()
 );
 
--- day별 진행 상태 (시작 시 프로그램 day마다 1행 생성)
-create table challenge_day_logs (
+-- 도전 시도 이력 (append-only; 도전/재도전 1회 = 1행, 영구 보존)
+create table challenge_attempts (
   id                uuid default gen_random_uuid() primary key,
   user_challenge_id uuid not null references user_challenges(id) on delete cascade,
-  day_no            int  not null,
-  target_reps       int  not null,             -- 시작 시점 표값 스냅샷
-  status            text not null default 'untried',  -- 'untried' | 'success' | 'fail'
-  done_date         date,                      -- 도전한 날 (성공/실패 시 기본 오늘, 수정 가능). untried면 NULL
-  updated_at        timestamptz not null default now(),
-  unique (user_challenge_id, day_no)
+  day_no            int  not null,                       -- 어느 program day를 도전했는지
+  result            text not null,                       -- 'success' | 'fail'
+  done_date         date not null default current_date,  -- 도전한 날 (기본 오늘, 수정 가능)
+  created_at        timestamptz not null default now()
 );
+create index on challenge_attempts (user_challenge_id, day_no);
+create index on challenge_attempts (user_challenge_id, done_date);
 ```
+
+> **모델 핵심**: day별 "현재 상태"를 저장하는 테이블은 **두지 않는다.** 도전/재도전은 모두
+> `challenge_attempts`에 **append-only**로 쌓고(이력 영구 보존), day의 현재 상태·스트릭·횟수는
+> 모두 attempts에서 **파생**한다. 시작 시 day 행을 미리 생성하지 않는다(`user_challenges` 1행만 생성).
+
+**day별 현재 상태 파생 규칙** (특정 `day_no` 기준)
+- `result='success'` attempt 존재 → **성공(잠금)**
+- 없고 `result='fail'` attempt 존재 → **실패(재도전 가능)**
+- 둘 다 없음 → **미도전**
+
+**목표 횟수(`target_reps`)** 는 `challenge_program_days`에서 **live 조회**(스냅샷 미보관). 시드 표는
+관리자(chacha)가 통제하므로 진행 중 변경 위험은 낮다고 가정(§12).
 
 **`difficulty` jsonb 예시**
 - 풀업: `{"type":"band","color":"red","count":2}` · `{"type":"bodyweight"}` · `{"type":"weighted","weight_kg":10}`
@@ -114,32 +126,33 @@ create table challenge_day_logs (
 
 > 밴드 색상 목록·중량 단위·푸쉬업 구간(variant×최대갯수)의 **정확한 값은 표 이미지 수령 후 확정**(§9, §10).
 
-## 5. 상태 머신 (day 단위)
+## 5. 상태 머신 (day 단위 — attempts에서 파생)
 
 ```
-            도전                   재도전
- 미도전 ───────────▶ 성공            (status=fail 일 때만 노출)
-   │                  ▲  │ 성공
-   └──────────────────┘  ▼
-            도전        실패 ◀──────── 재도전
-                          │
-                          └─(다시 성공/실패 선택)
+            도전(성공)                       성공 attempt 존재 → 잠금
+ 미도전 ──────────────────▶ 성공 ───────────────────────────────────┐
+   │                          ▲                                      │
+   │ 도전(실패)               │ 재도전(성공)                          │ done_date 수정만
+   ▼                          │                                      ▼
+ 실패 ◀──────────────────────┘   (실패인 동안 재도전 버튼 노출)        (이력은 영구 보존)
+   └─ 재도전(실패) → 또 실패 attempt append …
 ```
 
-- **미도전(untried)**: 기본. `done_date` = NULL.
-- **도전** 탭 → **성공/실패** 선택. 선택 시 `done_date` = 기본 오늘(수정 가능), `status` 설정.
-- **실패(fail)**: **재도전** 버튼 노출 → 다시 성공/실패 선택(같은 `day_no` 행을 갱신).
-- **성공(success) = 잠금**: 전체 초기화 전까지는 **`done_date` 수정만** 가능(성공 취소 불가).
-- **전체 초기화**(얼럿 컨펌): 해당 인스턴스의 모든 `challenge_day_logs`를 `untried`(+`done_date`=NULL)로 리셋. **인스턴스/난이도/훈련요일은 유지.**
+- **미도전(untried)**: 해당 day에 attempt 없음.
+- **도전** → **성공/실패** 선택 → `challenge_attempts` 1행 **INSERT**(`done_date` 기본 오늘, 수정 가능).
+- **실패(fail)**: **재도전** 버튼 노출 → 또 한 행 **INSERT**(append). **이전 실패 행은 그대로 보존**.
+- **성공(success) = 잠금**: success attempt가 생기면 더 이상 attempt 불가. 전체 초기화 전까지는 그 **success attempt의 `done_date` 수정만** 가능(성공 취소 불가).
+- **전체 초기화**(얼럿 컨펌): 해당 인스턴스의 `challenge_attempts`를 **전부 삭제** → 전 day 미도전. **인스턴스/난이도/훈련요일은 유지.**
 
 > **`done_date` 기본 오늘 + 수정 가능** 의도: 며칠치를 한 번에(몰아서) 기록하는 경우 대비.
+> **재도전 이력 보존**: 실패→성공이 며칠에 걸쳐도 각 시도가 행으로 남아 스트릭 출석·도전 횟수에 모두 반영된다.
 
 ## 6. 계산 (스트릭 · 이번 달 도전 횟수)
 
-인스턴스별로 계산한다. 입력: `training_weekdays`, 그리고 `status != 'untried'` 인 `challenge_day_logs`의 `done_date` 집합.
+인스턴스별로 계산한다. 입력: `training_weekdays`, 그리고 그 인스턴스의 `challenge_attempts` 전체(성공/실패/재도전 모두).
 
 ### 6.1 스트릭 🔥
-- **출석한 날** = `status != 'untried'` 인 day_log의 `done_date` 가 존재하는 캘린더 날짜(성공/실패 무관, "그날 1번이라도 도전").
+- **출석한 날** = `challenge_attempts.done_date` 가 존재하는 캘린더 날짜(성공/실패/재도전 무관, "그날 1번이라도 도전"). 같은 날 여러 도전은 1일 출석으로 묶임.
 - 오늘부터 거꾸로 **훈련요일(`training_weekdays`)에 해당하는 날짜만** 훑으며, 그날 출석이 있으면 +1, 없으면 중단. **비훈련요일은 건너뜀**(증가도 중단도 안 함).
 - **오늘이 훈련요일인데 아직 미출석**이면 스트릭은 끊긴 게 아니라 **유지(살아있음)** — 카운트는 어제까지 기준.
 - 결과: 스트릭 일수 + **살아있음/끊김** 플래그(살아있으면 컬러, 끊기면 회색 — 듀오링고풍).
@@ -151,7 +164,7 @@ create table challenge_day_logs (
 ```
 
 ### 6.2 이번 달 도전 횟수
-- `status != 'untried'` 이고 `done_date` 가 이번 달인 day_log **개수**. (성공+실패 모두 카운트)
+- `done_date` 가 이번 달인 **`challenge_attempts` 행 수**. **성공·실패·재도전을 각각 1회로 카운트**(같은 day를 3번 실패+1번 성공 = 4회). 출석한 "날 수"가 아니라 "도전한 횟수".
 
 > 둘 다 **쿼리/유틸 계산**이며 별도 집계 컬럼을 두지 않는다.
 
@@ -187,7 +200,7 @@ create table challenge_day_logs (
    - 풀업: 밴드(색상+갯수) / 맨몸 / 중량(무게) 택1 → `difficulty` jsonb. **프로그램은 항상 공통**.
    - 푸쉬업: 니/풀 + 최대 가능 갯수 → **구간 자동 결정** → 해당 `program_id`.
 3. **훈련 요일 선택**: 월~일 중 다중 선택, **기본 월~금**(`{1,2,3,4,5}`).
-4. `[시작]` → `user_challenges` 1행 + 프로그램 day마다 `challenge_day_logs` 미도전 생성 → 대시보드 카드 오픈.
+4. `[시작]` → `user_challenges` 1행 생성(day 행 미리 생성 안 함; 전 day는 attempt 없음 = 미도전) → 대시보드 카드 오픈.
 
 ## 8. 홈 위젯 연동
 
@@ -236,12 +249,15 @@ create table challenge_day_logs (
 
 - **API**: `src/lib/api/challenges.ts`
   - `getChallengeTemplates()`, `getProgram(templateKey, difficultyKey)`
-  - `getActiveChallenges(userId)` — 인스턴스 + day_logs(또는 요약) 로딩
-  - `startChallenge({userId, templateKey, difficulty, trainingWeekdays})` — 인스턴스 + day_logs 생성
-  - `setDayStatus({dayLogId, status, doneDate})` · `updateDoneDate(...)`
-  - `resetChallenge(userChallengeId)` — day_logs 전부 미도전
+  - `getActiveChallenges(userId)` — 인스턴스 + program days + attempts 로딩 → day별 상태/스트릭/횟수 파생
+  - `startChallenge({userId, templateKey, difficulty, trainingWeekdays})` — `user_challenges` 1행만 생성(day 행 미리 생성 안 함)
+  - `addAttempt({userChallengeId, dayNo, result, doneDate})` — `challenge_attempts` INSERT(도전·재도전 공통). 단, 해당 day에 success attempt가 이미 있으면 거부(잠금)
+  - `updateAttemptDate({attemptId, doneDate})` — 성공 셀 날짜 수정
+  - `resetChallenge(userChallengeId)` — 그 인스턴스의 `challenge_attempts` 전부 삭제
   - 테이블 미생성(마이그레이션 PENDING) 시 `PGRST205` → 빈 목록 반환(`pr.ts` 패턴 동일)
-- **스트릭/횟수 유틸**: `src/lib/challenge/streak.ts` — `computeStreak(trainingWeekdays, doneDates, today)`, `monthlyCount(...)`. 순수 함수 → 단위 테스트 대상.
+- **상태/스트릭/횟수 유틸**: `src/lib/challenge/derive.ts` — 순수 함수, 단위 테스트 대상
+  - `deriveDayStatus(attemptsByDay)` → day_no별 `untried|fail|success` + 표시용 done_date
+  - `computeStreak(trainingWeekdays, attemptDates, today)` · `monthlyAttemptCount(attempts, month)`
 - **컴포넌트**
   - `src/app/challenge/page.tsx` — 탭(추가 버튼 + 카드 목록 + 빈 상태)
   - `src/components/challenge/ChallengeDashboardCard.tsx` — 인스턴스 1개(헤더 + day 그리드 + ⟳)
@@ -254,13 +270,15 @@ create table challenge_day_logs (
 
 ## 12. 상태 머신 불변식 / 엣지
 
-- 한 인스턴스의 `challenge_day_logs`는 시작 시 program day 수만큼 **고정 생성**(이후 day 추가 없음).
-- **성공 → 미도전/실패로 되돌리기 불가**(전체 초기화로만). UI에서 성공 셀은 날짜 수정만 노출.
+- day 상태·스트릭·횟수는 모두 `challenge_attempts`에서 **파생**. 시작 시 day 행을 미리 만들지 않음.
+- **도전·재도전은 append-only** — 어떤 시도도 삭제·덮어쓰지 않음(이력 영구 보존). 유일한 삭제 경로는 **전체 초기화**(인스턴스의 attempts 전부 삭제).
+- **성공 attempt가 생기면 그 day는 잠금** — 추가 attempt INSERT 거부. UI는 성공 셀에 **날짜 수정만** 노출. 성공 취소 불가(전체 초기화로만).
+- **`target_reps` 는 program에서 live 조회**(스냅샷 미보관). 관리자가 진행 중 표를 바꾸면 표시값이 따라 바뀜 — 시드 안정 가정 하에 허용. (스냅샷이 필요해지면 `user_challenges`에 program 버전 고정 또는 attempt에 target 스냅샷 추가)
 - 동시 여러 active 인스턴스 허용. 같은 챌린지(template)를 난이도 달리해 동시에 둘 수도 있음.
-- **이미 done 한 day를 다른 날 재도전**: 단일 `done_date` 모델이라 이전 도전 날짜가 덮어쓰여, 출석 기록(스트릭/횟수)에서 빠질 수 있음 → §13 열린 결정 1 참고.
+- **시작 day는 항상 `day_no=1`** 부터(중간 시작 없음).
 
-## 13. 열린 결정사항 (사용자 리뷰에서 확정)
+## 13. 결정 완료 (2026-06-28 사용자 확정)
 
-1. **재도전 이력 보존 범위**: 현재는 day당 단일 `done_date`(사용자 멘탈모델·승인된 모델과 일치). *다른 날* 재도전 시 이전 도전일이 덮어써져 스트릭/횟수 출석에서 누락될 수 있다. 같은 날 재도전이나 무재도전 케이스는 정확. **권장: MVP는 단일 `done_date` 유지**, 정밀 출석이 필요하면 추후 append-only `challenge_attempts(user_challenge_id, day_no, result, done_date)` 로그를 추가. → 추가할지 결정 필요.
-2. **이번 달 도전 횟수 정의**: 현재 "이번 달 `done_date`를 가진 day_log 수"(= 이번 달에 처리한 day 수). "출석한 날 수"가 더 직관적이면 distinct date로 변경. → 확정 필요.
-3. **시작 day**: 항상 `day_no=1`부터(중간 시작 없음) 가정. 맞는지 확인.
+1. **재도전 이력 보존** → ✅ append-only `challenge_attempts` 채택. 실패→성공이 며칠에 걸쳐도 각 시도가 스트릭 출석·도전 횟수에 모두 반영(§4.2, §5, §6).
+2. **이번 달 도전 횟수** → ✅ "도전한 횟수"(성공·실패·재도전 각 1회). 출석 "날 수"가 아님(§6.2).
+3. **시작 day** → ✅ 항상 `day_no=1`부터(§12).
