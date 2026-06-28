@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { upsertWorkoutLog, type WorkoutLogJoined } from '@/lib/api/workout-logs'
+import { upsertWorkoutLog, deleteWorkoutLogs, type WorkoutLogJoined } from '@/lib/api/workout-logs'
 
 // 그룹 라벨(섹션 setInfo/세트수) 계산 — 카드 헤더·섹션 라벨 공용
 function deriveGroupLabel(rows: WorkoutLogJoined[]): string | null {
@@ -40,7 +40,7 @@ interface Props {
 //   - custom_sets  : 세트수 / 그룹 "N Sets"
 //   - custom_reps  : 순수 반복수(동작명 앞 prefix·"N세트 × reps" 인라인 소스)
 //   - custom_notes : setInfo(Superset/EMOM/AMRAP 등 그룹 라벨 소스) / 동작별 부가 노트(@/*/Rest…) / '__sep__' 구분자
-export default function WorkoutCard({ title, logs, onExerciseLongPress }: Props) {
+export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPress }: Props) {
   // 낙관적 로컬 상태(autosave 즉시 반영). props 변경 시 동기화.
   const [items, setItems] = useState<WorkoutLogJoined[]>(logs)
   useEffect(() => {
@@ -189,6 +189,22 @@ export default function WorkoutCard({ title, logs, onExerciseLongPress }: Props)
     // 즉시 재조회(onChanged) 하지 않음 — upsert 완료 전 재조회가 낙관적 상태를 되돌리는 레이스 방지
   }
 
+  // 개인 운동 카드 통째로 그날에서 빼기 (운동 정의는 보존, 그날 로그만 삭제)
+  const [removing, setRemoving] = useState(false)
+  async function handleRemoveWorkout() {
+    if (removing) return
+    if (!window.confirm(`"${title}"을(를) 이 날짜에서 뺄까요?\n입력한 기록도 함께 삭제됩니다.`)) return
+    const ids = items.map((l) => l.id).filter((id): id is string => !!id)
+    setRemoving(true)
+    try {
+      await deleteWorkoutLogs(ids)
+      onChanged?.()
+    } catch (e) {
+      setRemoving(false)
+      window.alert(e instanceof Error ? e.message : '삭제에 실패했습니다.')
+    }
+  }
+
   return (
     <div className="bg-surface border border-border rounded-xl overflow-hidden">
       {/* 카드 헤더: 완료 토글 + 운동 제목 + 공용/개인 뱃지 + 메모 토글 */}
@@ -232,6 +248,22 @@ export default function WorkoutCard({ title, logs, onExerciseLongPress }: Props)
               <polyline points="14 2 14 8 20 8" />
               <line x1="16" y1="13" x2="8" y2="13" />
               <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>
+          </button>
+        )}
+        {/* 개인 운동만: 이 날짜에서 빼기 */}
+        {isPersonal && onChanged && (
+          <button
+            onClick={handleRemoveWorkout}
+            disabled={removing}
+            className="w-6 h-6 flex items-center justify-center rounded text-text-secondary/40 hover:text-danger transition-colors disabled:opacity-40"
+            title="이 날짜에서 빼기"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              <line x1="10" y1="11" x2="10" y2="17" />
+              <line x1="14" y1="11" x2="14" y2="17" />
             </svg>
           </button>
         )}

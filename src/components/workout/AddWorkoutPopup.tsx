@@ -219,7 +219,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
   // ── 카드 ⋯ 메뉴 — 보관 ──
   async function handleArchiveWorkout(workoutId: string, title: string) {
     setMenuOpenId(null)
-    if (!window.confirm(`"${title}" 운동을 보관하시겠습니까? 보관된 운동은 목록에서 사라집니다.`)) return
+    if (!window.confirm(`"${title}" 운동을 숨길까요? 숨긴 운동은 목록에서 사라집니다.`)) return
     try {
       await archiveWorkout(workoutId)
       const updated = await getPersonalWorkouts(userId)
@@ -482,7 +482,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
                             onClick={() => handleArchiveWorkout(w.id, w.title)}
                             className="w-full text-left px-3 py-2 text-xs font-medium text-danger hover:bg-accent-light transition-colors"
                           >
-                            보관
+                            숨김
                           </button>
                         </div>
                       )}

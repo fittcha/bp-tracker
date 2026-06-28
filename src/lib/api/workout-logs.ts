@@ -120,6 +120,16 @@ export async function deleteWorkoutLog(id: string) {
   if (error) throw error
 }
 
+// 그날 카드 통째로 빼기: 해당 로그 id들 일괄 삭제. (운동 정의는 보존 — 다음에 다시 담기 가능)
+export async function deleteWorkoutLogs(ids: string[]) {
+  if (ids.length === 0) return
+  const { error } = await supabase
+    .from('workout_logs')
+    .delete()
+    .in('id', ids)
+  if (error) throw error
+}
+
 export async function searchWorkoutLogs(
   query: string,
   userId: string,
