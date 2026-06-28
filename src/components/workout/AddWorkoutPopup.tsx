@@ -190,7 +190,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
   return (
     // 딤 배경
     <div
-      className="fixed inset-0 z-50 flex flex-col justify-end bg-foreground/40"
+      className="fixed inset-0 z-[100] flex flex-col justify-end bg-foreground/40"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
@@ -225,7 +225,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
         <div className="flex-1 overflow-y-auto" onClick={() => setMenuOpenId(null)}>
           {/* ── 새 운동 생성/수정 폼 ── */}
           {showCreate && (
-            <div className="px-4 pt-4 pb-2 border-b border-border space-y-3">
+            <div className="px-4 pt-4 pb-6 border-b border-border space-y-3">
               <h3 className="text-sm font-semibold text-accent">
                 {editingId ? '개인 운동 수정' : '새 개인 운동 만들기'}
               </h3>
