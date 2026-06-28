@@ -27,7 +27,6 @@ export default function DayStatusSheet({
 
   useEffect(() => {
     if (!isOpen) return
-    // 성공이면 그 성공일을, 아니면 오늘을 기본값으로
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setDate(status === 'success' && state?.doneDate ? state.doneDate : toDateString(new Date()))
   }, [isOpen, status, state?.doneDate])
@@ -40,44 +39,36 @@ export default function DayStatusSheet({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-surface rounded-2xl p-6 max-h-[85vh] overflow-y-auto animate-slide-up">
-        <div className="flex items-center justify-between mb-5">
-          <h3 className="text-lg font-bold text-foreground">
-            WEEK {weekNo} <span className="text-text-secondary/50">·</span> DAY {dayInWeek}
+      <div className="relative w-full max-w-sm bg-surface rounded-2xl p-5 max-h-[85vh] overflow-y-auto animate-slide-up">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-bold text-foreground">
+            WEEK {weekNo} <span className="text-text-secondary/40">·</span> DAY {dayInWeek}
           </h3>
           <button onClick={onClose} className="-mr-1 p-1 text-text-secondary/60 hover:text-text-secondary transition-colors" aria-label="닫기"><X size={20} /></button>
         </div>
 
-        <div className="space-y-5">
-          {/* 세트 구성 */}
+        <div className="space-y-4">
+          {/* 세트 구성 — 부드러운 네이비-틴트 칩 */}
           {sets.length > 0 && (
             <div>
-              <div className="flex items-baseline justify-between mb-2">
+              <div className="flex items-center justify-between mb-2">
                 <span className={EYEBROW}>세트 구성</span>
                 {restSeconds != null && (
-                  <span className="inline-flex items-center gap-1 text-xs text-text-secondary">
-                    <Timer size={13} /> 휴식 {restSeconds}초
+                  <span className="inline-flex items-center gap-1 text-[11px] text-text-secondary">
+                    <Timer size={12} /> 휴식 {restSeconds}초
                   </span>
                 )}
               </div>
               <div className="flex flex-wrap gap-1.5">
-                {sets.map((s, i) => {
-                  const amrap = s.includes('+')
-                  return (
-                    <span
-                      key={i}
-                      className={`min-w-[2.75rem] text-center px-2 py-2 rounded-xl text-base font-medium tabular-nums border ${
-                        amrap ? 'bg-foreground/5 text-foreground border-foreground/25' : 'bg-background text-foreground border-border'
-                      }`}
-                    >
-                      {s}
-                    </span>
-                  )
-                })}
+                {sets.map((s, i) => (
+                  <span key={i} className="min-w-[2.75rem] text-center px-2.5 py-2 rounded-xl bg-accent-light text-accent text-base font-medium tabular-nums">
+                    {s}
+                  </span>
+                ))}
               </div>
               {hasAmrap && (
-                <p className="text-[11px] text-text-secondary/70 mt-2">
-                  <span className="text-foreground font-bold">+</span> 가능한 만큼 (AMRAP)
+                <p className="text-[11px] text-text-secondary mt-2">
+                  <span className="font-bold text-foreground">+</span> 가능한 만큼 (AMRAP)
                 </p>
               )}
             </div>
@@ -90,7 +81,7 @@ export default function DayStatusSheet({
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:border-accent"
+              className="w-full px-3.5 py-2 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:border-accent"
             />
           </div>
 
