@@ -66,7 +66,7 @@ export default function DayStatusSheet({
                   return (
                     <span
                       key={i}
-                      className={`min-w-[2.75rem] text-center px-2 py-2 rounded-xl text-base font-bold tabular-nums border ${
+                      className={`min-w-[2.75rem] text-center px-2 py-2 rounded-xl text-base font-medium tabular-nums border ${
                         amrap ? 'bg-foreground/5 text-foreground border-foreground/25' : 'bg-background text-foreground border-border'
                       }`}
                     >
