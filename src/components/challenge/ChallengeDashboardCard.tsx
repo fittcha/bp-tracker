@@ -57,6 +57,10 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
     byWeek.get(d.week_no)!.push(d)
   }
 
+  // 주 블록 그리드 열 수: 요일 적은 종목(푸쉬업 3일)=3열, 많으면(풀업 5일)=2열
+  const daysPerWeek = weeks.reduce((m, w) => Math.max(m, w.days.length), 0)
+  const gridCls = daysPerWeek <= 3 ? 'grid-cols-3 gap-x-2' : 'grid-cols-2 gap-x-3'
+
   const openDayObj = openDay != null ? (days.find((d) => d.day_no === openDay) ?? null) : null
   const openState: DayState | null = openDay != null ? (dayStates.get(openDay) ?? null) : null
 
@@ -98,8 +102,8 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
       </div>
 
       {/* 주차 2열 그리드, 각 주: 요일=열 / 세트=세로 */}
-      <div className="px-4 pt-3 pb-4 grid grid-cols-2 gap-x-3 gap-y-4">
-        {weeks.length === 0 && <p className="col-span-2 text-xs text-text-secondary py-2">프로그램 데이터가 없어요.</p>}
+      <div className={`px-4 pt-3 pb-4 grid ${gridCls} gap-y-4`}>
+        {weeks.length === 0 && <p className="col-span-full text-xs text-text-secondary py-2">프로그램 데이터가 없어요.</p>}
         {weeks.map(({ week, days: wd }) => (
           <div key={week}>
             <p className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary/70 mb-1.5">Week {week}</p>
