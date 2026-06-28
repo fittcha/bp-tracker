@@ -173,6 +173,8 @@ export async function updateAttemptDate(attemptId: string, doneDate: string): Pr
     .from('challenge_attempts')
     .update({ done_date: doneDate })
     .eq('id', attemptId)
+    .select()
+    .single()
   if (error) throw error
 }
 
