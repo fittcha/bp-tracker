@@ -49,7 +49,8 @@ export default function DayStatusSheet({ isOpen, dayNo, targetReps, state, onClo
               <p className="text-sm text-success font-medium">✓ 성공 완료 (날짜만 수정 가능)</p>
               <button
                 onClick={() => state?.successAttemptId && onUpdateDate(state.successAttemptId, date)}
-                className="w-full py-2.5 rounded-lg bg-accent text-white font-medium">
+                disabled={!state?.successAttemptId}
+                className="w-full py-2.5 rounded-lg bg-accent text-white font-medium disabled:opacity-50">
                 날짜 저장
               </button>
             </>
