@@ -20,6 +20,13 @@ describe('deriveDayStates', () => {
     ])
     expect(m.get(2)).toEqual({ day_no: 2, status: 'fail', doneDate: '2026-06-04', successAttemptId: null })
   })
+  it('success가 먼저 와도 잠금 유지 (이후 fail 무시)', () => {
+    const m = deriveDayStates([
+      { id: 'b', day_no: 1, result: 'success', done_date: '2026-06-03' },
+      { id: 'c', day_no: 1, result: 'fail', done_date: '2026-06-05' },
+    ])
+    expect(m.get(1)).toEqual({ day_no: 1, status: 'success', doneDate: '2026-06-03', successAttemptId: 'b' })
+  })
 })
 
 describe('computeStreak (1=월..7=일)', () => {
@@ -43,6 +50,13 @@ describe('computeStreak (1=월..7=일)', () => {
   it('같은 날 여러 attempt는 1일로 묶임', () => {
     const dates = ['2026-06-23', '2026-06-23', '2026-06-24']
     expect(computeStreak(MONFRI, dates, '2026-06-24')).toEqual({ count: 2, alive: true })
+  })
+  it('훈련요일이 없으면 0/끊김', () => {
+    expect(computeStreak([], ['2026-06-24'], '2026-06-24')).toEqual({ count: 0, alive: false })
+  })
+  it('오늘이 비훈련요일(토)이어도 평일 연속이 유지됨', () => {
+    const dates = ['2026-06-22', '2026-06-23', '2026-06-24', '2026-06-25', '2026-06-26'] // 월~금
+    expect(computeStreak(MONFRI, dates, '2026-06-27')).toEqual({ count: 5, alive: true }) // 27=토(비훈련)
   })
 })
 
