@@ -32,8 +32,8 @@ export default function ChallengePage() {
     <div className="flex flex-col gap-4">
       <button
         onClick={() => setAddOpen(true)}
-        className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl border border-dashed border-accent text-accent font-medium">
-        <Plus size={18} /> 챌린지 추가
+        className="self-center inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-accent/40 text-accent text-sm font-medium hover:bg-accent/5 transition-colors">
+        <Plus size={16} /> 챌린지 추가
       </button>
 
       {loading ? (

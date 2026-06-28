@@ -17,8 +17,8 @@ export function formatDifficulty(difficulty: Record<string, unknown>): string {
   const dk = difficulty.difficulty_key
   if (dk === 'banded' && Array.isArray(difficulty.bands) && difficulty.bands.length > 0) {
     const bands = difficulty.bands as Array<{ color?: unknown; count?: unknown }>
-    const parts = bands.map((b) => `${String(b.color)} ${String(b.count)}개`).join(', ')
-    return `${label} (${parts})`
+    const parts = bands.map((b) => `${String(b.color)} ${String(b.count)}`).join(' · ')
+    return `${label} ${parts}`
   }
   if (dk === 'weighted' && difficulty.weight_kg != null && difficulty.weight_kg !== 0) {
     return `${label} +${String(difficulty.weight_kg)}kg`
@@ -79,28 +79,30 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
 
   return (
     <div className="bg-surface border border-border rounded-xl overflow-hidden">
-      {/* 헤더 */}
-      <div className="px-4 py-3 bg-background border-b border-border flex items-center gap-2">
+      {/* 헤더: 종목 + 난이도 / 스트릭(골드) · 이번 달 / 초기화 */}
+      <div className="px-4 py-3.5 border-b border-border flex items-start gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-foreground truncate">{name}</p>
-          {diffLabel && <p className="text-xs text-text-secondary truncate">{diffLabel}</p>}
+          <p className="text-base font-bold text-foreground leading-tight">{name}</p>
+          {diffLabel && <p className="text-xs text-text-secondary mt-0.5 truncate">{diffLabel}</p>}
         </div>
-        <div className="flex items-center gap-1 shrink-0">
-          <Flame size={16} className={streak.alive ? 'text-accent-pop' : 'text-text-secondary'} />
-          <span className={`text-sm font-bold ${streak.alive ? 'text-accent-pop' : 'text-text-secondary'}`}>{streak.count}</span>
+        <div className="flex flex-col items-end shrink-0">
+          <div className="flex items-center gap-1">
+            <Flame size={17} className={streak.alive ? 'text-accent-pop' : 'text-text-secondary/40'} />
+            <span className={`text-base font-bold tabular-nums ${streak.alive ? 'text-accent-pop' : 'text-text-secondary'}`}>{streak.count}</span>
+          </div>
+          <span className="text-[11px] text-text-secondary mt-0.5 tabular-nums">이번 달 {monthCount}회</span>
         </div>
-        <span className="text-xs text-text-secondary shrink-0">이번 달 {monthCount}회</span>
-        <button onClick={handleReset} className="p-1 text-text-secondary shrink-0" aria-label="전체 초기화">
-          <RotateCcw size={16} />
+        <button onClick={handleReset} className="shrink-0 -mr-1 p-1 text-text-secondary/50 hover:text-text-secondary transition-colors" aria-label="전체 초기화">
+          <RotateCcw size={15} />
         </button>
       </div>
 
-      {/* 주차별 day 그룹 */}
-      <div className="p-3 space-y-3">
-        {weeks.length === 0 && <p className="text-xs text-text-secondary text-center py-2">프로그램 데이터가 없어요.</p>}
+      {/* 주차별 트레이닝 표: 요일=열(내용폭), 세트=세로 */}
+      <div className="px-4 pt-3 pb-4 space-y-3.5">
+        {weeks.length === 0 && <p className="text-xs text-text-secondary py-2">프로그램 데이터가 없어요.</p>}
         {weeks.map(({ week, days: wd }) => (
           <div key={week}>
-            <p className="text-[11px] font-semibold text-text-secondary mb-1">WEEK {week}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary/70 mb-1.5">Week {week}</p>
             <div className="flex gap-1.5">
               {wd.map((d) => (
                 <DayColumn
@@ -131,7 +133,7 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
   )
 }
 
-// ── day 칼럼 (내부 서브컴포넌트): 헤더(D라벨+상태) + 세트 세로 나열. 요일=열, 세트=행 매트릭스. ──
+// ── day 칼럼: 헤더(D + 상태 점) + 세트 세로. 내용폭 고정(w-12), stretch 안 함. ──
 function DayColumn({ dayInWeek, setsText, state, onTap }: {
   dayInWeek: number
   setsText: string
@@ -139,22 +141,24 @@ function DayColumn({ dayInWeek, setsText, state, onTap }: {
   onTap: () => void
 }) {
   const status = state?.status ?? 'untried'
-  const box =
-    status === 'success' ? 'border-success bg-success/10'
-    : status === 'fail' ? 'border-danger bg-danger/10'
+  const tint =
+    status === 'success' ? 'border-success/40 bg-success/5'
+    : status === 'fail' ? 'border-danger/40 bg-danger/5'
     : 'border-border bg-background'
-  const iconCls = status === 'success' ? 'text-success' : status === 'fail' ? 'text-danger' : 'text-text-secondary'
-  const icon = status === 'success' ? '✓' : status === 'fail' ? '✗' : '·'
+  const dot =
+    status === 'success' ? 'bg-success'
+    : status === 'fail' ? 'bg-danger'
+    : 'bg-text-secondary/30'
   const sets = setsText ? setsText.split('·') : []
   return (
-    <button onClick={onTap} className={`flex-1 min-w-0 rounded-lg border overflow-hidden ${box}`}>
-      <div className="px-1 py-1 border-b border-border flex items-center justify-center gap-1">
-        <span className="text-[11px] font-semibold text-text-secondary">D{dayInWeek}</span>
-        <span className={`text-xs font-bold ${iconCls}`}>{icon}</span>
+    <button onClick={onTap} className={`w-12 shrink-0 rounded-lg border overflow-hidden transition active:opacity-70 ${tint}`}>
+      <div className="flex items-center justify-center gap-1 py-1">
+        <span className="text-[10px] font-semibold text-text-secondary">D{dayInWeek}</span>
+        <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
       </div>
-      <div className="px-1 py-1.5 flex flex-col items-center gap-0.5">
+      <div className="flex flex-col items-center pb-1.5 tabular-nums">
         {sets.map((s, i) => (
-          <span key={i} className="text-xs leading-tight text-foreground">{s}</span>
+          <span key={i} className="text-xs leading-5 text-foreground">{s}</span>
         ))}
       </div>
     </button>

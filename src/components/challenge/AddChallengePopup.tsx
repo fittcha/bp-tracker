@@ -133,13 +133,13 @@ export default function AddChallengePopup({ isOpen, onClose, onStarted }: AddCha
           <div className="space-y-3">
             <p className="text-sm text-text-secondary">난이도를 골라주세요.</p>
             {programs.length === 0 && <p className="text-sm text-text-secondary">난이도 프로그램이 없어요.</p>}
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-wrap gap-2">
               {programs.map((p) => (
                 <button
                   key={p.id}
                   type="button"
                   onClick={() => setProgramId(p.id)}
-                  className={`py-2.5 px-3 rounded-lg border text-sm font-medium text-foreground ${programId === p.id ? 'border-accent bg-accent/10' : 'border-border bg-background'}`}
+                  className={`px-3.5 py-2 rounded-full border text-sm font-medium transition ${programId === p.id ? 'border-accent bg-accent text-white' : 'border-border bg-background text-foreground'}`}
                 >
                   {p.label ?? p.difficulty_key}
                 </button>
@@ -158,7 +158,7 @@ export default function AddChallengePopup({ isOpen, onClose, onStarted }: AddCha
                       <button
                         type="button"
                         onClick={() => toggleBand(color)}
-                        className={`w-16 px-3 py-1.5 rounded-lg text-sm border ${on ? 'bg-accent text-white border-accent' : 'bg-background border-border text-foreground'}`}
+                        className={`px-3.5 py-1.5 rounded-full text-sm border ${on ? 'bg-accent text-white border-accent' : 'bg-background border-border text-foreground'}`}
                       >
                         {color}
                       </button>
