@@ -75,7 +75,7 @@ export default function AddChallengePopup({ isOpen, onClose, onStarted }: AddCha
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="relative w-full max-w-lg bg-surface rounded-t-2xl p-6 pb-8 animate-slide-up">
         <div className="flex items-center justify-between mb-4">
