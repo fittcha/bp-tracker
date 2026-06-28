@@ -42,7 +42,7 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
   const streak = computeStreak(challenge.training_weekdays, attemptDates, today)
   const monthCount = monthlyAttemptCount(attemptDates, today.slice(0, 7))
 
-  const name = template?.name ?? challenge.template_key
+  const name = template?.exercise ?? template?.name ?? challenge.template_key
   const diffLabel = formatDifficulty(challenge.difficulty)
 
   // 주차별 그룹 (등장 순서 보존, 주차 내 day_in_week 순)

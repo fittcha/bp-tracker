@@ -120,10 +120,9 @@ export default function AddChallengePopup({ isOpen, onClose, onStarted }: AddCha
               <button
                 key={t.key}
                 onClick={() => pickTemplate(t)}
-                className="p-4 rounded-xl border border-border bg-background text-left hover:border-accent"
+                className="py-5 rounded-xl border border-border bg-background font-semibold text-foreground hover:border-accent"
               >
-                <p className="font-semibold text-foreground">{t.name}</p>
-                <p className="text-xs text-text-secondary mt-1">{t.exercise}</p>
+                {t.exercise}
               </button>
             ))}
           </div>
@@ -132,18 +131,20 @@ export default function AddChallengePopup({ isOpen, onClose, onStarted }: AddCha
         {/* Step 2: 난이도(프로그램) 선택 + 밴드/중량 추가 구성 */}
         {step === 2 && (
           <div className="space-y-3">
-            <p className="text-sm text-text-secondary">난이도(최대 가능 개수 / 변형)를 골라주세요.</p>
+            <p className="text-sm text-text-secondary">난이도를 골라주세요.</p>
             {programs.length === 0 && <p className="text-sm text-text-secondary">난이도 프로그램이 없어요.</p>}
-            {programs.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => setProgramId(p.id)}
-                className={`w-full p-3 rounded-lg border text-left ${programId === p.id ? 'border-accent bg-accent/10' : 'border-border bg-background'}`}
-              >
-                <span className="text-sm font-medium text-foreground">{p.label ?? p.difficulty_key}</span>
-              </button>
-            ))}
+            <div className="grid grid-cols-2 gap-2">
+              {programs.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setProgramId(p.id)}
+                  className={`py-2.5 px-3 rounded-lg border text-sm font-medium text-foreground ${programId === p.id ? 'border-accent bg-accent/10' : 'border-border bg-background'}`}
+                >
+                  {p.label ?? p.difficulty_key}
+                </button>
+              ))}
+            </div>
 
             {/* 밴디드: 밴드 종류(복수) + 각 갯수 */}
             {selProg?.difficulty_key === 'banded' && (
