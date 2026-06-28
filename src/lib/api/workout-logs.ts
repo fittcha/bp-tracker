@@ -19,6 +19,7 @@ export interface WorkoutLog {
   custom_notes: string | null
   set_group?: number | null
   set_info?: string | null
+  set_lead?: string | null
 }
 
 export async function getWorkoutLogs(date: string, userId: string) {
@@ -154,7 +155,7 @@ export async function searchWorkoutLogs(
 }
 
 export type WorkoutLogJoined = WorkoutLog & {
-  workout?: { workout_id: string; title: string; owner_user_id: string | null } | null
+  workout?: { workout_id: string; title: string; owner_user_id: string | null; program_label: string | null } | null
 }
 
 export async function getWorkoutLogsWithWorkout(
@@ -164,8 +165,8 @@ export async function getWorkoutLogsWithWorkout(
   const { data, error } = await supabase
     .from('workout_logs')
     .select(
-      'id, user_id, date, template_id, workout_exercise_id, is_custom, exercise_name, section, completed, weight_lb, weight_unit, memo, custom_sets, custom_reps, custom_notes, set_group, set_info, ' +
-        'workout_exercises ( workout_id, workouts ( title, owner_user_id ) ), ' +
+      'id, user_id, date, template_id, workout_exercise_id, is_custom, exercise_name, section, completed, weight_lb, weight_unit, memo, custom_sets, custom_reps, custom_notes, set_group, set_info, set_lead, ' +
+        'workout_exercises ( workout_id, workouts ( title, owner_user_id, program_label ) ), ' +
         'workout_templates ( sets, reps, notes )',
     )
     .eq('date', date)
@@ -173,7 +174,7 @@ export async function getWorkoutLogsWithWorkout(
   if (error) throw error
   return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) => {
     const we = row.workout_exercises as
-      | { workout_id: string; workouts?: { title: string; owner_user_id: string | null } | null }
+      | { workout_id: string; workouts?: { title: string; owner_user_id: string | null; program_label: string | null } | null }
       | null
     const tmpl = row.workout_templates as { sets: string | null; reps: string | null; notes: string | null } | null
     const { workout_exercises, workout_templates, ...rest } = row
@@ -187,7 +188,7 @@ export async function getWorkoutLogsWithWorkout(
       custom_reps: base.custom_reps || tmpl?.reps || null,
       custom_notes: base.custom_notes || tmpl?.notes || null,
       workout: we
-        ? { workout_id: we.workout_id, title: we.workouts?.title ?? '', owner_user_id: we.workouts?.owner_user_id ?? null }
+        ? { workout_id: we.workout_id, title: we.workouts?.title ?? '', owner_user_id: we.workouts?.owner_user_id ?? null, program_label: we.workouts?.program_label ?? null }
         : null,
     }
   })
@@ -216,6 +217,7 @@ export async function addWorkoutToDate(
     custom_notes: ex.notes,
     set_group: ex.set_group ?? 1,
     set_info: ex.set_info ?? null,
+    set_lead: ex.set_lead ?? null,
   }))
   if (rows.length === 0) return []
   return batchInsertWorkoutLogs(rows)
