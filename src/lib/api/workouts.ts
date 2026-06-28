@@ -22,6 +22,8 @@ export interface WorkoutExercise {
   reps: string | null
   notes: string | null
   sort_order: number
+  set_group?: number | null  // 개인운동 세트 그룹 순서(1-based)
+  set_info?: string | null   // 그룹 헤더(예: '3 Sets')
 }
 
 // 추가 팝업용: 본인 개인 운동만(공용 제외). 카테고리→sort_order 순. 공용은 요일 자동 제공이라 여기 없음.

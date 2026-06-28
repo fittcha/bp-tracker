@@ -153,8 +153,26 @@ export default function WorkoutCard({ title, logs, onExerciseLongPress }: Props)
     sectionMap.get(sec)!.push(log)
   }
 
+  // ── 개인 운동 분기: set_group 단위 그룹핑(없으면 1그룹). 세트info 끌어올리기 안 함. ──
+  // 공용(코치)·시즌1 템플릿(workout 없음 또는 owner_user_id == null)은 아래 섹션 로직 그대로.
+  const isPersonal = !!items[0]?.workout?.owner_user_id
+  const personalGroups: { key: number; setInfo: string | null; rows: WorkoutLogJoined[] }[] = []
+  if (isPersonal) {
+    const pgMap = new Map<number, WorkoutLogJoined[]>()
+    for (const log of items) {
+      const g = log.set_group ?? 1
+      if (!pgMap.has(g)) {
+        const rows: WorkoutLogJoined[] = []
+        pgMap.set(g, rows)
+        personalGroups.push({ key: g, setInfo: log.set_info ?? null, rows })
+      }
+      pgMap.get(g)!.push(log)
+    }
+    personalGroups.sort((a, b) => a.key - b.key)
+  }
+
   // 단일 섹션(레거시 등 제목 없는 카드)이면 그룹명+setInfo를 헤더(체크박스 옆)에 표시
-  const singleSection = sections.length === 1 ? sections[0] : null
+  const singleSection = !isPersonal && sections.length === 1 ? sections[0] : null
   const headerLabel = singleSection ? deriveGroupLabel(singleSection.rows) : null
   const labelInHeader = !title && !!singleSection
 
@@ -219,22 +237,45 @@ export default function WorkoutCard({ title, logs, onExerciseLongPress }: Props)
         )}
       </div>
 
-      {/* 섹션 그룹들 */}
-      {sections.map(({ section, rows }) => (
-        <SectionGroup
-          key={section}
-          section={section}
-          rows={rows}
-          inHeader={labelInHeader}
-          weightOpen={weightOpen}
-          onToggleComplete={handleToggleComplete}
-          onToggleWeight={toggleWeightInput}
-          onWeightChange={handleWeightChange}
-          onUnitToggle={handleUnitToggle}
-          onLongPressStart={handleLongPressStart}
-          onLongPressEnd={handleLongPressEnd}
-        />
-      ))}
+      {/* 개인 운동: 세트 그룹 (– into – 로 연결) · 그 외: 섹션 그룹 */}
+      {isPersonal
+        ? personalGroups.map((g, gi) => (
+            <div key={g.key}>
+              {gi > 0 && (
+                <div className="px-4 py-1.5 flex items-center gap-2 bg-background/40">
+                  <span className="h-px flex-1 bg-border" />
+                  <span className="text-[10px] text-text-secondary/60 italic tracking-wide">into</span>
+                  <span className="h-px flex-1 bg-border" />
+                </div>
+              )}
+              <PersonalGroup
+                setInfo={g.setInfo}
+                rows={g.rows}
+                weightOpen={weightOpen}
+                onToggleComplete={handleToggleComplete}
+                onToggleWeight={toggleWeightInput}
+                onWeightChange={handleWeightChange}
+                onUnitToggle={handleUnitToggle}
+                onLongPressStart={handleLongPressStart}
+                onLongPressEnd={handleLongPressEnd}
+              />
+            </div>
+          ))
+        : sections.map(({ section, rows }) => (
+            <SectionGroup
+              key={section}
+              section={section}
+              rows={rows}
+              inHeader={labelInHeader}
+              weightOpen={weightOpen}
+              onToggleComplete={handleToggleComplete}
+              onToggleWeight={toggleWeightInput}
+              onWeightChange={handleWeightChange}
+              onUnitToggle={handleUnitToggle}
+              onLongPressStart={handleLongPressStart}
+              onLongPressEnd={handleLongPressEnd}
+            />
+          ))}
 
       {/* 카드 메모 (첫 동작에 귀속) */}
       {firstId && memoOpen[firstId] && (
@@ -476,6 +517,131 @@ function SectionGroup({
                     </>
                   )}
                 </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── 개인 운동 세트 그룹 (set_info 헤더 + 동작들; 끌어올리기 없음) ──
+interface PersonalGroupProps {
+  setInfo: string | null
+  rows: WorkoutLogJoined[]
+  weightOpen: Record<string, boolean>
+  onToggleComplete: (id: string, completed: boolean) => void
+  onToggleWeight: (id: string) => void
+  onWeightChange: (id: string, weight: number | null) => void
+  onUnitToggle: (id: string) => void
+  onLongPressStart: (name: string) => void
+  onLongPressEnd: (name: string) => void
+}
+
+function PersonalGroup({
+  setInfo,
+  rows,
+  weightOpen,
+  onToggleComplete,
+  onToggleWeight,
+  onWeightChange,
+  onUnitToggle,
+  onLongPressStart,
+  onLongPressEnd,
+}: PersonalGroupProps) {
+  return (
+    <div className="border-t border-border first:border-t-0">
+      {/* 그룹 헤더 = set_info (있을 때만) */}
+      {setInfo && (
+        <div className="px-4 py-1.5 bg-background/40 border-b border-border">
+          <span className="text-xs text-text-secondary font-medium">{setInfo}</span>
+        </div>
+      )}
+
+      <div className="divide-y divide-border">
+        {rows.map((log) => {
+          const isWeightOpen = !!(log.id && weightOpen[log.id])
+          const reps = log.custom_reps?.trim()
+          const memo = log.custom_notes?.trim()
+          return (
+            <div key={log.id} className="flex items-center gap-3 px-4 py-3">
+              {/* 완료 체크 */}
+              <button
+                onClick={() => log.id && onToggleComplete(log.id, !log.completed)}
+                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                  log.completed ? 'bg-text-secondary/40 border-transparent text-white' : 'border-border'
+                }`}
+              >
+                {log.completed && (
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
+              </button>
+
+              {/* 동작 정보: 횟수 접두 + 동작명 + 메모 */}
+              <div className="flex-1 min-w-0">
+                <p
+                  className={`text-[13px] font-medium select-none ${log.completed ? 'line-through opacity-50' : ''}`}
+                  onTouchStart={() => onLongPressStart(log.exercise_name)}
+                  onTouchEnd={() => onLongPressEnd(log.exercise_name)}
+                  onTouchCancel={() => onLongPressEnd(log.exercise_name)}
+                  onMouseDown={() => onLongPressStart(log.exercise_name)}
+                  onMouseUp={() => onLongPressEnd(log.exercise_name)}
+                  onMouseLeave={() => onLongPressEnd(log.exercise_name)}
+                  onContextMenu={(e) => e.preventDefault()}
+                >
+                  {reps && <span className="text-text-secondary">{reps} </span>}
+                  {log.exercise_name}
+                </p>
+                {memo && <p className="text-[11px] text-text-secondary italic mt-0.5">{memo}</p>}
+              </div>
+
+              {/* 무게 토글 + 입력 */}
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <button
+                  onClick={() => log.id && onToggleWeight(log.id)}
+                  className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                    isWeightOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/30 bg-surface'
+                  }`}
+                  title="무게 입력"
+                >
+                  {isWeightOpen ? (
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  ) : (
+                    <span className="text-[8px] font-bold text-text-secondary">{log.weight_unit ?? 'lb'}</span>
+                  )}
+                </button>
+                {isWeightOpen && (
+                  <>
+                    <button
+                      onClick={() => log.id && onWeightChange(log.id, Math.max(0, (log.weight_lb ?? 0) - 5))}
+                      className="w-5 h-5 rounded bg-background border border-border flex items-center justify-center text-[10px] font-bold text-text-secondary active:bg-border"
+                    >
+                      −
+                    </button>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      placeholder="0"
+                      value={log.weight_lb ?? ''}
+                      onChange={(e) => log.id && onWeightChange(log.id, e.target.value ? parseFloat(e.target.value) : null)}
+                      className="w-12 border border-border rounded-lg px-1 py-0.5 text-xs text-center bg-background"
+                    />
+                    <button onClick={() => log.id && onUnitToggle(log.id)} className="text-[9px] text-text-secondary active:text-accent">
+                      {log.weight_unit ?? 'lb'}
+                    </button>
+                    <button
+                      onClick={() => log.id && onWeightChange(log.id, (log.weight_lb ?? 0) + 5)}
+                      className="w-5 h-5 rounded bg-background border border-border flex items-center justify-center text-[10px] font-bold text-text-secondary active:bg-border"
+                    >
+                      +
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           )
