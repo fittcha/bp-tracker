@@ -237,12 +237,12 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
                   placeholder="운동 이름"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="flex-1 border border-border rounded-lg px-3 py-2 text-sm bg-surface text-foreground placeholder:text-text-secondary outline-none focus:border-accent"
+                  className="flex-1 min-w-0 border border-border rounded-lg px-3 py-2 text-sm bg-surface text-foreground placeholder:text-text-secondary outline-none focus:border-accent"
                 />
                 <select
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
-                  className="border border-border rounded-lg px-2 py-2 text-sm bg-surface text-foreground outline-none focus:border-accent"
+                  className="shrink-0 border border-border rounded-lg px-2 py-2 text-sm bg-surface text-foreground outline-none focus:border-accent"
                 >
                   <option value="">카테고리</option>
                   {WORKOUT_CATEGORIES.map((c) => (
