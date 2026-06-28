@@ -73,8 +73,8 @@ export default function ChallengeWidgets() {
                   {w.diff && <p className="text-[11px] text-text-secondary truncate mt-0.5">{w.diff}</p>}
                 </div>
                 <div className="flex items-center gap-0.5 shrink-0">
-                  <Flame size={15} className={w.streak.alive ? 'text-accent-pop' : 'text-text-secondary/40'} />
-                  <span className={`text-sm font-bold tabular-nums ${w.streak.alive ? 'text-accent-pop' : 'text-text-secondary'}`}>{w.streak.count}</span>
+                  <Flame size={15} className={w.streak.alive ? 'text-[#EA580C]' : 'text-text-secondary/40'} />
+                  <span className={`text-sm font-bold tabular-nums ${w.streak.alive ? 'text-[#EA580C]' : 'text-text-secondary'}`}>{w.streak.count}</span>
                 </div>
               </div>
 

@@ -84,8 +84,8 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
         </div>
         <div className="flex flex-col items-end shrink-0">
           <div className="flex items-center gap-1">
-            <Flame size={17} className={streak.alive ? 'text-accent-pop' : 'text-text-secondary/40'} />
-            <span className={`text-base font-bold tabular-nums ${streak.alive ? 'text-accent-pop' : 'text-text-secondary'}`}>{streak.count}</span>
+            <Flame size={17} className={streak.alive ? 'text-[#EA580C]' : 'text-text-secondary/40'} />
+            <span className={`text-base font-bold tabular-nums ${streak.alive ? 'text-[#EA580C]' : 'text-text-secondary'}`}>{streak.count}</span>
           </div>
           <span className="text-[11px] text-text-secondary mt-0.5 tabular-nums">이번 달 {monthCount}회</span>
         </div>
@@ -167,10 +167,6 @@ function DayColumn({ dayInWeek, setsText, state, onTap }: {
     status === 'success' ? 'border-success/40 bg-success/5'
     : status === 'fail' ? 'border-danger/40 bg-danger/5'
     : 'border-border bg-background'
-  const dot =
-    status === 'success' ? 'bg-success'
-    : status === 'fail' ? 'bg-danger'
-    : 'bg-text-secondary/30'
   const sets = setsText ? setsText.split('·') : []
   const md = state?.doneDate ? mdLabel(state.doneDate) : ''
   return (
@@ -183,8 +179,12 @@ function DayColumn({ dayInWeek, setsText, state, onTap }: {
       </div>
       {/* 상태 구역: 회색 도트 → 성공/실패 시 색칠 + 날짜 */}
       <div className="border-t border-border/60 py-1 flex flex-col items-center gap-0.5">
-        <span className={`w-2 h-2 rounded-full ${dot}`} />
-        <span className="text-[9px] leading-none text-text-secondary tabular-nums">{md || ' '}</span>
+        <span className={`w-2 h-2 rounded-full ${
+          status === 'success' ? 'bg-success'
+          : status === 'fail' ? 'bg-danger'
+          : 'border border-text-secondary/40'
+        }`} />
+        <span className={`text-[9px] leading-none tabular-nums ${status === 'success' ? 'text-success' : status === 'fail' ? 'text-danger' : 'text-transparent'}`}>{md || ' '}</span>
       </div>
     </button>
   )
