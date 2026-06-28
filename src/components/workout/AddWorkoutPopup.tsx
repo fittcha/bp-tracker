@@ -230,7 +230,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
   }
 
   const exInputCls =
-    'min-w-0 border border-border rounded-md px-2 py-1.5 text-sm bg-surface text-foreground placeholder:text-text-secondary/40 outline-none focus:border-accent'
+    'min-w-0 border border-border rounded-md px-1.5 py-1.5 text-xs bg-surface text-foreground placeholder:text-text-secondary/40 outline-none focus:border-accent'
 
   return (
     // 딤 배경
@@ -306,7 +306,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
                     {/* 그룹 헤더: 세트 info + 그룹 삭제 */}
                     <div className="flex items-center gap-2 px-2.5 py-2 bg-accent-light/50 border-b border-border">
                       <input
-                        placeholder="세트 정보 (예: 3 Sets, AMRAP 10)"
+                        placeholder="세트 정보 입력"
                         value={g.setInfo}
                         onChange={(e) => updateGroupInfo(gi, e.target.value)}
                         className="flex-1 min-w-0 bg-transparent text-xs font-semibold text-accent outline-none placeholder:text-accent/40"
@@ -328,7 +328,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
                     {g.rows.map((row, ri) => (
                       <div
                         key={row.id}
-                        className="grid grid-cols-[1.7fr_0.9fr_1.4fr_auto] gap-1.5 items-center px-2.5 py-1.5 border-t border-border"
+                        className="grid grid-cols-[1.6fr_1fr_1.4fr_auto] gap-1.5 items-center px-2.5 py-1.5 border-t border-border"
                       >
                         <input
                           placeholder="동작명"
@@ -395,7 +395,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
                   disabled={submitting || !newTitle.trim()}
                   className="px-4 py-2 text-sm font-medium bg-accent text-white rounded-lg disabled:opacity-50"
                 >
-                  {submitting ? '저장 중…' : editingId ? '수정 저장' : '만들고 담기'}
+                  {submitting ? '저장 중…' : editingId ? '수정 저장' : '만들기'}
                 </button>
               </div>
             </div>
