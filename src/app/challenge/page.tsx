@@ -30,23 +30,25 @@ export default function ChallengePage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <button
-        onClick={() => setAddOpen(true)}
-        className="self-center inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-accent/40 text-accent text-sm font-medium hover:bg-accent/5 transition-colors">
-        <Plus size={16} /> 챌린지 추가
-      </button>
-
       {loading ? (
         <p className="text-sm text-text-secondary text-center py-12">불러오는 중…</p>
       ) : actives.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <p className="text-base font-semibold text-foreground mb-1">도전 중인 챌린지가 없어요</p>
-          <p className="text-sm text-text-secondary">위 버튼으로 풀업·푸쉬업 챌린지를 시작해보세요.</p>
+          <p className="text-base font-semibold text-foreground mb-1">진행 중인 챌린지가 없어요</p>
+          <p className="text-sm text-text-secondary">아래 버튼으로 풀업·푸쉬업 챌린지를 시작해보세요.</p>
         </div>
       ) : (
         actives.map((a) => (
           <ChallengeDashboardCard key={a.challenge.id} active={a} template={templates[a.challenge.template_key]} onChanged={reload} />
         ))
+      )}
+
+      {!loading && (
+        <button
+          onClick={() => setAddOpen(true)}
+          className="self-center inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-accent/40 text-accent text-sm font-medium hover:bg-accent/5 transition-colors">
+          <Plus size={16} /> 챌린지 추가
+        </button>
       )}
 
       <AddChallengePopup isOpen={addOpen} onClose={() => setAddOpen(false)} onStarted={reload} />
