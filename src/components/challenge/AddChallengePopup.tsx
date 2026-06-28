@@ -48,6 +48,7 @@ export default function AddChallengePopup({ isOpen, onClose, onStarted }: AddCha
     setStep(1); setTemplate(null); setPrograms([]); setProgramId('')
     setEquipType('band'); setBandColor(BAND_COLORS[0]); setBandCount(1); setWeightKg('')
     setWeekdays([1, 2, 3, 4, 5])
+    setSaving(false)
     getChallengeTemplates().then(setTemplates).catch(() => setTemplates([]))
   }, [isOpen])
 
@@ -175,7 +176,8 @@ export default function AddChallengePopup({ isOpen, onClose, onStarted }: AddCha
                   className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-accent" />
               </div>
             )}
-            <button onClick={() => setStep(3)} className="w-full py-2.5 rounded-lg bg-accent text-white font-medium">다음</button>
+            <button onClick={() => setStep(3)} disabled={programs.length === 0}
+              className="w-full py-2.5 rounded-lg bg-accent text-white font-medium disabled:opacity-50">다음</button>
           </div>
         )}
 
