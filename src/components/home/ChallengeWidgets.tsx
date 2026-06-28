@@ -57,7 +57,7 @@ export default function ChallengeWidgets() {
 
   return (
     <div>
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary/70 mb-2">진행 중인 챌린지</p>
+      <p className="text-xs font-semibold text-text-secondary mb-2">진행 중인 챌린지</p>
       <div className="grid grid-cols-2 gap-3">
         {widgets.map((w) => {
           const pct = w.totalDays > 0 ? Math.round((w.doneDays / w.totalDays) * 100) : 0

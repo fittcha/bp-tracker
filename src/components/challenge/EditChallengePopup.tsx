@@ -9,7 +9,7 @@ const WEEKDAYS = [
   { n: 4, label: '목' }, { n: 5, label: '금' }, { n: 6, label: '토' }, { n: 7, label: '일' },
 ]
 const BAND_COLORS = ['Black', 'Purple', 'Pink']
-const EYEBROW = 'text-[11px] font-semibold uppercase tracking-wider text-text-secondary/70'
+const EYEBROW = 'text-[11px] font-semibold text-text-secondary'
 
 interface EditChallengePopupProps {
   isOpen: boolean

@@ -17,7 +17,7 @@ interface DayStatusSheetProps {
   onUpdateDate: (attemptId: string, doneDate: string) => void
 }
 
-const EYEBROW = 'text-[11px] font-semibold uppercase tracking-wider text-text-secondary/70'
+const EYEBROW = 'text-[11px] font-semibold text-text-secondary'
 
 export default function DayStatusSheet({
   isOpen, weekNo, dayInWeek, setsText, restSeconds, state, onClose, onLog, onUpdateDate,
@@ -67,7 +67,7 @@ export default function DayStatusSheet({
                     <span
                       key={i}
                       className={`min-w-[2.75rem] text-center px-2 py-2 rounded-xl text-base font-bold tabular-nums border ${
-                        amrap ? 'bg-accent-pop/10 text-accent-pop border-accent-pop/40' : 'bg-background text-foreground border-border'
+                        amrap ? 'bg-foreground/5 text-foreground border-foreground/25' : 'bg-background text-foreground border-border'
                       }`}
                     >
                       {s}
@@ -77,7 +77,7 @@ export default function DayStatusSheet({
               </div>
               {hasAmrap && (
                 <p className="text-[11px] text-text-secondary/70 mt-2">
-                  <span className="text-accent-pop font-bold">+</span> 가능한 만큼 (AMRAP)
+                  <span className="text-foreground font-bold">+</span> 가능한 만큼 (AMRAP)
                 </p>
               )}
             </div>

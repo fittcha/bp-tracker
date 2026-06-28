@@ -55,7 +55,7 @@ export default function Home() {
       <div className="bg-surface border border-border rounded-xl p-4">
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-xs font-semibold text-text-secondary uppercase tracking-wide mb-1">이번 달 운동</p>
+            <p className="text-xs font-semibold text-text-secondary mb-1">이번 달 운동</p>
             <p className="text-3xl font-bold text-foreground leading-none">
               {monthCount ?? '–'}
               <span className="text-base font-medium text-text-secondary ml-1">일</span>
