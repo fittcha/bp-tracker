@@ -10,9 +10,20 @@ import {
 } from '@/lib/api/challenges'
 import DayStatusSheet from './DayStatusSheet'
 
-// 난이도 jsonb → 사람이 읽는 요약 (홈 위젯에서도 재사용). 난이도는 항상 {label} 보유.
+// 난이도 jsonb → 사람이 읽는 요약 (홈 위젯에서도 재사용).
+// 항상 {label} 보유. 풀업 밴디드=bands[], 웨이티드=weight_kg 부가 표시.
 export function formatDifficulty(difficulty: Record<string, unknown>): string {
-  return String(difficulty.label ?? difficulty.difficulty_key ?? '')
+  const label = String(difficulty.label ?? difficulty.difficulty_key ?? '')
+  const dk = difficulty.difficulty_key
+  if (dk === 'banded' && Array.isArray(difficulty.bands) && difficulty.bands.length > 0) {
+    const bands = difficulty.bands as Array<{ color?: unknown; count?: unknown }>
+    const parts = bands.map((b) => `${String(b.color)} ${String(b.count)}개`).join(', ')
+    return `${label} (${parts})`
+  }
+  if (dk === 'weighted' && difficulty.weight_kg != null && difficulty.weight_kg !== 0) {
+    return `${label} +${String(difficulty.weight_kg)}kg`
+  }
+  return label
 }
 
 interface ChallengeDashboardCardProps {
@@ -90,9 +101,9 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
         {weeks.map(({ week, days: wd }) => (
           <div key={week}>
             <p className="text-[11px] font-semibold text-text-secondary mb-1">WEEK {week}</p>
-            <div className="space-y-1">
+            <div className="flex gap-1.5">
               {wd.map((d) => (
-                <DayRow
+                <DayColumn
                   key={d.day_no}
                   dayInWeek={d.day_in_week}
                   setsText={d.sets_text}
@@ -120,8 +131,8 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
   )
 }
 
-// ── day 행 (내부 서브컴포넌트): D라벨 + 세트 구성(횟수) + 상태 ──
-function DayRow({ dayInWeek, setsText, state, onTap }: {
+// ── day 칼럼 (내부 서브컴포넌트): 헤더(D라벨+상태) + 세트 세로 나열. 요일=열, 세트=행 매트릭스. ──
+function DayColumn({ dayInWeek, setsText, state, onTap }: {
   dayInWeek: number
   setsText: string
   state: DayState | null
@@ -134,11 +145,18 @@ function DayRow({ dayInWeek, setsText, state, onTap }: {
     : 'border-border bg-background'
   const iconCls = status === 'success' ? 'text-success' : status === 'fail' ? 'text-danger' : 'text-text-secondary'
   const icon = status === 'success' ? '✓' : status === 'fail' ? '✗' : '·'
+  const sets = setsText ? setsText.split('·') : []
   return (
-    <button onClick={onTap} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg border ${box}`}>
-      <span className="text-xs font-semibold text-text-secondary w-7 shrink-0 text-left">D{dayInWeek}</span>
-      <span className="flex-1 text-left text-sm font-medium text-foreground">{setsText}</span>
-      <span className={`text-base font-bold shrink-0 ${iconCls}`}>{icon}</span>
+    <button onClick={onTap} className={`flex-1 min-w-0 rounded-lg border overflow-hidden ${box}`}>
+      <div className="px-1 py-1 border-b border-border flex items-center justify-center gap-1">
+        <span className="text-[11px] font-semibold text-text-secondary">D{dayInWeek}</span>
+        <span className={`text-xs font-bold ${iconCls}`}>{icon}</span>
+      </div>
+      <div className="px-1 py-1.5 flex flex-col items-center gap-0.5">
+        {sets.map((s, i) => (
+          <span key={i} className="text-xs leading-tight text-foreground">{s}</span>
+        ))}
+      </div>
     </button>
   )
 }
