@@ -90,11 +90,12 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
         {weeks.map(({ week, days: wd }) => (
           <div key={week}>
             <p className="text-[11px] font-semibold text-text-secondary mb-1">WEEK {week}</p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="space-y-1">
               {wd.map((d) => (
-                <DayCell
+                <DayRow
                   key={d.day_no}
                   dayInWeek={d.day_in_week}
+                  setsText={d.sets_text}
                   state={dayStates.get(d.day_no) ?? null}
                   onTap={() => setOpenDay(d.day_no)}
                 />
@@ -119,22 +120,25 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
   )
 }
 
-// ── day 셀 (내부 서브컴포넌트) ──
-function DayCell({ dayInWeek, state, onTap }: {
+// ── day 행 (내부 서브컴포넌트): D라벨 + 세트 구성(횟수) + 상태 ──
+function DayRow({ dayInWeek, setsText, state, onTap }: {
   dayInWeek: number
+  setsText: string
   state: DayState | null
   onTap: () => void
 }) {
   const status = state?.status ?? 'untried'
-  const ring =
-    status === 'success' ? 'border-success bg-success/10 text-success'
-    : status === 'fail' ? 'border-danger bg-danger/10 text-danger'
-    : 'border-border bg-background text-text-secondary'
+  const box =
+    status === 'success' ? 'border-success bg-success/10'
+    : status === 'fail' ? 'border-danger bg-danger/10'
+    : 'border-border bg-background'
+  const iconCls = status === 'success' ? 'text-success' : status === 'fail' ? 'text-danger' : 'text-text-secondary'
   const icon = status === 'success' ? '✓' : status === 'fail' ? '✗' : '·'
   return (
-    <button onClick={onTap} className={`w-12 h-12 rounded-lg border flex flex-col items-center justify-center ${ring}`}>
-      <span className="text-[10px] leading-none opacity-70">D{dayInWeek}</span>
-      <span className="text-base font-bold leading-tight">{icon}</span>
+    <button onClick={onTap} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg border ${box}`}>
+      <span className="text-xs font-semibold text-text-secondary w-7 shrink-0 text-left">D{dayInWeek}</span>
+      <span className="flex-1 text-left text-sm font-medium text-foreground">{setsText}</span>
+      <span className={`text-base font-bold shrink-0 ${iconCls}`}>{icon}</span>
     </button>
   )
 }
