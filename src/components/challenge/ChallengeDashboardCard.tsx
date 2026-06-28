@@ -84,8 +84,8 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
         </div>
         <div className="flex flex-col items-end shrink-0">
           <div className="flex items-center gap-1">
-            <Flame size={17} className={streak.alive ? 'text-[#EA580C]' : 'text-text-secondary/40'} />
-            <span className={`text-base font-bold tabular-nums ${streak.alive ? 'text-[#EA580C]' : 'text-text-secondary'}`}>{streak.count}</span>
+            <Flame size={17} className={streak.alive ? 'text-[#F97316]' : 'text-text-secondary/40'} />
+            <span className={`text-base font-bold tabular-nums ${streak.alive ? 'text-[#F97316]' : 'text-text-secondary'}`}>{streak.count}</span>
           </div>
           <span className="text-[11px] text-text-secondary mt-0.5 tabular-nums">이번 달 {monthCount}회</span>
         </div>
