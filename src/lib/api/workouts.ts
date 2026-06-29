@@ -69,13 +69,14 @@ export async function getWorkoutsForDate(date: string): Promise<Workout[]> {
 }
 
 export interface CurrentProgram {
-  label: string // 'Strength 8주 · 1주차'
-  currentWeek: number | null
+  name: string                 // 'Strength 8주' (라벨의 ' · ' 앞부분)
+  startDate: string            // 첫 세션 날짜 'YYYY-MM-DD'
   totalWeeks: number | null
+  currentWeek: number | null   // null = 아직 시작 전
+  status: 'upcoming' | 'active' | 'done'
 }
 
-// 홈 배너용: 현재(또는 다가오는) 주차의 공용 프로그램. 오늘 이후 첫 세션 기준,
-// 없으면(종료) 마지막, 프로그램 자체가 없으면 null. 라벨에서 '8주'(전체)·'1주차'(현재) 파싱.
+// 홈 배너용: 활성 공용 프로그램의 진행 상태. 오늘 기준 시작 전/진행 중/완료 + 현재 주차(날짜로 계산).
 export async function getCurrentProgram(today: string): Promise<CurrentProgram | null> {
   const { data, error } = await supabase
     .from('workouts')
@@ -88,9 +89,27 @@ export async function getCurrentProgram(today: string): Promise<CurrentProgram |
   if (error) throw error
   const rows = (data ?? []) as { program_date: string; program_label: string }[]
   if (rows.length === 0) return null
-  const label = (rows.find((r) => r.program_date >= today) ?? rows[rows.length - 1]).program_label
-  const m = label.match(/(\d+)\s*주\s*·\s*(\d+)\s*주차/)
-  return { label, totalWeeks: m ? Number(m[1]) : null, currentWeek: m ? Number(m[2]) : null }
+  const startDate = rows[0].program_date
+  const endDate = rows[rows.length - 1].program_date
+  const firstLabel = rows[0].program_label
+  const name = firstLabel.split(' · ')[0]
+  const totMatch = firstLabel.match(/(\d+)\s*주\s*·/)
+  const totalWeeks = totMatch ? Number(totMatch[1]) : null
+  let status: CurrentProgram['status']
+  let currentWeek: number | null
+  if (today < startDate) {
+    status = 'upcoming'
+    currentWeek = null
+  } else if (today > endDate) {
+    status = 'done'
+    currentWeek = totalWeeks
+  } else {
+    status = 'active'
+    const days = Math.floor((Date.parse(today) - Date.parse(startDate)) / 86_400_000)
+    const wk = Math.floor(days / 7) + 1
+    currentWeek = totalWeeks ? Math.min(wk, totalWeeks) : wk
+  }
+  return { name, startDate, totalWeeks, currentWeek, status }
 }
 
 export async function getWorkoutExercises(workoutId: string): Promise<WorkoutExercise[]> {

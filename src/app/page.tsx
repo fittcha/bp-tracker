@@ -55,28 +55,35 @@ export default function Home() {
       {/* 운동 캘린더 */}
       <WorkoutCalendar />
 
-      {/* 진행 중 프로그램 (공용 날짜기반 프로그램 — 운동 카드 대신 여기 한 곳만) */}
-      {program && (
-        <div className="bg-surface border border-border rounded-xl px-4 py-3">
-          <p className="text-[11px] text-text-secondary mb-1.5">진행 중 프로그램</p>
-          <div className="flex items-baseline justify-between mb-2">
-            <p className="text-sm text-accent">{program.label.split(' · ')[0]}</p>
-            {program.currentWeek != null && program.totalWeeks != null && (
-              <p className="text-xs text-text-secondary">
-                {program.currentWeek}주차 <span className="text-text-secondary/50">/ {program.totalWeeks}주</span>
-              </p>
-            )}
-          </div>
-          {program.currentWeek != null && program.totalWeeks != null && (
-            <div className="h-1.5 rounded-full bg-border overflow-hidden">
-              <div
-                className="h-full bg-accent rounded-full transition-all"
-                style={{ width: `${Math.round((program.currentWeek / program.totalWeeks) * 100)}%` }}
-              />
+      {/* 공용 날짜기반 프로그램 배너 (운동 카드 대신 여기 한 곳만) */}
+      {program &&
+        (() => {
+          const [, sm, sd] = program.startDate.split('-').map(Number)
+          const pct =
+            program.status === 'upcoming'
+              ? 0
+              : program.status === 'done'
+                ? 100
+                : program.currentWeek && program.totalWeeks
+                  ? Math.round((program.currentWeek / program.totalWeeks) * 100)
+                  : 0
+          const eyebrow =
+            program.status === 'upcoming' ? '예정된 프로그램' : program.status === 'done' ? '완료한 프로그램' : '진행 중 프로그램'
+          const right =
+            program.status === 'upcoming' ? `${sm}월 ${sd}일 시작` : program.status === 'done' ? '완료' : `${program.currentWeek}주차`
+          return (
+            <div className="bg-surface border border-border rounded-xl px-4 py-3">
+              <p className="text-[11px] text-text-secondary mb-1.5">{eyebrow}</p>
+              <div className="flex items-baseline justify-between mb-2">
+                <p className="text-sm text-accent">{program.name}</p>
+                <p className="text-xs text-text-secondary">{right}</p>
+              </div>
+              <div className="h-1.5 rounded-full bg-border overflow-hidden">
+                <div className="h-full bg-accent rounded-full transition-all" style={{ width: `${pct}%` }} />
+              </div>
             </div>
-          )}
-        </div>
-      )}
+          )
+        })()}
 
       {/* 운동 통계 */}
       <div className="bg-surface border border-border rounded-xl p-4">
