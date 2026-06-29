@@ -79,7 +79,7 @@ export default function Home() {
                 <p className="text-xs text-text-secondary">{right}</p>
               </div>
               <div className="h-1.5 rounded-full bg-border overflow-hidden">
-                <div className="h-full bg-accent rounded-full transition-all" style={{ width: `${pct}%` }} />
+                <div className="h-full bg-accent-pop rounded-full transition-all" style={{ width: `${pct}%` }} />
               </div>
             </div>
           )
