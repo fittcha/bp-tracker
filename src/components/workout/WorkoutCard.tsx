@@ -171,8 +171,6 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
     }
     groups.sort((a, b) => a.key - b.key)
   }
-  const programLabel = items[0]?.workout?.program_label ?? null
-
   // 단일 섹션(레거시 등 제목 없는 카드)이면 그룹명+setInfo를 헤더(체크박스 옆)에 표시
   const singleSection = !hasGroups && sections.length === 1 ? sections[0] : null
   const headerLabel = singleSection ? deriveGroupLabel(singleSection.rows) : null
@@ -229,10 +227,7 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
           {someDone && !allDone && <div className="w-2 h-0.5 bg-success rounded" />}
         </button>
         {title ? (
-          <div className="flex flex-col min-w-0">
-            {programLabel && <span className="text-[10px] font-medium text-accent/70 truncate">{programLabel}</span>}
-            <span className="text-xs font-medium text-foreground truncate">{title}</span>
-          </div>
+          <span className="text-xs font-medium text-foreground/70 truncate">{title}</span>
         ) : singleSection ? (
           <div className="flex items-baseline gap-2 min-w-0">
             {singleSection.section !== '?' && <span className="text-xs font-medium text-accent shrink-0">{singleSection.section}</span>}
