@@ -59,14 +59,17 @@ export default function Home() {
       {program &&
         (() => {
           const [, sm, sd] = program.startDate.split('-').map(Number)
-          const pct =
-            program.status === 'upcoming'
-              ? 0
-              : program.status === 'done'
+          const total = program.totalWeeks ?? 0
+          // 완료 주차 = 남색, 현재 진행 1주 = 골드, 나머지 = 빈 트랙
+          const navyPct =
+            total > 0
+              ? program.status === 'done'
                 ? 100
-                : program.currentWeek && program.totalWeeks
-                  ? Math.round((program.currentWeek / program.totalWeeks) * 100)
+                : program.status === 'active' && program.currentWeek
+                  ? ((program.currentWeek - 1) / total) * 100
                   : 0
+              : 0
+          const goldPct = total > 0 && program.status === 'active' && program.currentWeek ? (1 / total) * 100 : 0
           const eyebrow =
             program.status === 'upcoming' ? '예정된 프로그램' : program.status === 'done' ? '완료한 프로그램' : '진행 중 프로그램'
           const right =
@@ -78,8 +81,9 @@ export default function Home() {
                 <p className="text-sm text-accent">{program.name}</p>
                 <p className="text-xs text-text-secondary">{right}</p>
               </div>
-              <div className="h-1.5 rounded-full bg-border overflow-hidden">
-                <div className="h-full bg-accent-pop rounded-full transition-all" style={{ width: `${pct}%` }} />
+              <div className="h-1.5 rounded-full bg-border overflow-hidden flex">
+                <div className="h-full bg-accent transition-all" style={{ width: `${navyPct}%` }} />
+                <div className="h-full bg-accent-pop transition-all" style={{ width: `${goldPct}%` }} />
               </div>
             </div>
           )
