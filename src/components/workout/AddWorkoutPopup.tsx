@@ -8,24 +8,12 @@ import {
   updatePersonalWorkout,
   archiveWorkout,
   type Workout,
-  type WorkoutExercise,
 } from '@/lib/api/workouts'
 import { addWorkoutToDate } from '@/lib/api/workout-logs'
+import { buildExercisesFromGroups, type ExerciseRow, type SetGroup } from '@/lib/workout/build-exercises'
 
 // 카테고리 표준 목록 (탭 순서·생성 폼 select 공용). '전체'는 UI 메타탭으로 별도.
 export const WORKOUT_CATEGORIES = ['전신', '가슴', '등', '어깨', '팔', '하체', '코어', '유산소']
-
-interface ExerciseRow {
-  id: string
-  exercise_name: string
-  reps: string // 횟수/시간
-  notes: string // 메모
-}
-interface SetGroup {
-  id: string
-  setInfo: string // 그룹 헤더 (예: '3 Sets', 'AMRAP 10')
-  rows: ExerciseRow[]
-}
 
 function emptyRow(): ExerciseRow {
   return { id: crypto.randomUUID(), exercise_name: '', reps: '', notes: '' }
@@ -118,39 +106,13 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
     )
   }
 
-  // 빌더 상태 → 저장용 동작 배열 (그룹 순서대로 set_group 부여, 유효 동작만)
-  function buildExercises(): Omit<WorkoutExercise, 'id' | 'workout_id'>[] {
-    const exercises: Omit<WorkoutExercise, 'id' | 'workout_id'>[] = []
-    let order = 0
-    let groupNo = 0
-    for (const g of groups) {
-      const validRows = g.rows.filter((r) => r.exercise_name.trim())
-      if (validRows.length === 0) continue
-      groupNo++
-      const info = g.setInfo.trim() || null
-      for (const r of validRows) {
-        exercises.push({
-          section: null,
-          exercise_name: r.exercise_name.trim(),
-          sets: null,
-          reps: r.reps.trim() || null,
-          notes: r.notes.trim() || null,
-          sort_order: order++,
-          set_group: groupNo,
-          set_info: info,
-        })
-      }
-    }
-    return exercises
-  }
-
   // ── 새 운동 생성 + 담기 (create) / 수정 저장 (edit) ──
   async function handleCreate() {
     if (!newTitle.trim()) {
       setCreateError('운동 이름을 입력하세요.')
       return
     }
-    const exercises = buildExercises()
+    const exercises = buildExercisesFromGroups(groups)
     if (exercises.length === 0) {
       setCreateError('동작을 하나 이상 입력하세요.')
       return

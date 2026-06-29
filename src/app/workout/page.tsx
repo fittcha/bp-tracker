@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { toDateString } from '@/lib/utils'
 import { getLoggedInUser } from '@/lib/auth'
-import { getDefaultWorkoutsForWeekday } from '@/lib/api/workouts'
+import { getWorkoutsForDate } from '@/lib/api/workouts'
 import { getWorkoutLogsWithWorkout, addWorkoutToDate, type WorkoutLogJoined } from '@/lib/api/workout-logs'
 import { getCardioLogs, setCardioCompleted, type CardioLog } from '@/lib/api/cardio-logs'
 import WorkoutCard from '@/components/workout/WorkoutCard'
@@ -99,11 +99,9 @@ export default function WorkoutPage() {
       return
     }
     const ds = toDateString(d)
-    const jsDay = d.getDay() // 0=일..6=토
-    const weekday = jsDay === 0 ? 7 : jsDay // 1=월..7=일
 
-    // 1) 그 요일 공용 기본운동 (월~금만 매핑됨)
-    const defaults = weekday <= 5 ? await getDefaultWorkoutsForWeekday(weekday) : []
+    // 1) 그 날짜에 배정된 공용 프로그램 세션
+    const defaults = await getWorkoutsForDate(ds)
 
     // 2) 그 날짜 로그 (workout 조인)
     let logs = await getWorkoutLogsWithWorkout(ds, loggedIn.id)

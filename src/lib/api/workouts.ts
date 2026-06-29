@@ -10,6 +10,8 @@ export interface Workout {
   archived: boolean
   sort_order: number
   created_by: string | null
+  program_date?: string | null   // 공용 프로그램 세션 날짜(YYYY-MM-DD)
+  program_label?: string | null  // 프로그램 태그 eyebrow
   created_at?: string
 }
 
@@ -24,6 +26,7 @@ export interface WorkoutExercise {
   sort_order: number
   set_group?: number | null  // 개인운동 세트 그룹 순서(1-based)
   set_info?: string | null   // 그룹 헤더(예: '3 Sets')
+  set_lead?: string | null   // 그룹 위 연결자('into'|자유텍스트|null)
 }
 
 // 추가 팝업용: 본인 개인 운동만(공용 제외). 카테고리→sort_order 순. 공용은 요일 자동 제공이라 여기 없음.
@@ -46,6 +49,19 @@ export async function getDefaultWorkoutsForWeekday(weekday: number): Promise<Wor
     .select('*')
     .is('owner_user_id', null)
     .eq('default_weekday', weekday)
+    .eq('archived', false)
+    .order('sort_order', { ascending: true })
+  if (error) throw error
+  return (data ?? []) as Workout[]
+}
+
+// 그 날짜에 배정된 공용 프로그램 세션 (날짜 기반). owner=공용, sort_order 순.
+export async function getWorkoutsForDate(date: string): Promise<Workout[]> {
+  const { data, error } = await supabase
+    .from('workouts')
+    .select('*')
+    .is('owner_user_id', null)
+    .eq('program_date', date)
     .eq('archived', false)
     .order('sort_order', { ascending: true })
   if (error) throw error
