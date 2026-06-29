@@ -175,6 +175,8 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
   const singleSection = !hasGroups && sections.length === 1 ? sections[0] : null
   const headerLabel = singleSection ? deriveGroupLabel(singleSection.rows) : null
   const labelInHeader = !title && !!singleSection
+  // 제목 'A · 메인' → 섹션 레터는 검은색, 역할은 짙은 회색으로 분리 렌더
+  const titleParts = title ? title.split(' · ') : []
 
   // 카드 전체 완료 상태
   const allDone = items.length > 0 && items.every((l) => l.completed)
@@ -227,7 +229,14 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
           {someDone && !allDone && <div className="w-2 h-0.5 bg-success rounded" />}
         </button>
         {title ? (
-          <span className="text-xs font-medium text-foreground/70 truncate">{title}</span>
+          titleParts.length >= 2 ? (
+            <span className="text-xs font-medium truncate">
+              <span className="text-foreground">{titleParts[0]}</span>
+              <span className="text-foreground/60"> · {titleParts.slice(1).join(' · ')}</span>
+            </span>
+          ) : (
+            <span className="text-xs font-medium text-foreground truncate">{title}</span>
+          )
         ) : singleSection ? (
           <div className="flex items-baseline gap-2 min-w-0">
             {singleSection.section !== '?' && <span className="text-xs font-medium text-accent shrink-0">{singleSection.section}</span>}
