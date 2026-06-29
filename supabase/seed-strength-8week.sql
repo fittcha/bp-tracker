@@ -10,8 +10,10 @@ delete from workouts where owner_user_id is null and program_label like 'Strengt
 delete from workout_logs
   where date between '2026-07-06' and '2026-08-28'
     and workout_exercise_id is null and is_custom = false and template_id is null;
--- 레거시 요일반복 공용 archive (재실행 안전)
-update workouts set archived = true where owner_user_id is null and program_date is null and archived = false;
+-- 박스 와드(요일 공용, 매일 맨 위)는 유지/복구
+update workouts set archived = false where owner_user_id is null and title = '박스 와드';
+-- 그 외 레거시 요일반복 공용만 archive (박스 와드 제외, 재실행 안전)
+update workouts set archived = true where owner_user_id is null and program_date is null and archived = false and title <> '박스 와드';
 
 -- ============================================================
 -- 1주차 — 축적 (7/6 ~ 7/10)
@@ -129,7 +131,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Skill Practice', '~10분', '역도·짐네스틱 자유 (~10분)', 0, 1, null)
+  ('C', 'Skill Practice', null, '역도·짐네스틱 자유', 0, 1, null)
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -288,7 +290,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Skill Practice', '~10분', '역도·짐네스틱 자유 (~10분)', 0, 1, null)
+  ('C', 'Skill Practice', null, '역도·짐네스틱 자유', 0, 1, null)
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -447,7 +449,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Skill Practice', '~10분', '역도·짐네스틱 자유 (~10분)', 0, 1, null)
+  ('C', 'Skill Practice', null, '역도·짐네스틱 자유', 0, 1, null)
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -605,7 +607,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Skill Practice', '~10분', '역도·짐네스틱 자유 (~10분, 가볍게)', 0, 1, null)
+  ('C', 'Skill Practice', null, '역도·짐네스틱 자유 (가볍게)', 0, 1, null)
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- 2026-07-31 (금) 벤치프레스
@@ -754,7 +756,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Skill Practice', '~10분', '역도·짐네스틱 자유 (~10분)', 0, 1, null)
+  ('C', 'Skill Practice', null, '역도·짐네스틱 자유', 0, 1, null)
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -912,7 +914,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Skill Practice', '~10분', '역도·짐네스틱 자유 (~10분)', 0, 1, null)
+  ('C', 'Skill Practice', null, '역도·짐네스틱 자유', 0, 1, null)
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -1070,7 +1072,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Skill Practice', '~10분', '역도·짐네스틱 자유 (~10분)', 0, 1, null)
+  ('C', 'Skill Practice', null, '역도·짐네스틱 자유', 0, 1, null)
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -1228,7 +1230,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Skill Practice', '~10분', '역도·짐네스틱 자유 (~10분, 자유 복습)', 0, 1, null)
+  ('C', 'Skill Practice', null, '역도·짐네스틱 자유 (자유 복습)', 0, 1, null)
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- 2026-08-28 (금) 벤치프레스

@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { toDateString } from '@/lib/utils'
 import { getLoggedInUser } from '@/lib/auth'
-import { getWorkoutsForDate } from '@/lib/api/workouts'
+import { getWorkoutsForDate, getDefaultWorkoutsForWeekday } from '@/lib/api/workouts'
 import { getWorkoutLogsWithWorkout, addWorkoutToDate, type WorkoutLogJoined } from '@/lib/api/workout-logs'
 import { getCardioLogs, setCardioCompleted, type CardioLog } from '@/lib/api/cardio-logs'
 import WorkoutCard from '@/components/workout/WorkoutCard'
@@ -99,9 +99,15 @@ export default function WorkoutPage() {
       return
     }
     const ds = toDateString(d)
+    const jsDay = d.getDay() // 0=일..6=토
+    const weekday = jsDay === 0 ? 7 : jsDay // 1=월..7=일
 
-    // 1) 그 날짜에 배정된 공용 프로그램 세션
-    const defaults = await getWorkoutsForDate(ds)
+    // 1) 요일 공용(박스 와드 등, 항상 맨 위) + 그 날짜에 배정된 프로그램 세션
+    const [weekdayWorkouts, dateWorkouts] = await Promise.all([
+      weekday <= 5 ? getDefaultWorkoutsForWeekday(weekday) : [],
+      getWorkoutsForDate(ds),
+    ])
+    const defaults = [...weekdayWorkouts, ...dateWorkouts]
 
     // 2) 그 날짜 로그 (workout 조인)
     let logs = await getWorkoutLogsWithWorkout(ds, loggedIn.id)
@@ -136,8 +142,13 @@ export default function WorkoutPage() {
       byWorkout.get(wid)!.logs.push(l)
     }
     const grouped: WorkoutGroup[] = [...byWorkout.entries()].map(([workoutId, g]) => ({ workoutId, ...g }))
-    // 공용 먼저, 개인 나중
-    grouped.sort((a, b) => Number(b.isShared) - Number(a.isShared))
+    // 공용 먼저(박스 와드 → 프로그램 섹션 순 = defaults 순서), 개인 나중
+    const orderIndex = new Map(defaults.map((w, i) => [w.id, i]))
+    grouped.sort((a, b) => {
+      if (a.isShared !== b.isShared) return Number(b.isShared) - Number(a.isShared)
+      if (a.isShared) return (orderIndex.get(a.workoutId) ?? 999) - (orderIndex.get(b.workoutId) ?? 999)
+      return 0
+    })
     // 시즌1 레거시 로그: 섹션(A,B,C…)별로 분리해 A→F 순으로 각각 카드 노출
     if (legacy.length) {
       const bySection = new Map<string, WorkoutLogJoined[]>()
