@@ -210,7 +210,7 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
   return (
     <div className="bg-surface border border-border rounded-xl overflow-hidden">
       {/* 카드 헤더: 완료 토글 + 운동 제목 + 공용/개인 뱃지 + 메모 토글 */}
-      <div className="px-4 py-2.5 bg-background border-b border-border flex items-center gap-2">
+      <div className="px-4 py-2 bg-background border-b border-border flex items-center gap-2">
         <button
           onClick={handleCardToggle}
           className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
