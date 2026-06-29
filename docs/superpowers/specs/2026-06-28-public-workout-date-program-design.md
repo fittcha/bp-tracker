@@ -124,3 +124,15 @@ alter table workout_logs
 - `src/app/workout/page.tsx` (날짜 기반 조회 + 자동담기)
 - `src/components/workout/WorkoutCard.tsx` (set_group 그룹판정 + 그룹별 set_lead 연결자 + program_label eyebrow)
 - `src/components/workout/AddWorkoutPopup.tsx` (`buildExercises` set_lead 부여)
+
+## 13. 정정 (2026-06-29): 섹션 = 별도 카드
+
+배포 후 확인 결과, 공용 스트렝스 세션의 섹션 A/B/C/D는 한 카드 안 set_group 블록이 아니라 **각각 별도 운동 카드**여야 한다(사용자 의도). 코드는 이미 `workouts` 행 1개 = 카드 1개(그날 뷰가 workout_id로 그룹핑)라 **코드 변경 없음** — 시드만 재작성한다.
+
+- **하루 = 섹션 수만큼 `workouts` 행**(같은 `program_date`). 카드 = 섹션 1개.
+- 카드 `title` = `"{Letter} · {role}"` (A·메인 / B·보조 / C·안정화 / D·피니셔). role 규칙: A=메인, B=보조, C=안정화(단 Skill Practice면 "스킬"), D=피니셔(메모/이름에 "피니셔" 있을 때; 순수 코어[Side V ups·Russian Twist 등 메모 "코어"]면 "코어").
+- `program_label`(eyebrow) = `"Strength 8주 · N주차"` (그 날 카드 공통). `category` = 그 날 카테고리(공용 표시엔 무관, 추적용).
+- `set_info` = **세트 스킴만**(레터/역할 접두 제거): "N Sets" / 범위 "2~3 Sets" / B는 "Superset · N Sets" / dash는 스킴(Find Heavy Single·EMOM 8분·For time·Climbing …) / 순수 dash·스킬은 null.
+- 섹션 카드 내부: 동작들은 `set_group=1`(그룹 렌더 트리거 위해 항상 세팅). 백오프처럼 세트 스킴 다른 블록은 같은 카드의 `set_group=2`(set_info "백오프 · 1 Set"). `set_lead`=null(블록).
+- `sort_order` = 전체 섹션-카드 순번(그 날 A<B<C<D 순서 보장).
+- 시드 재적용: 새 시드 선두에서 기존 프로그램 워크아웃 삭제(`delete from workouts where owner_user_id is null and program_label like 'Strength 8주%'` → exercises cascade) 후 재삽입. (그날 로그 아직 없음 — 미래 프로그램.)
