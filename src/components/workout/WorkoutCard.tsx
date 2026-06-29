@@ -601,7 +601,7 @@ function ExerciseGroup({
     <div>
       {/* 그룹 헤더 = set_info (있을 때만) */}
       {setInfo && (
-        <div className="px-4 py-1.5 bg-border/50 border-b border-border">
+        <div className="px-4 py-1 bg-border/50 border-b border-border">
           <span className="text-xs text-text-secondary font-semibold">{setInfo}</span>
         </div>
       )}
@@ -639,7 +639,7 @@ function ExerciseGroup({
                   onMouseLeave={() => onLongPressEnd(log.exercise_name)}
                   onContextMenu={(e) => e.preventDefault()}
                 >
-                  {reps && <span className="text-text-secondary">{reps} </span>}
+                  {reps && <span className="text-foreground">{reps} </span>}
                   {log.exercise_name}
                 </p>
                 {memo && <p className="text-[11px] text-text-secondary italic mt-0.5">{memo}</p>}
