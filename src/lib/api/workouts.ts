@@ -68,6 +68,24 @@ export async function getWorkoutsForDate(date: string): Promise<Workout[]> {
   return (data ?? []) as Workout[]
 }
 
+// 홈 배너용: 현재(또는 다가오는) 주차의 공용 프로그램 라벨 1개. 오늘 이후 첫 세션 라벨,
+// 없으면(프로그램 종료) 마지막 라벨, 프로그램 자체가 없으면 null.
+export async function getCurrentProgramLabel(today: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('workouts')
+    .select('program_date, program_label')
+    .is('owner_user_id', null)
+    .not('program_date', 'is', null)
+    .not('program_label', 'is', null)
+    .eq('archived', false)
+    .order('program_date', { ascending: true })
+  if (error) throw error
+  const rows = (data ?? []) as { program_date: string; program_label: string }[]
+  if (rows.length === 0) return null
+  const upcoming = rows.find((r) => r.program_date >= today)
+  return (upcoming ?? rows[rows.length - 1]).program_label
+}
+
 export async function getWorkoutExercises(workoutId: string): Promise<WorkoutExercise[]> {
   const { data, error } = await supabase
     .from('workout_exercises')
