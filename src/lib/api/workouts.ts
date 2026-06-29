@@ -68,9 +68,15 @@ export async function getWorkoutsForDate(date: string): Promise<Workout[]> {
   return (data ?? []) as Workout[]
 }
 
-// 홈 배너용: 현재(또는 다가오는) 주차의 공용 프로그램 라벨 1개. 오늘 이후 첫 세션 라벨,
-// 없으면(프로그램 종료) 마지막 라벨, 프로그램 자체가 없으면 null.
-export async function getCurrentProgramLabel(today: string): Promise<string | null> {
+export interface CurrentProgram {
+  label: string // 'Strength 8주 · 1주차'
+  currentWeek: number | null
+  totalWeeks: number | null
+}
+
+// 홈 배너용: 현재(또는 다가오는) 주차의 공용 프로그램. 오늘 이후 첫 세션 기준,
+// 없으면(종료) 마지막, 프로그램 자체가 없으면 null. 라벨에서 '8주'(전체)·'1주차'(현재) 파싱.
+export async function getCurrentProgram(today: string): Promise<CurrentProgram | null> {
   const { data, error } = await supabase
     .from('workouts')
     .select('program_date, program_label')
@@ -82,8 +88,9 @@ export async function getCurrentProgramLabel(today: string): Promise<string | nu
   if (error) throw error
   const rows = (data ?? []) as { program_date: string; program_label: string }[]
   if (rows.length === 0) return null
-  const upcoming = rows.find((r) => r.program_date >= today)
-  return (upcoming ?? rows[rows.length - 1]).program_label
+  const label = (rows.find((r) => r.program_date >= today) ?? rows[rows.length - 1]).program_label
+  const m = label.match(/(\d+)\s*주\s*·\s*(\d+)\s*주차/)
+  return { label, totalWeeks: m ? Number(m[1]) : null, currentWeek: m ? Number(m[2]) : null }
 }
 
 export async function getWorkoutExercises(workoutId: string): Promise<WorkoutExercise[]> {
