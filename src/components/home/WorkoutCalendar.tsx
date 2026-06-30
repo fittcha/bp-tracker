@@ -125,7 +125,9 @@ export default function WorkoutCalendar() {
           }
           const isToday = ds === todayDs
           const isCompleted = completed.has(ds)
-          const hasWorkout = worked.has(ds)
+          // 주중(월~금)은 WOD가 기본으로 있어 항상 '운동 있음'(회색). 주말은 실제 로그 있을 때만.
+          const dow = d.getDay() // 0=일..6=토
+          const hasWorkout = worked.has(ds) || (dow >= 1 && dow <= 5)
           const dotClass = isCompleted ? 'bg-accent' : hasWorkout ? 'bg-text-secondary/40' : 'bg-transparent'
           const numClass = isToday ? 'bg-accent text-white' : 'text-foreground'
           return (
