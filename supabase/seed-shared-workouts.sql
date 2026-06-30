@@ -2,13 +2,13 @@
 -- chacha가 운동별로 아래 블록을 복제해 채운다.
 -- ※ 아래 내용은 2026-06-26 anon REST로 이미 라이브 DB에 적용됨. 새 DB 셋업 시에만 실행.
 
--- WOD: 월~금 공용 기본운동, 최상단(sort_order 0). 동작 1개(완료 체크용).
+-- WOD: 월~금 공용 기본운동(그룹명 'WOD', 동작명 '박스 와드'), 최상단(sort_order 0). 동작 1개(완료 체크용).
 insert into workouts (title, owner_user_id, default_weekday, category, sort_order)
 select 'WOD', null, wd, null, 0
 from generate_series(1, 5) as wd;
 
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order)
-select id, null, 'WOD', null, null, null, 0
+select id, null, '박스 와드', null, null, null, 0
 from workouts
 where owner_user_id is null and title = 'WOD';
 
