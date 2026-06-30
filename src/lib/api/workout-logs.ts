@@ -166,15 +166,22 @@ export async function getWorkoutLogsWithWorkout(
     .from('workout_logs')
     .select(
       'id, user_id, date, template_id, workout_exercise_id, is_custom, exercise_name, section, completed, weight_lb, weight_unit, memo, custom_sets, custom_reps, custom_notes, set_group, set_info, set_lead, ' +
-        'workout_exercises ( workout_id, workouts ( title, owner_user_id, program_label ) ), ' +
+        'workout_exercises ( workout_id, sort_order, workouts ( title, owner_user_id, program_label ) ), ' +
         'workout_templates ( sets, reps, notes )',
     )
     .eq('date', date)
     .eq('user_id', userId)
   if (error) throw error
-  return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) => {
+  // 동작 표시 순서 = workout_exercises.sort_order. 로그 테이블엔 sort_order가 없어 조회가
+  // 비결정적 순서로 와서 '같은 카드 안 동작이 뒤섞여' 보이던 문제(예: 페어 Rest 위치 어긋남) 해결.
+  const sorted = ((data ?? []) as unknown as Record<string, unknown>[]).slice().sort((a, b) => {
+    const sa = (a.workout_exercises as { sort_order?: number } | null)?.sort_order ?? 9999
+    const sb = (b.workout_exercises as { sort_order?: number } | null)?.sort_order ?? 9999
+    return sa - sb
+  })
+  return sorted.map((row) => {
     const we = row.workout_exercises as
-      | { workout_id: string; workouts?: { title: string; owner_user_id: string | null; program_label: string | null } | null }
+      | { workout_id: string; sort_order?: number; workouts?: { title: string; owner_user_id: string | null; program_label: string | null } | null }
       | null
     const tmpl = row.workout_templates as { sets: string | null; reps: string | null; notes: string | null } | null
     const { workout_exercises, workout_templates, ...rest } = row
