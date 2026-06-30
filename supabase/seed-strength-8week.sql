@@ -153,7 +153,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('D', 'GHD or AB Sit ups', '20', 'Rest as needed', 0, 1, '3 Sets'),
+  ('D', 'GHD or AB Sit ups', '20', null, 0, 1, '3 Sets'),
   ('D', 'Dead Bug', '10/10', 'Rest as needed', 1, 1, '3 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
@@ -316,7 +316,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('D', 'Russian Twist', '30', 'Rest as needed', 0, 1, '3 Sets'),
+  ('D', 'Russian Twist', '30', null, 0, 1, '3 Sets'),
   ('D', 'Plank Pull Through', '26', 'Rest as needed', 1, 1, '3 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
@@ -479,7 +479,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('D', 'Hollow Rock Hold', '0:40', 'Rest as needed', 0, 1, '3 Sets'),
+  ('D', 'Hollow Rock Hold', '0:40', null, 0, 1, '3 Sets'),
   ('D', 'Pallof Press', '12/12', 'Rest as needed', 1, 1, '3 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
@@ -802,7 +802,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('D', 'Side V ups', '15/15', 'Rest as needed', 0, 1, '3 Sets'),
+  ('D', 'Side V ups', '15/15', null, 0, 1, '3 Sets'),
   ('D', 'Plank Pull Through', '26', 'Rest as needed', 1, 1, '3 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
@@ -964,7 +964,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('D', 'Flutter Kick w/ Hollow Rock Hold', '0:30', 'Rest as needed', 0, 1, '3 Sets'),
+  ('D', 'Flutter Kick w/ Hollow Rock Hold', '0:30', null, 0, 1, '3 Sets'),
   ('D', 'Pallof Press', '12/12', 'Rest as needed', 1, 1, '3 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
@@ -1126,7 +1126,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('D', 'GHD or AB Sit ups', '20', 'Rest as needed', 0, 1, '3 Sets'),
+  ('D', 'GHD or AB Sit ups', '20', null, 0, 1, '3 Sets'),
   ('D', 'Dead Bug', '10/10', 'Rest as needed', 1, 1, '3 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
