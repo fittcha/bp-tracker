@@ -103,6 +103,15 @@ payload 빌더는 순수 함수로 분리: `buildSharePayload(workout, exercises
 - 신규: `supabase/migration-workout-shares.sql`(테이블+인덱스), `src/lib/api/workout-shares.ts`, `src/lib/workout/share-payload.ts`, `src/components/workout/ShareWorkoutModal.tsx`, `src/components/PendingSharesModal.tsx`.
 - 수정: `src/lib/api/users.ts`(`searchUsersByUsername`), `src/lib/swr/keys.ts`(`pendingShares`), `src/components/ClientLayout.tsx`(앱 로드 시 대기 확인+모달), `src/components/workout/AddWorkoutPopup.tsx`(라이브러리 ⋯ 메뉴 '공유' + 모달 연결).
 
+## 10.5 UI / 디자인 방향 (사용자 요청: "깔끔하고 이쁘게")
+
+두 신규 모달(`ShareWorkoutModal`, `PendingSharesModal`)은 단순 기능 폼이 아니라 **다듬어진** 모바일 UI로:
+- 앱 테마 토큰 일관 사용: 네이비 `--accent #1E3A5F` / 골드 `--accent-pop #C0974A` / `surface`·`border`·`text-secondary`. 기존 모달 관례(중앙, `z-[100]`, 라운드 `rounded-2xl`, 백드롭) 따름.
+- **공유 모달**: 검색창 포커스 상태, 결과 행 체크박스 탭 영역 넉넉히, 선택 칩은 골드 톤 알약(× 제거), "공유 대기 중" 구역은 옅은 구분선 + 작은 회색 라벨. 공유하기 버튼은 선택 수 표기(예: "3명에게 공유하기"), 비활성 시 흐리게.
+- **받기 모달**: 보낸사람·운동명 강조(이름 볼드), 수락=골드/네이비 채움, 거부=옅은 보더. 카드형 행, 처리 시 부드러운 제거 느낌.
+- 빈 상태·로딩·에러 문구는 인터페이스 보이스로 간결하게(빈 검색 "아이디를 입력하세요", 결과없음 "검색 결과 없음").
+- 구현 단계에서 frontend-design 스킬로 폴리시 패스. 접근성 기본(키보드 포커스, 충분한 탭 타겟)·`prefers-reduced-motion` 존중.
+
 ## 10. 롤아웃
 
 마이그레이션(`migration-workout-shares.sql`)을 라이브에 1회 적용 후 코드 머지·배포. 기존 데이터 마이그레이션 불필요(신규 테이블).
