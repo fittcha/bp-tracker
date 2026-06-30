@@ -107,6 +107,7 @@ export default function PRPage() {
       try {
         await upsert1RM(userId, exerciseName, value ? parseFloat(value) : null, unit)
         mutate(matchPrefix('pr-1rm', userId))
+        setLocalRm([])
       } catch (err) {
         console.error('Failed to save 1RM:', err)
       }
