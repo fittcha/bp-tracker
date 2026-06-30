@@ -377,13 +377,13 @@ export default function WorkoutPage() {
         </>
       )}
 
-      {/* 운동 추가 버튼 */}
+      {/* 내 운동(라이브러리) 열기 */}
       {!loading && (
         <button
           onClick={() => setAddOpen(true)}
-          className="w-full rounded-xl border border-border py-3 text-sm text-accent"
+          className="w-full rounded-xl border border-border py-3 text-sm text-accent hover:bg-accent-light transition-colors"
         >
-          + 운동 추가
+          + 내 운동
         </button>
       )}
       {addOpen && (

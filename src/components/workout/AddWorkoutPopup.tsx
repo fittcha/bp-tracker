@@ -207,10 +207,13 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
       }}
     >
       {/* 중앙 모달 */}
-      <div className="w-full max-w-lg bg-surface rounded-2xl h-[85vh] max-h-[85vh] flex flex-col overflow-hidden">
+      <div className="w-full max-w-lg bg-surface rounded-2xl h-[68vh] max-h-[68vh] flex flex-col overflow-hidden">
         {/* 헤더 */}
         <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-border flex-shrink-0">
-          <h2 className="text-base font-bold text-foreground">운동 추가</h2>
+          <div className="min-w-0">
+            <h2 className="text-base font-bold text-foreground leading-tight">내 운동</h2>
+            <p className="text-[11px] text-text-secondary mt-0.5">탭하면 오늘 운동에 담겨요</p>
+          </div>
           <div className="flex items-center gap-2">
             {!showCreate && (
               <button
