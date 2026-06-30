@@ -4,13 +4,24 @@
 -- 적용 전: migration-workout-program.sql 먼저. anon 키로 Supabase SQL editor 실행.
 -- 데이터 원본: docs/data/season2-strength-8week-data.md
 
--- 기존 8주 프로그램 카드 제거 후 재적용. exercises는 cascade 삭제.
+-- ===== 정리(wipe): 재적용 전 옛/잘못된 데이터 제거 (멱등) =====
+-- 1) 기존 날짜기반 8주 프로그램 카드 제거 (exercises cascade, 연결 로그는 set null로 고아화)
 delete from workouts where owner_user_id is null and program_label like 'Strength 8주%';
--- 정의 삭제로 끊긴(고아) 프로그램 로그 정리 — 중복 카드 방지(자동 담기 잔재 제거)
+-- 2) 잘못 적용된 적 있는 default_weekday 기반 'S2 W*' 운동 제거.
+--    (program_date 없이 default_weekday만 써서 같은 요일에 8주치가 전부 겹쳐 쌓이던 원인)
+delete from workouts where owner_user_id is null and title like 'S2 W%';
+-- 3) 위 삭제로 끊긴(고아) 프로그램/잔재 로그 정리 — 프로그램 미시작(7/6)이라 실데이터 없음.
+--    범위를 6/29부터로: 잘못 쌓인 직전 평일(6/30~7/3)까지 포함. WOD/개인 로그는 유효 FK라 보존.
 delete from workout_logs
-  where date between '2026-07-06' and '2026-08-28'
+  where date between '2026-06-29' and '2026-08-28'
     and workout_exercise_id is null and is_custom = false and template_id is null;
--- 옛 placeholder(어깨·가슴 등)만 archive — 데일리 WOD/박스 와드는 건드리지 않음(상태 뒤집힘 방지)
+-- 4) 중복 로그 정리: (user, date, workout_exercise_id)당 1개만 남김 (WOD 중복 등 자동담기 잔재)
+delete from workout_logs a using workout_logs b
+  where a.user_id = b.user_id and a.date = b.date
+    and a.workout_exercise_id = b.workout_exercise_id
+    and a.workout_exercise_id is not null and a.id > b.id
+    and a.date between '2026-06-29' and '2026-08-28';
+-- 5) 옛 placeholder(어깨·가슴 등)만 archive — 데일리 WOD/박스 와드는 건드리지 않음(상태 뒤집힘 방지)
 update workouts set archived = true
 where owner_user_id is null and program_date is null and archived = false and title not in ('WOD', '박스 와드');
 
