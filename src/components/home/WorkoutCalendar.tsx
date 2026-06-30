@@ -80,9 +80,9 @@ export default function WorkoutCalendar() {
   }
 
   return (
-    <div className="bg-surface border border-border rounded-xl px-4 py-5">
+    <div className="bg-surface border border-border rounded-xl px-4 py-3.5">
       {/* 월 네비 */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <button
           onClick={() => shiftMonth(-1)}
           aria-label="이전 달"
@@ -121,7 +121,7 @@ export default function WorkoutCalendar() {
           const ds = toDateString(d)
           const inMonth = d.getMonth() === month
           if (!inMonth) {
-            return <div key={ds} className="h-12" />
+            return <div key={ds} className="h-10" />
           }
           const isToday = ds === todayDs
           const isCompleted = completed.has(ds)
@@ -134,7 +134,7 @@ export default function WorkoutCalendar() {
             <button
               key={ds}
               onClick={() => router.push(`/workout?date=${ds}`)}
-              className="flex flex-col items-center justify-start gap-1 h-12 pt-1.5"
+              className="flex flex-col items-center justify-start gap-0.5 h-10 pt-1"
             >
               <span className={`flex items-center justify-center w-7 h-7 rounded-full text-sm ${numClass}`}>
                 {d.getDate()}
