@@ -1,10 +1,11 @@
 'use client'
 
+import { useMemo } from 'react'
 import Link from 'next/link'
 import { Flame } from 'lucide-react'
 import useSWR from 'swr'
 import { getLoggedInUser } from '@/lib/auth'
-import { getActiveChallenges, getChallengeTemplates } from '@/lib/api/challenges'
+import { getChallengesData } from '@/lib/api/challenges'
 import { deriveDayStates, computeStreak, monthlyAttemptCount } from '@/lib/challenge/derive'
 import { formatDifficulty } from '@/lib/challenge/format'
 import { toDateString } from '@/lib/utils'
@@ -22,11 +23,13 @@ interface WidgetData {
 
 export default function ChallengeWidgets() {
   const uid = getLoggedInUser()?.id ?? ''
-  const { data: widgets } = useSWR(uid ? k.challenges(uid) : null, async () => {
-    const [actives, temps] = await Promise.all([getActiveChallenges(uid), getChallengeTemplates()])
-    const exByKey = Object.fromEntries(temps.map((t) => [t.key, t.exercise]))
+  const { data } = useSWR(uid ? k.challenges(uid) : null, () => getChallengesData(uid))
+
+  const widgets = useMemo<WidgetData[]>(() => {
+    if (!data) return []
+    const exByKey = Object.fromEntries(data.templates.map((t) => [t.key, t.exercise]))
     const today = toDateString(new Date())
-    return actives.map((a) => {
+    return data.actives.map((a) => {
       const dates = a.attempts.map((x) => x.done_date)
       const states = deriveDayStates(a.attempts)
       let doneDays = 0
@@ -41,9 +44,9 @@ export default function ChallengeWidgets() {
         totalDays: a.days.length,
       } satisfies WidgetData
     })
-  })
+  }, [data])
 
-  if (!widgets || widgets.length === 0) return null
+  if (!data || widgets.length === 0) return null
 
   return (
     <div>

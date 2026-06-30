@@ -222,3 +222,9 @@ export async function deleteChallenge(userChallengeId: string): Promise<void> {
     .eq('id', userChallengeId)
   if (error) throw error
 }
+
+// 챌린지 탭 + 홈 위젯 공용 fetcher. k.challenges(uid) 캐시의 canonical shape.
+export async function getChallengesData(userId: string): Promise<{ actives: ActiveChallenge[]; templates: ChallengeTemplate[] }> {
+  const [actives, templates] = await Promise.all([getActiveChallenges(userId), getChallengeTemplates()])
+  return { actives, templates }
+}
