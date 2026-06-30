@@ -1,12 +1,14 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
+import useSWR, { useSWRConfig } from 'swr'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { toDateString } from '@/lib/utils'
 import { getLoggedInUser } from '@/lib/auth'
 import { getWorkoutsForDate, getDefaultWorkoutsForWeekday } from '@/lib/api/workouts'
 import { getWorkoutLogsWithWorkout, addWorkoutToDate, type WorkoutLogJoined } from '@/lib/api/workout-logs'
-import { getCardioLogs, setCardioCompleted, type CardioLog } from '@/lib/api/cardio-logs'
+import { getCardioLogs, setCardioCompleted } from '@/lib/api/cardio-logs'
+import { k } from '@/lib/swr/keys'
 import WorkoutCard from '@/components/workout/WorkoutCard'
 import Calculator from '@/components/workout/Calculator'
 import ExerciseGifModal from '@/components/workout/ExerciseGifModal'
@@ -23,13 +25,67 @@ interface WorkoutGroup {
   logs: WorkoutLogJoined[]
 }
 
+// 순수 그룹핑 함수: 기존 loadData의 4번 로직을 추출.
+// 공용 먼저(박스WOD→프로그램 섹션 = defaults 순서 orderIndex), 개인 나중,
+// 시즌1 레거시(workout=null) 섹션(A~F, WOD 최상위) 분리.
+function buildGroups(
+  logs: WorkoutLogJoined[],
+  defaults: { id: string; title?: string }[],
+): WorkoutGroup[] {
+  const byWorkout = new Map<string, { title: string; isShared: boolean; logs: WorkoutLogJoined[] }>()
+  const legacy: WorkoutLogJoined[] = []
+
+  for (const l of logs) {
+    const wid = l.workout?.workout_id
+    if (!wid) {
+      legacy.push(l)
+      continue
+    }
+    if (!byWorkout.has(wid)) {
+      byWorkout.set(wid, {
+        title: l.workout!.title,
+        isShared: l.workout!.owner_user_id === null,
+        logs: [],
+      })
+    }
+    byWorkout.get(wid)!.logs.push(l)
+  }
+
+  const grouped: WorkoutGroup[] = [...byWorkout.entries()].map(([workoutId, g]) => ({ workoutId, ...g }))
+  // 공용 먼저(박스 와드 → 프로그램 섹션 순 = defaults 순서), 개인 나중
+  const orderIndex = new Map(defaults.map((w, i) => [w.id, i]))
+  grouped.sort((a, b) => {
+    if (a.isShared !== b.isShared) return Number(b.isShared) - Number(a.isShared)
+    if (a.isShared) return (orderIndex.get(a.workoutId) ?? 999) - (orderIndex.get(b.workoutId) ?? 999)
+    return 0
+  })
+
+  // 시즌1 레거시 로그: 섹션(A,B,C…)별로 분리해 A→F 순으로 각각 카드 노출
+  if (legacy.length) {
+    const bySection = new Map<string, WorkoutLogJoined[]>()
+    for (const l of legacy) {
+      const sec = l.section || '?'
+      if (!bySection.has(sec)) bySection.set(sec, [])
+      bySection.get(sec)!.push(l)
+    }
+    // WOD 최상위, 나머지 A→F 순
+    const sortedSecs = [...bySection.keys()].sort((a, b) => {
+      if (a === 'WOD') return -1
+      if (b === 'WOD') return 1
+      return a.localeCompare(b)
+    })
+    for (const sec of sortedSecs) {
+      grouped.push({ workoutId: `__legacy_${sec}__`, title: '', isShared: false, isLegacy: true, logs: bySection.get(sec)! })
+    }
+  }
+
+  return grouped
+}
+
 export default function WorkoutPage() {
   const user = getLoggedInUser()
   const userId = user?.id ?? ''
   const [date, setDate] = useState<Date>(() => new Date())
-  const [groups, setGroups] = useState<WorkoutGroup[]>([])
-  const [cardio, setCardio] = useState<CardioLog[]>([])
-  const [loading, setLoading] = useState(true)
   const [gifModalExercise, setGifModalExercise] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
@@ -91,106 +147,61 @@ export default function WorkoutPage() {
     }
   })
 
-  const loadData = useCallback(async (d: Date) => {
-    setLoading(true)
-    const loggedIn = getLoggedInUser()
-    if (!loggedIn) {
-      setLoading(false)
-      return
-    }
-    const ds = toDateString(d)
-    const jsDay = d.getDay() // 0=일..6=토
-    const weekday = jsDay === 0 ? 7 : jsDay // 1=월..7=일
+  const uid = userId
+  const ds = toDateString(date)
+  const { mutate } = useSWRConfig()
 
-    // 1) 요일 공용(박스 와드 등, 항상 맨 위) + 그 날짜에 배정된 프로그램 세션
-    const [weekdayWorkouts, dateWorkouts] = await Promise.all([
-      weekday <= 5 ? getDefaultWorkoutsForWeekday(weekday) : [],
+  // ── day-defaults: 요일 공용 + 날짜별 프로그램 ──
+  const { data: defaults } = useSWR(uid ? k.dayDefaults(uid, ds) : null, async () => {
+    const jsDay = new Date(`${ds}T00:00:00`).getDay()
+    const weekday = jsDay === 0 ? 7 : jsDay
+    const [weekday_, date_] = await Promise.all([
+      weekday <= 5 ? getDefaultWorkoutsForWeekday(weekday) : Promise.resolve([]),
       getWorkoutsForDate(ds),
     ])
-    const defaults = [...weekdayWorkouts, ...dateWorkouts]
+    return { weekday: weekday_, date: date_ }
+  })
 
-    // 2) 그 날짜 로그 (workout 조인)
-    let logs = await getWorkoutLogsWithWorkout(ds, loggedIn.id)
+  // ── day-logs: 그날 운동 로그 ──
+  const { data: logs } = useSWR(uid ? k.dayLogs(uid, ds) : null, () => getWorkoutLogsWithWorkout(ds, uid))
 
-    // 3) 로그 없는 공용 자동 생성. WOD(요일 공용)는 과거 포함 항상 담아 매 주중 노출 보장,
-    //    프로그램 등은 오늘/미래만(과거 미작성일 오염 방지).
-    const presentWorkoutIds = new Set(logs.map((l) => l.workout?.workout_id).filter(Boolean))
-    const isPast = ds < toDateString(new Date())
-    const weekdayIds = new Set(weekdayWorkouts.map((w) => w.id))
-    const missing = defaults.filter(
-      (wk) => !presentWorkoutIds.has(wk.id) && (!isPast || weekdayIds.has(wk.id)),
-    )
-    for (const wk of missing) {
-      await addWorkoutToDate(loggedIn.id, ds, wk.id)
-    }
-    if (missing.length > 0) {
-      logs = await getWorkoutLogsWithWorkout(ds, loggedIn.id) // 재조회
-    }
+  // ── cardio: 저강도 유산소 (시즌1 레거시) ──
+  const { data: cardio } = useSWR(uid ? k.cardio(uid, ds) : null, () => getCardioLogs(ds, uid))
 
-    // 4) workout_id로 그룹핑. 공용/개인은 owner_user_id(null=공용).
-    const byWorkout = new Map<string, { title: string; isShared: boolean; logs: WorkoutLogJoined[] }>()
-    const legacy: WorkoutLogJoined[] = [] // 시즌1 로그(workout 연결 없음) — 과거 날짜 읽기용
-    for (const l of logs) {
-      const wid = l.workout?.workout_id
-      if (!wid) {
-        legacy.push(l)
-        continue
-      }
-      if (!byWorkout.has(wid)) {
-        byWorkout.set(wid, {
-          title: l.workout!.title,
-          isShared: l.workout!.owner_user_id === null,
-          logs: [],
-        })
-      }
-      byWorkout.get(wid)!.logs.push(l)
-    }
-    const grouped: WorkoutGroup[] = [...byWorkout.entries()].map(([workoutId, g]) => ({ workoutId, ...g }))
-    // 공용 먼저(박스 와드 → 프로그램 섹션 순 = defaults 순서), 개인 나중
-    const orderIndex = new Map(defaults.map((w, i) => [w.id, i]))
-    grouped.sort((a, b) => {
-      if (a.isShared !== b.isShared) return Number(b.isShared) - Number(a.isShared)
-      if (a.isShared) return (orderIndex.get(a.workoutId) ?? 999) - (orderIndex.get(b.workoutId) ?? 999)
-      return 0
-    })
-    // 시즌1 레거시 로그: 섹션(A,B,C…)별로 분리해 A→F 순으로 각각 카드 노출
-    if (legacy.length) {
-      const bySection = new Map<string, WorkoutLogJoined[]>()
-      for (const l of legacy) {
-        const sec = l.section || '?'
-        if (!bySection.has(sec)) bySection.set(sec, [])
-        bySection.get(sec)!.push(l)
-      }
-      // WOD 최상위, 나머지 A→F 순
-      const sortedSecs = [...bySection.keys()].sort((a, b) => {
-        if (a === 'WOD') return -1
-        if (b === 'WOD') return 1
-        return a.localeCompare(b)
-      })
-      for (const sec of sortedSecs) {
-        grouped.push({ workoutId: `__legacy_${sec}__`, title: '', isShared: false, isLegacy: true, logs: bySection.get(sec)! })
-      }
-    }
-
-    // 시즌1 저강도 유산소(레거시 날짜) 조회
-    setCardio(await getCardioLogs(ds, loggedIn.id))
-
-    setGroups(grouped)
-    setLoading(false)
-  }, [])
-
+  // ── 자동담기: defaults·logs 로드 후, ds당 1회. ──
+  // WOD(요일 공용)는 과거 포함 항상, 프로그램 등 날짜 공용은 오늘/미래만.
+  const autoAddedRef = useRef<Set<string>>(new Set())
   useEffect(() => {
-    // loadData는 async라 setLoading은 동기 실행되지 않음(규칙 오탐). 날짜 변경 시 재조회.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadData(date)
-  }, [date, loadData])
+    if (!uid || !defaults || !logs) return
+    if (autoAddedRef.current.has(ds)) return
+    autoAddedRef.current.add(ds)
+    const present = new Set(logs.map((l) => l.workout?.workout_id).filter(Boolean))
+    const isPast = ds < toDateString(new Date())
+    const weekdayIds = new Set(defaults.weekday.map((w) => w.id))
+    const all = [...defaults.weekday, ...defaults.date]
+    const missing = all.filter((w) => !present.has(w.id) && (!isPast || weekdayIds.has(w.id)))
+    if (missing.length === 0) return
+    ;(async () => {
+      for (const w of missing) await addWorkoutToDate(uid, ds, w.id)
+      mutate(k.dayLogs(uid, ds))
+    })()
+  }, [uid, ds, defaults, logs, mutate])
+
+  // ── 파생: 그룹핑/정렬 (useMemo) ──
+  const allDefaults = useMemo(
+    () => [...(defaults?.weekday ?? []), ...(defaults?.date ?? [])],
+    [defaults],
+  )
+  const groups = useMemo(() => buildGroups(logs ?? [], allDefaults), [logs, allDefaults])
+  const loading = logs === undefined || defaults === undefined
 
   async function toggleCardio(id: string, completed: boolean) {
-    setCardio((prev) => prev.map((c) => (c.id === id ? { ...c, completed } : c)))
+    // optimistic update via mutate
+    mutate(k.cardio(uid, ds), (prev: typeof cardio) => prev?.map((c) => (c.id === id ? { ...c, completed } : c)), false)
     try {
       await setCardioCompleted(id, completed)
     } catch {
-      setCardio((prev) => prev.map((c) => (c.id === id ? { ...c, completed: !completed } : c)))
+      mutate(k.cardio(uid, ds)) // revalidate on error
     }
   }
 
@@ -276,7 +287,7 @@ export default function WorkoutPage() {
       </div>
 
       {/* 저강도 유산소 (시즌1 레거시 날짜) */}
-      {cardio.map((c) => (
+      {(cardio ?? []).map((c) => (
         <div key={c.id} className="bg-surface border border-border rounded-xl overflow-hidden">
           <div className="px-4 py-2.5 bg-background border-b border-border flex items-center gap-2">
             <button
@@ -317,7 +328,7 @@ export default function WorkoutPage() {
                   title={g.title}
                   isShared={g.isShared}
                   logs={g.logs}
-                  onChanged={() => loadData(date)}
+                  onChanged={() => mutate(k.dayLogs(uid, ds))}
                   onExerciseLongPress={setGifModalExercise}
                 />
               ))}
@@ -332,7 +343,7 @@ export default function WorkoutPage() {
                   title={g.title}
                   isShared={g.isShared}
                   logs={g.logs}
-                  onChanged={() => loadData(date)}
+                  onChanged={() => mutate(k.dayLogs(uid, ds))}
                   onExerciseLongPress={setGifModalExercise}
                 />
               ))}
@@ -344,7 +355,7 @@ export default function WorkoutPage() {
                   title={g.title}
                   isShared={g.isShared}
                   logs={g.logs}
-                  onChanged={() => loadData(date)}
+                  onChanged={() => mutate(k.dayLogs(uid, ds))}
                   onExerciseLongPress={setGifModalExercise}
                 />
               ))}
@@ -366,7 +377,7 @@ export default function WorkoutPage() {
         <AddWorkoutPopup
           userId={userId}
           date={toDateString(date)}
-          onAdded={() => { setAddOpen(false); loadData(date) }}
+          onAdded={() => { setAddOpen(false); mutate(k.dayLogs(uid, ds)) }}
           onClose={() => setAddOpen(false)}
         />
       )}

@@ -6,6 +6,7 @@ export const k = {
   dayDefaults: (uid: string, ds: string) => ['day-defaults', uid, ds] as const,
   dayLogs: (uid: string, ds: string) => ['day-logs', uid, ds] as const,
   challenges: (uid: string) => ['challenges', uid] as const,
+  cardio: (uid: string, ds: string) => ['cardio', uid, ds] as const,
   personalWorkouts: (uid: string) => ['personal-workouts', uid] as const,
   pr1rm: (uid: string) => ['pr-1rm', uid] as const,
   prNrm: (uid: string) => ['pr-nrm', uid] as const,

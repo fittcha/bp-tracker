@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useSWRConfig } from 'swr'
 import { upsertWorkoutLog, deleteWorkoutLogs, type WorkoutLogJoined } from '@/lib/api/workout-logs'
+import { matchPrefix } from '@/lib/swr/revalidate'
 
 // 그룹 라벨(섹션 setInfo/세트수) 계산 — 카드 헤더·섹션 라벨 공용
 function deriveGroupLabel(rows: WorkoutLogJoined[]): string | null {
@@ -47,6 +49,16 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
     setItems(logs)
   }, [logs])
 
+  const { mutate } = useSWRConfig()
+  const uid = items[0]?.user_id ?? ''
+
+  // 완료/무게/메모 저장 후 cal-dates·home-stats 무효화 (홈 캘린더/통계 반영)
+  function invalidateHomeKeys() {
+    if (!uid) return
+    mutate(matchPrefix('cal-dates', uid))
+    mutate(matchPrefix('home-stats', uid))
+  }
+
   // 동작명 롱프레스 → GIF 모달 (시즌1 동작 유지)
   const longPressRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   function handleLongPressStart(name: string) {
@@ -81,7 +93,9 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
   function handleToggleComplete(id: string, completed: boolean) {
     setItems((prev) => {
       const log = prev.find((l) => l.id === id)
-      if (log) upsertWorkoutLog({ ...log, completed })
+      if (log) {
+        upsertWorkoutLog({ ...log, completed }).then(() => invalidateHomeKeys())
+      }
       return prev.map((l) => (l.id === id ? { ...l, completed } : l))
     })
   }
@@ -107,7 +121,7 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
     debounceRef.current[id] = setTimeout(() => {
       setItems((prev) => {
         const log = prev.find((l) => l.id === id)
-        if (log) upsertWorkoutLog({ ...log, weight_lb: weight })
+        if (log) upsertWorkoutLog({ ...log, weight_lb: weight }).then(() => invalidateHomeKeys())
         return prev
       })
     }, 500)
@@ -121,7 +135,7 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
       const updated = { ...log, weight_unit: newUnit }
       if (debounceRef.current[id]) clearTimeout(debounceRef.current[id])
       debounceRef.current[id] = setTimeout(() => {
-        upsertWorkoutLog(updated)
+        upsertWorkoutLog(updated).then(() => invalidateHomeKeys())
       }, 500)
       return prev.map((l) => (l.id === id ? updated : l))
     })
@@ -134,7 +148,7 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
     debounceRef.current[key] = setTimeout(() => {
       setItems((prev) => {
         const log = prev.find((l) => l.id === logId)
-        if (log) upsertWorkoutLog({ ...log, memo: memo || null })
+        if (log) upsertWorkoutLog({ ...log, memo: memo || null }).then(() => invalidateHomeKeys())
         return prev
       })
     }, 800)
@@ -201,6 +215,7 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
     try {
       await deleteWorkoutLogs(ids)
       onChanged?.()
+      invalidateHomeKeys()
     } catch (e) {
       setRemoving(false)
       window.alert(e instanceof Error ? e.message : '삭제에 실패했습니다.')
