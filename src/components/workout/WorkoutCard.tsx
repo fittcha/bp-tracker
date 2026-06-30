@@ -225,7 +225,7 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
   return (
     <div className="bg-surface border border-border rounded-xl overflow-hidden">
       {/* 카드 헤더: 완료 토글 + 운동 제목 + 공용/개인 뱃지 + 메모 토글 */}
-      <div className="px-4 py-2 bg-background border-b border-border flex items-center gap-2">
+      <div className="px-4 py-1.5 bg-background border-b border-border flex items-center gap-2">
         <button
           onClick={handleCardToggle}
           className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
@@ -415,7 +415,7 @@ function SectionGroup({
     <div className="border-t border-border first:border-t-0">
       {/* 섹션 라벨 줄 (헤더에 이미 표시된 경우 생략) */}
       {!inHeader && (isGroup || section !== '?') && (
-        <div className="px-4 py-1.5 bg-background/40 border-b border-border flex items-center gap-2">
+        <div className="px-4 py-1 bg-background/40 border-b border-border flex items-center gap-2">
           {section !== '?' && <span className="text-[11px] font-medium text-accent">{section}</span>}
           {groupLabel && <span className="text-xs text-text-secondary font-medium">{groupLabel}</span>}
           {!isGroup && first?.custom_sets && (
@@ -479,7 +479,7 @@ function SectionGroup({
                   <span className="text-xs text-text-secondary font-medium">{subGroupLabel}</span>
                 </div>
               )}
-              <div className="flex items-center gap-3 px-4 py-3">
+              <div className="flex items-center gap-3 px-4 py-2.5">
                 {/* 완료 체크 */}
                 <button
                   onClick={() => log.id && onToggleComplete(log.id, !log.completed)}
@@ -627,7 +627,7 @@ function ExerciseGroup({
           const reps = log.custom_reps?.trim()
           const memo = log.custom_notes?.trim()
           return (
-            <div key={log.id} className="flex items-center gap-3 px-4 py-3">
+            <div key={log.id} className="flex items-center gap-3 px-4 py-2.5">
               {/* 완료 체크 */}
               <button
                 onClick={() => log.id && onToggleComplete(log.id, !log.completed)}

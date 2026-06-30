@@ -14,6 +14,7 @@ import { addWorkoutToDate } from '@/lib/api/workout-logs'
 import { buildExercisesFromGroups, type ExerciseRow, type SetGroup } from '@/lib/workout/build-exercises'
 import { k } from '@/lib/swr/keys'
 import { matchPrefix } from '@/lib/swr/revalidate'
+import ShareWorkoutModal from '@/components/workout/ShareWorkoutModal'
 
 // 카테고리 표준 목록 (탭 순서·생성 폼 select 공용). '전체'는 UI 메타탭으로 별도.
 export const WORKOUT_CATEGORIES = ['전신', '가슴', '등', '어깨', '팔', '하체', '코어', '유산소']
@@ -55,6 +56,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
   const [submitting, setSubmitting] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
+  const [shareTarget, setShareTarget] = useState<Workout | null>(null)
 
   // 활성 카테고리 탭 목록: 전체 + 실제 데이터 있는 카테고리만
   const safeWorkouts = workouts ?? []
@@ -205,22 +207,26 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
       }}
     >
       {/* 중앙 모달 */}
-      <div className="w-full max-w-lg bg-surface rounded-2xl max-h-[85vh] flex flex-col overflow-hidden">
+      <div className="w-full max-w-lg bg-surface rounded-2xl h-[68vh] max-h-[68vh] flex flex-col overflow-hidden">
         {/* 헤더 */}
         <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-border flex-shrink-0">
-          <h2 className="text-base font-bold text-foreground">운동 추가</h2>
+          <div className="min-w-0">
+            <h2 className="text-base font-bold text-foreground leading-tight">내 운동</h2>
+            <p className="text-[11px] text-text-secondary mt-0.5">탭하면 오늘 운동에 담겨요</p>
+          </div>
           <div className="flex items-center gap-2">
             {!showCreate && (
               <button
                 onClick={() => setShowCreate(true)}
-                className="text-sm font-medium text-accent px-3 py-1.5 rounded-lg bg-accent-light"
+                className="text-sm font-medium text-accent px-3 py-1.5 rounded-lg bg-accent-light hover:bg-accent/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
               >
                 + 새 운동
               </button>
             )}
             <button
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center text-text-secondary rounded-lg"
+              aria-label="닫기"
+              className="w-9 h-9 flex items-center justify-center text-text-secondary rounded-lg hover:bg-accent-light transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <line x1="18" y1="6" x2="6" y2="18" />
@@ -351,13 +357,13 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
 
               {/* 액션 버튼 */}
               <div className="flex items-center justify-end gap-2 pb-1">
-                <button onClick={resetCreate} disabled={submitting} className="px-4 py-2 text-sm text-text-secondary rounded-lg">
+                <button onClick={resetCreate} disabled={submitting} className="px-4 py-2 text-sm text-text-secondary rounded-lg hover:bg-accent-light transition-colors disabled:opacity-50">
                   취소
                 </button>
                 <button
                   onClick={handleCreate}
                   disabled={submitting || !newTitle.trim()}
-                  className="px-4 py-2 text-sm font-medium bg-accent text-white rounded-lg disabled:opacity-50"
+                  className="px-5 py-2 text-sm font-semibold bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                 >
                   {submitting ? '저장 중…' : editingId ? '수정 저장' : '만들기'}
                 </button>
@@ -368,13 +374,13 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
           {/* ── 카테고리 탭 (가로 스크롤) ── */}
           {!showCreate && (
             <>
-              <div className="flex gap-2 px-4 pt-3 pb-2 overflow-x-auto flex-shrink-0 scrollbar-none">
+              <div className="flex gap-2 px-4 pt-3 pb-2.5 overflow-x-auto flex-shrink-0 scrollbar-none">
                 {activeCats.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCat(cat)}
-                    className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                      selectedCat === cat ? 'bg-accent text-white' : 'bg-accent-light text-accent'
+                    className={`flex-shrink-0 px-3.5 py-2 rounded-full text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
+                      selectedCat === cat ? 'bg-accent text-white' : 'bg-accent-light text-accent hover:bg-accent/10'
                     }`}
                   >
                     {cat}
@@ -395,25 +401,35 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
                   <p className="text-sm text-danger">{fetchError}</p>
                 </div>
               ) : filtered.length === 0 ? (
-                <div className="px-4 pb-8 pt-4 text-center">
+                <div className="px-4 pb-10 pt-12 flex flex-col items-center text-center gap-3">
                   <p className="text-sm text-text-secondary">
                     {safeWorkouts.length === 0
-                      ? '개인 운동이 없어요. + 새 운동으로 만들어 보세요.'
-                      : '이 카테고리에 운동이 없어요.'}
+                      ? '아직 만든 개인 운동이 없어요.'
+                      : '이 카테고리엔 운동이 없어요.'}
                   </p>
+                  {safeWorkouts.length === 0 && (
+                    <button
+                      onClick={() => setShowCreate(true)}
+                      className="px-4 py-2 rounded-lg text-sm font-semibold bg-accent text-white hover:bg-accent/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                    >
+                      + 새 운동 만들기
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="px-4 pb-6 grid grid-cols-2 gap-2 pt-1">
                   {filtered.map((w) => (
-                    <div key={w.id} className="relative bg-surface border border-border rounded-xl transition-colors">
+                    <div key={w.id} className="relative bg-surface border border-border rounded-xl hover:border-accent/40 transition-colors">
                       <button
                         onClick={() => handleAddWorkout(w.id)}
                         disabled={addingId === w.id}
-                        className="text-left w-full p-3 pr-8 rounded-xl active:bg-accent-light disabled:opacity-60"
+                        className="text-left w-full min-h-[72px] p-3 pr-9 rounded-xl flex flex-col active:bg-accent-light disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                       >
                         <p className="text-sm font-semibold text-foreground leading-snug line-clamp-2">{w.title}</p>
-                        {w.category && <p className="text-[11px] text-text-secondary mt-1">{w.category}</p>}
-                        {addingId === w.id && <p className="text-[11px] text-accent mt-1">담는 중…</p>}
+                        <span className="mt-auto pt-2 flex items-center gap-1.5 flex-wrap">
+                          {w.category && <span className="text-[10px] font-medium text-accent bg-accent-light rounded px-1.5 py-0.5">{w.category}</span>}
+                          {addingId === w.id && <span className="text-[11px] font-medium text-accent-pop">담는 중…</span>}
+                        </span>
                       </button>
 
                       <button
@@ -421,7 +437,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
                           e.stopPropagation()
                           setMenuOpenId(menuOpenId === w.id ? null : w.id)
                         }}
-                        className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center text-text-secondary rounded"
+                        className="absolute top-1.5 right-1.5 w-7 h-7 flex items-center justify-center text-text-secondary/70 hover:text-text-secondary hover:bg-accent-light rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                         aria-label="더보기"
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -433,18 +449,24 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
 
                       {menuOpenId === w.id && (
                         <div
-                          className="absolute top-8 right-2 z-10 bg-surface border border-border rounded-xl shadow-lg overflow-hidden min-w-[80px]"
+                          className="absolute top-9 right-1.5 z-10 bg-surface border border-border rounded-xl shadow-lg overflow-hidden min-w-[104px]"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <button
                             onClick={() => handleEditWorkout(w)}
-                            className="w-full text-left px-3 py-2 text-xs font-medium text-foreground hover:bg-accent-light transition-colors"
+                            className="w-full text-left px-3.5 py-2.5 text-xs font-medium text-foreground hover:bg-accent-light transition-colors"
                           >
                             수정
                           </button>
                           <button
+                            onClick={() => { setMenuOpenId(null); setShareTarget(w) }}
+                            className="w-full text-left px-3.5 py-2.5 text-xs font-medium text-foreground hover:bg-accent-light transition-colors"
+                          >
+                            공유
+                          </button>
+                          <button
                             onClick={() => handleArchiveWorkout(w.id, w.title)}
-                            className="w-full text-left px-3 py-2 text-xs font-medium text-danger hover:bg-accent-light transition-colors"
+                            className="w-full text-left px-3.5 py-2.5 text-xs font-medium text-danger hover:bg-accent-light transition-colors border-t border-border"
                           >
                             숨김
                           </button>
@@ -458,6 +480,9 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
           )}
         </div>
       </div>
+      {shareTarget && (
+        <ShareWorkoutModal userId={userId} workout={shareTarget} onClose={() => setShareTarget(null)} />
+      )}
     </div>
   )
 }

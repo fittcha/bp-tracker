@@ -13,4 +13,5 @@ export const k = {
   prPace: (uid: string) => ['pr-pace', uid] as const,
   dailyLog: (uid: string, date: string) => ['daily-log', uid, date] as const,
   weightRange: (uid: string, start: string, end: string) => ['weight-range', uid, start, end] as const,
+  pendingShares: (uid: string) => ['pending-shares', uid] as const,
 }
