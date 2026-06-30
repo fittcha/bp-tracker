@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { isBlankQuery } from '@/lib/workout/share-payload'
 
 export interface User {
   id: string
@@ -18,6 +19,21 @@ export async function getUserByUsername(username: string): Promise<User | null> 
     .single()
   if (error && error.code !== 'PGRST116') throw error
   return data
+}
+
+// 아이디 like 검색(공유 대상 선택용). 빈 문자열은 조회 안 함. 본인·비활성 제외.
+export async function searchUsersByUsername(query: string, excludeId: string): Promise<User[]> {
+  if (isBlankQuery(query)) return []
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .ilike('username', `%${query.trim()}%`)
+    .eq('active', true)
+    .neq('id', excludeId)
+    .order('username', { ascending: true })
+    .limit(20)
+  if (error) throw error
+  return (data ?? []) as User[]
 }
 
 export async function setUserPin(userId: string, pin: string) {
