@@ -8,6 +8,7 @@ import BottomNav from '@/components/BottomNav'
 import AuthGuard from '@/components/auth/AuthGuard'
 import { getLoggedInUser } from '@/lib/auth'
 import { localStorageProvider } from '@/lib/swr/provider'
+import PendingSharesGate from '@/components/PendingSharesModal'
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -26,6 +27,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       {!isLogin && <Header />}
       <main className={isLogin ? '' : 'max-w-lg mx-auto px-4 pt-3 pb-20'}>{children}</main>
       {!isLogin && <BottomNav />}
+      {!isLogin && uid !== 'anon' && <PendingSharesGate uid={uid} />}
       {overlayVisible && (
         <div
           className="fixed inset-0 bg-black/40 z-[55]"
