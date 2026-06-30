@@ -47,7 +47,7 @@
 | 섹션 | 운동 | 세트 | 횟수 | 메모 |
 |---|---|---|---|---|
 | A | Bulgarian Split Squat | 4 sets | 8/8 | Rest as needed |
-| C | Skill Practice | — | ~10분 | 역도·짐네스틱 자유 (~10분) |
+| C | Skill Practice | — | — | 역도·짐네스틱 자유 |
 | D | GHD or AB Sit ups | 3 sets | 20 | Rest as needed |
 | D | Dead Bug | 3 sets | 10/10 | Rest as needed |
 
@@ -102,7 +102,7 @@
 | 섹션 | 운동 | 세트 | 횟수 | 메모 |
 |---|---|---|---|---|
 | A | Barbell Overhead Press (밀리터리) | 4 sets | 5 | 그 주 강도 · 3~4개 남기기 · Rest as needed |
-| C | Skill Practice | — | ~10분 | 역도·짐네스틱 자유 (~10분) |
+| C | Skill Practice | — | — | 역도·짐네스틱 자유 |
 | D | Russian Twist | 3 sets | 30 | Rest as needed |
 | D | Plank Pull Through | 3 sets | 26 | Rest as needed |
 
@@ -157,7 +157,7 @@
 | 섹션 | 운동 | 세트 | 횟수 | 메모 |
 |---|---|---|---|---|
 | A | DB Reverse Lunge | 4 sets | 10/10 | Rest as needed |
-| C | Skill Practice | — | ~10분 | 역도·짐네스틱 자유 (~10분) |
+| C | Skill Practice | — | — | 역도·짐네스틱 자유 |
 | D | Hollow Rock Hold | 3 sets | 0:40 | Rest as needed |
 | D | Pallof Press | 3 sets | 12/12 | Rest as needed |
 
@@ -211,7 +211,7 @@
 | 섹션 | 운동 | 세트 | 횟수 | 메모 |
 |---|---|---|---|---|
 | A | Barbell Overhead Press (밀리터리) | 3 sets | 5 | 디로드, 가볍게 · 6개+ 남기기 · Rest as needed |
-| C | Skill Practice | — | ~10분 | 역도·짐네스틱 자유 (~10분, 가볍게) |
+| C | Skill Practice | — | — | 역도·짐네스틱 자유 (가볍게) |
 | D | Flutter Kick w/ Hollow Rock Hold | 2 sets | 0:30 | 가볍게 · Rest as needed |
 
 ### 금 7/31 · 벤치프레스  _(category: 상체(벤치))_
@@ -264,7 +264,7 @@
 | 섹션 | 운동 | 세트 | 횟수 | 메모 |
 |---|---|---|---|---|
 | A | Barbell Back Rack Lunge | 4 sets | 8/8 | Rest as needed |
-| C | Skill Practice | — | ~10분 | 역도·짐네스틱 자유 (~10분) |
+| C | Skill Practice | — | — | 역도·짐네스틱 자유 |
 | D | Side V ups | 3 sets | 15/15 | Rest as needed |
 | D | Plank Pull Through | 3 sets | 26 | Rest as needed |
 
@@ -318,7 +318,7 @@
 | 섹션 | 운동 | 세트 | 횟수 | 메모 |
 |---|---|---|---|---|
 | A | Barbell Overhead Press (밀리터리) | 4 sets | 3 | 그 주 강도 · 1~2개 남기기 · Rest as needed |
-| C | Skill Practice | — | ~10분 | 역도·짐네스틱 자유 (~10분) |
+| C | Skill Practice | — | — | 역도·짐네스틱 자유 |
 | D | Flutter Kick w/ Hollow Rock Hold | 3 sets | 0:30 | Rest as needed |
 | D | Pallof Press | 3 sets | 12/12 | Rest as needed |
 
@@ -372,7 +372,7 @@
 | 섹션 | 운동 | 세트 | 횟수 | 메모 |
 |---|---|---|---|---|
 | A | Bulgarian Split Squat | 3 sets | 8/8 | Rest as needed |
-| C | Skill Practice | — | ~10분 | 역도·짐네스틱 자유 (~10분) |
+| C | Skill Practice | — | — | 역도·짐네스틱 자유 |
 | D | GHD or AB Sit ups | 3 sets | 20 | Rest as needed |
 | D | Dead Bug | 3 sets | 10/10 | Rest as needed |
 
@@ -426,7 +426,7 @@
 | 섹션 | 운동 | 세트 | 횟수 | 메모 |
 |---|---|---|---|---|
 | A | Barbell Overhead Press (밀리터리) | 3 sets | 5 | 가볍게, 기술 위주 (금 벤치 1RM 보호) · Rest as needed |
-| C | Skill Practice | — | ~10분 | 역도·짐네스틱 자유 (~10분, 자유 복습) |
+| C | Skill Practice | — | — | 역도·짐네스틱 자유 (자유 복습) |
 | D | V ups | 2 sets | 18 | 가볍게 · Rest as needed |
 
 ### 금 8/28 · 벤치프레스  _(category: 상체(벤치))_

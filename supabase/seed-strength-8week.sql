@@ -144,7 +144,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Skill Practice', '~10분', '역도·짐네스틱 자유 (~10분)', 0, 1, null)
+  ('C', 'Skill Practice', null, '역도·짐네스틱 자유', 0, 1, null)
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -307,7 +307,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Skill Practice', '~10분', '역도·짐네스틱 자유 (~10분)', 0, 1, null)
+  ('C', 'Skill Practice', null, '역도·짐네스틱 자유', 0, 1, null)
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -470,7 +470,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Skill Practice', '~10분', '역도·짐네스틱 자유 (~10분)', 0, 1, null)
+  ('C', 'Skill Practice', null, '역도·짐네스틱 자유', 0, 1, null)
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -632,7 +632,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Skill Practice', '~10분', '역도·짐네스틱 자유 (~10분, 가볍게)', 0, 1, null)
+  ('C', 'Skill Practice', null, '역도·짐네스틱 자유 (가볍게)', 0, 1, null)
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -793,7 +793,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Skill Practice', '~10분', '역도·짐네스틱 자유 (~10분)', 0, 1, null)
+  ('C', 'Skill Practice', null, '역도·짐네스틱 자유', 0, 1, null)
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -955,7 +955,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Skill Practice', '~10분', '역도·짐네스틱 자유 (~10분)', 0, 1, null)
+  ('C', 'Skill Practice', null, '역도·짐네스틱 자유', 0, 1, null)
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -1117,7 +1117,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Skill Practice', '~10분', '역도·짐네스틱 자유 (~10분)', 0, 1, null)
+  ('C', 'Skill Practice', null, '역도·짐네스틱 자유', 0, 1, null)
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -1279,7 +1279,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Skill Practice', '~10분', '역도·짐네스틱 자유 (~10분, 자유 복습)', 0, 1, null)
+  ('C', 'Skill Practice', null, '역도·짐네스틱 자유 (자유 복습)', 0, 1, null)
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
