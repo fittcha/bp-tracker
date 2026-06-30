@@ -112,10 +112,14 @@ export default function WorkoutPage() {
     // 2) 그 날짜 로그 (workout 조인)
     let logs = await getWorkoutLogsWithWorkout(ds, loggedIn.id)
 
-    // 3) 공용 기본운동 중 로그 없는 것 자동 생성 (과거 날짜는 자동생성 안 함 — 과거 기록 오염 방지)
+    // 3) 로그 없는 공용 자동 생성. WOD(요일 공용)는 과거 포함 항상 담아 매 주중 노출 보장,
+    //    프로그램 등은 오늘/미래만(과거 미작성일 오염 방지).
     const presentWorkoutIds = new Set(logs.map((l) => l.workout?.workout_id).filter(Boolean))
     const isPast = ds < toDateString(new Date())
-    const missing = isPast ? [] : defaults.filter((wk) => !presentWorkoutIds.has(wk.id))
+    const weekdayIds = new Set(weekdayWorkouts.map((w) => w.id))
+    const missing = defaults.filter(
+      (wk) => !presentWorkoutIds.has(wk.id) && (!isPast || weekdayIds.has(wk.id)),
+    )
     for (const wk of missing) {
       await addWorkoutToDate(loggedIn.id, ds, wk.id)
     }
