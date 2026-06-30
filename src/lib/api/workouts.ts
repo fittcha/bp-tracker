@@ -109,9 +109,6 @@ export async function getCurrentProgram(today: string): Promise<CurrentProgram |
     const wk = Math.floor(days / 7) + 1
     currentWeek = totalWeeks ? Math.min(wk, totalWeeks) : wk
   }
-  // TEMP 하드코딩(미리보기용): 강제 진행 중 2주차. 7/6 시작 후 이 2줄 삭제.
-  status = 'active'
-  currentWeek = 2
   return { name, startDate, totalWeeks, currentWeek, status }
 }
 
