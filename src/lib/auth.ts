@@ -47,6 +47,15 @@ export function setLastUsername(username: string) {
 }
 
 export function logout() {
+  // 로그아웃: SWR 영속 캐시 제거 (r2r-swr:* 전부)
+  try {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i)
+      if (key && key.startsWith('r2r-swr:')) localStorage.removeItem(key)
+    }
+  } catch {
+    /* noop */
+  }
   localStorage.removeItem(USER_KEY)
   localStorage.removeItem(AUTO_LOGIN_KEY)
   sessionStorage.removeItem(SESSION_KEY)
