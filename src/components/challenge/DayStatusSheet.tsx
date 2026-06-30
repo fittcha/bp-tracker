@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { X, Check, Timer, RotateCcw } from 'lucide-react'
+import { X, Check, Timer, RotateCcw, Trash2 } from 'lucide-react'
 import { toDateString } from '@/lib/utils'
 import type { DayStatus } from '@/lib/challenge/derive'
 
@@ -15,12 +15,13 @@ interface DayStatusSheetProps {
   onClose: () => void
   onLog: (result: 'success' | 'fail', doneDate: string) => void
   onUpdateDate: (attemptId: string, doneDate: string) => void
+  onDeleteAttempt: (attemptId: string) => void
 }
 
 const EYEBROW = 'text-[11px] font-semibold text-text-secondary'
 
 export default function DayStatusSheet({
-  isOpen, weekNo, dayInWeek, setsText, restSeconds, state, onClose, onLog, onUpdateDate,
+  isOpen, weekNo, dayInWeek, setsText, restSeconds, state, onClose, onLog, onUpdateDate, onDeleteAttempt,
 }: DayStatusSheetProps) {
   const status: DayStatus = state?.status ?? 'untried'
   const [date, setDate] = useState(toDateString(new Date()))
@@ -89,15 +90,25 @@ export default function DayStatusSheet({
           {status === 'success' ? (
             <div className="space-y-3">
               <p className="inline-flex items-center gap-1.5 text-sm font-medium text-success">
-                <Check size={16} /> 성공 완료 · 날짜만 수정
+                <Check size={16} /> 성공 완료
               </p>
-              <button
-                onClick={() => state?.successAttemptId && onUpdateDate(state.successAttemptId, date)}
-                disabled={!state?.successAttemptId}
-                className="w-full py-3 rounded-xl bg-accent text-white font-semibold disabled:opacity-50"
-              >
-                날짜 저장
-              </button>
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => state?.successAttemptId && onDeleteAttempt(state.successAttemptId)}
+                  disabled={!state?.successAttemptId}
+                  className="shrink-0 w-12 h-12 flex items-center justify-center rounded-xl border border-danger/40 text-danger active:bg-danger/10 disabled:opacity-50"
+                  aria-label="기록 삭제"
+                >
+                  <Trash2 size={18} />
+                </button>
+                <button
+                  onClick={() => state?.successAttemptId && onUpdateDate(state.successAttemptId, date)}
+                  disabled={!state?.successAttemptId}
+                  className="flex-1 py-3 rounded-xl bg-accent text-white font-semibold disabled:opacity-50"
+                >
+                  날짜 수정
+                </button>
+              </div>
             </div>
           ) : (
             <div className="space-y-3">
