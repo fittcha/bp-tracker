@@ -1,13 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import Link from 'next/link'
 import { Flame } from 'lucide-react'
+import useSWR from 'swr'
 import { getLoggedInUser } from '@/lib/auth'
-import { getActiveChallenges, getChallengeTemplates } from '@/lib/api/challenges'
+import { getChallengesData } from '@/lib/api/challenges'
 import { deriveDayStates, computeStreak, monthlyAttemptCount } from '@/lib/challenge/derive'
 import { formatDifficulty } from '@/lib/challenge/format'
 import { toDateString } from '@/lib/utils'
+import { k } from '@/lib/swr/keys'
 
 interface WidgetData {
   id: string
@@ -20,40 +22,31 @@ interface WidgetData {
 }
 
 export default function ChallengeWidgets() {
-  const [widgets, setWidgets] = useState<WidgetData[]>([])
+  const uid = getLoggedInUser()?.id ?? ''
+  const { data } = useSWR(uid ? k.challenges(uid) : null, () => getChallengesData(uid))
 
-  useEffect(() => {
-    const user = getLoggedInUser()
-    if (!user) return
-    let cancelled = false
-    Promise.all([getActiveChallenges(user.id), getChallengeTemplates()])
-      .then(([actives, temps]) => {
-        if (cancelled) return
-        const exByKey = Object.fromEntries(temps.map((t) => [t.key, t.exercise]))
-        const today = toDateString(new Date())
-        setWidgets(
-          actives.map((a) => {
-            const dates = a.attempts.map((x) => x.done_date)
-            const states = deriveDayStates(a.attempts)
-            let doneDays = 0
-            states.forEach((s) => { if (s.status === 'success') doneDays++ })
-            return {
-              id: a.challenge.id,
-              name: exByKey[a.challenge.template_key] ?? a.challenge.template_key,
-              diff: formatDifficulty(a.challenge.difficulty),
-              streak: computeStreak(a.challenge.training_weekdays, dates, today),
-              monthCount: monthlyAttemptCount(dates, today.slice(0, 7)),
-              doneDays,
-              totalDays: a.days.length,
-            }
-          }),
-        )
-      })
-      .catch(() => { if (!cancelled) setWidgets([]) })
-    return () => { cancelled = true }
-  }, [])
+  const widgets = useMemo<WidgetData[]>(() => {
+    if (!data) return []
+    const exByKey = Object.fromEntries(data.templates.map((t) => [t.key, t.exercise]))
+    const today = toDateString(new Date())
+    return data.actives.map((a) => {
+      const dates = a.attempts.map((x) => x.done_date)
+      const states = deriveDayStates(a.attempts)
+      let doneDays = 0
+      states.forEach((s) => { if (s.status === 'success') doneDays++ })
+      return {
+        id: a.challenge.id,
+        name: exByKey[a.challenge.template_key] ?? a.challenge.template_key,
+        diff: formatDifficulty(a.challenge.difficulty),
+        streak: computeStreak(a.challenge.training_weekdays, dates, today),
+        monthCount: monthlyAttemptCount(dates, today.slice(0, 7)),
+        doneDays,
+        totalDays: a.days.length,
+      } satisfies WidgetData
+    })
+  }, [data])
 
-  if (widgets.length === 0) return null
+  if (!data || widgets.length === 0) return null
 
   return (
     <div>

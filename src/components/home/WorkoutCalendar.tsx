@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import useSWR from 'swr'
 import { getLoggedInUser } from '@/lib/auth'
 import { getCompletedDatesInRange, getWorkoutDatesInRange } from '@/lib/api/workout-logs'
 import { toDateString } from '@/lib/utils'
+import { k } from '@/lib/swr/keys'
 
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
 
@@ -25,8 +27,6 @@ export default function WorkoutCalendar() {
     d.setHours(0, 0, 0, 0)
     return d
   })
-  const [completed, setCompleted] = useState<Set<string>>(new Set())
-  const [worked, setWorked] = useState<Set<string>>(new Set())
 
   const year = monthStart.getFullYear()
   const month = monthStart.getMonth() // 0-based
@@ -42,33 +42,19 @@ export default function WorkoutCalendar() {
   })
   const todayDs = toDateString(new Date())
 
-  useEffect(() => {
-    const user = getLoggedInUser()
-    if (!user) return
-    const gs = gridStartOf(monthStart)
-    const ge = new Date(gs)
-    ge.setDate(gs.getDate() + 41)
-    let cancelled = false
-    Promise.all([
-      getCompletedDatesInRange(user.id, toDateString(gs), toDateString(ge)),
-      getWorkoutDatesInRange(user.id, toDateString(gs), toDateString(ge)),
+  const uid = getLoggedInUser()?.id ?? ''
+  const gs = gridStartOf(monthStart)
+  const ge = new Date(gs); ge.setDate(gs.getDate() + 41)
+  const gsStr = toDateString(gs)
+  const { data } = useSWR(uid ? k.calDates(uid, gsStr) : null, async () => {
+    const [completedDates, workedDates] = await Promise.all([
+      getCompletedDatesInRange(uid, gsStr, toDateString(ge)),
+      getWorkoutDatesInRange(uid, gsStr, toDateString(ge)),
     ])
-      .then(([completedDates, workedDates]) => {
-        if (!cancelled) {
-          setCompleted(new Set(completedDates))
-          setWorked(new Set(workedDates))
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setCompleted(new Set())
-          setWorked(new Set())
-        }
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [monthStart])
+    return { completed: completedDates, worked: workedDates }
+  })
+  const completed = new Set(data?.completed ?? [])
+  const worked = new Set(data?.worked ?? [])
 
   function shiftMonth(delta: number) {
     setMonthStart(new Date(year, month + delta, 1))

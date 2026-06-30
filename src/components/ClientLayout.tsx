@@ -2,14 +2,18 @@
 
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { SWRConfig } from 'swr'
 import Header from '@/components/Header'
 import BottomNav from '@/components/BottomNav'
 import AuthGuard from '@/components/auth/AuthGuard'
+import { getLoggedInUser } from '@/lib/auth'
+import { localStorageProvider } from '@/lib/swr/provider'
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isLogin = pathname === '/login'
   const [overlayVisible, setOverlayVisible] = useState(false)
+  const uid = getLoggedInUser()?.id ?? 'anon'
 
   useEffect(() => {
     const handler = (e: Event) => setOverlayVisible((e as CustomEvent).detail)
@@ -17,12 +21,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     return () => window.removeEventListener('calc-open', handler)
   }, [])
 
-  return (
-    <AuthGuard>
+  const content = (
+    <>
       {!isLogin && <Header />}
-      <main className={isLogin ? '' : 'max-w-lg mx-auto px-4 pt-3 pb-20'}>
-        {children}
-      </main>
+      <main className={isLogin ? '' : 'max-w-lg mx-auto px-4 pt-3 pb-20'}>{children}</main>
       {!isLogin && <BottomNav />}
       {overlayVisible && (
         <div
@@ -33,6 +35,23 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           }}
         />
       )}
+    </>
+  )
+
+  return (
+    <AuthGuard>
+      <SWRConfig
+        key={uid}
+        value={{
+          provider: () => localStorageProvider(uid),
+          revalidateOnFocus: true,
+          revalidateOnReconnect: true,
+          dedupingInterval: 2000,
+          keepPreviousData: true,
+        }}
+      >
+        {content}
+      </SWRConfig>
     </AuthGuard>
   )
 }

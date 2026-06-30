@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useRef } from 'react'
+import useSWR, { useSWRConfig } from 'swr'
 import { Plus, Trash2 } from 'lucide-react'
 import {
   getAll1RM, upsert1RM, type OneRM,
@@ -12,6 +13,8 @@ import NrmAddModal from '@/components/pr/NrmAddModal'
 import PaceAddModal from '@/components/pr/PaceAddModal'
 import WodTab from '@/components/pr/WodTab'
 import { getLoggedInUser } from '@/lib/auth'
+import { k } from '@/lib/swr/keys'
+import { matchPrefix } from '@/lib/swr/revalidate'
 
 // name = DB exercise_name 키(roadtorxd 기존 1RM 데이터가 한글이라 한글로 매칭), label = 표시·아이콘용
 const DEFAULT_1RM = [
@@ -61,53 +64,40 @@ function calcPace(equipment: string, distance: string, totalSeconds: number): st
 
 export default function PRPage() {
   const [subTab, setSubTab] = useState<'records' | 'wod'>('records')
-  const [records, setRecords] = useState<OneRM[]>([])
-  const [nrmRecords, setNrmRecords] = useState<NRM[]>([])
-  const [paceRecords, setPaceRecords] = useState<PaceRecord[]>([])
   const [nrmModalOpen, setNrmModalOpen] = useState(false)
   const [paceModalOpen, setPaceModalOpen] = useState(false)
   const debounceTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
   const userId = getLoggedInUser()?.id || ''
 
-  const loadData = useCallback(async () => {
-    if (!userId) return
-    try {
-      const [rm, nrm, pace] = await Promise.all([
-        getAll1RM(userId),
-        getAllNRM(userId),
-        getAllPaceRecords(userId),
-      ])
-      setRecords(rm)
-      setNrmRecords(nrm)
-      setPaceRecords(pace)
-    } catch (err) {
-      console.error('Failed to load PR data:', err)
-    }
-  }, [userId])
+  const { data: records } = useSWR(userId ? k.pr1rm(userId) : null, () => getAll1RM(userId))
+  const { data: nrmRecords } = useSWR(userId ? k.prNrm(userId) : null, () => getAllNRM(userId))
+  const { data: paceRecords } = useSWR(userId ? k.prPace(userId) : null, () => getAllPaceRecords(userId))
+  const { mutate } = useSWRConfig()
+  const [localRm, setLocalRm] = useState<OneRM[]>([])
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { loadData() }, [loadData])
+  const effectiveRecords = localRm.length > 0 ? localRm : (records ?? [])
 
   function getWeight(exerciseName: string): string {
-    const r = records.find(r => r.exercise_name === exerciseName)
+    const r = effectiveRecords.find(r => r.exercise_name === exerciseName)
     return r?.weight != null ? String(r.weight) : ''
   }
 
   function getUnit(exerciseName: string): string {
-    const r = records.find(r => r.exercise_name === exerciseName)
+    const r = effectiveRecords.find(r => r.exercise_name === exerciseName)
     return r?.weight_unit || 'lb'
   }
 
   function handleWeightChange(exerciseName: string, value: string, unit: string) {
-    setRecords(prev => {
-      const idx = prev.findIndex(r => r.exercise_name === exerciseName)
+    setLocalRm(prev => {
+      const base = prev.length > 0 ? prev : (records ?? [])
+      const idx = base.findIndex(r => r.exercise_name === exerciseName)
       const weight = value ? parseFloat(value) : null
       if (idx >= 0) {
-        const next = [...prev]
+        const next = [...base]
         next[idx] = { ...next[idx], weight, weight_unit: unit }
         return next
       }
-      return [...prev, { id: '', user_id: userId, exercise_name: exerciseName, weight, weight_unit: unit, updated_at: '' }]
+      return [...base, { id: '', user_id: userId, exercise_name: exerciseName, weight, weight_unit: unit, updated_at: '' }]
     })
 
     const key = `1rm-${exerciseName}`
@@ -116,6 +106,8 @@ export default function PRPage() {
     debounceTimers.current.set(key, setTimeout(async () => {
       try {
         await upsert1RM(userId, exerciseName, value ? parseFloat(value) : null, unit)
+        mutate(matchPrefix('pr-1rm', userId))
+        setLocalRm([])
       } catch (err) {
         console.error('Failed to save 1RM:', err)
       }
@@ -124,13 +116,9 @@ export default function PRPage() {
 
   async function handleNrmSave(exercise: string, repMax: number, weight: number, unit: string) {
     try {
-      const saved = await upsertNRM(userId, exercise, repMax, weight, unit)
+      await upsertNRM(userId, exercise, repMax, weight, unit)
       setNrmModalOpen(false)
-      setNrmRecords(prev => {
-        const idx = prev.findIndex(r => r.id === saved.id)
-        if (idx >= 0) { const next = [...prev]; next[idx] = saved; return next }
-        return [...prev, saved]
-      })
+      mutate(matchPrefix('pr-nrm', userId))
     } catch (err) {
       console.error('Failed to save nRM:', err)
     }
@@ -139,40 +127,36 @@ export default function PRPage() {
   async function handleNrmDelete(id: string) {
     try {
       await deleteNRM(id)
-      setNrmRecords(prev => prev.filter(r => r.id !== id))
+      mutate(matchPrefix('pr-nrm', userId))
     } catch (err) {
       console.error('Failed to delete nRM:', err)
     }
   }
 
   async function handlePaceSave(equipment: string, distance: string, timeSeconds: number) {
-    const saved = await upsertPaceRecord(userId, equipment, distance, timeSeconds)
+    await upsertPaceRecord(userId, equipment, distance, timeSeconds)
     setPaceModalOpen(false)
-    setPaceRecords(prev => {
-      const idx = prev.findIndex(r => r.id === saved.id)
-      if (idx >= 0) { const next = [...prev]; next[idx] = saved; return next }
-      return [...prev, saved]
-    })
+    mutate(matchPrefix('pr-pace', userId))
   }
 
   async function handlePaceDelete(id: string) {
     try {
       await deletePaceRecord(id)
-      setPaceRecords(prev => prev.filter(r => r.id !== id))
+      mutate(matchPrefix('pr-pace', userId))
     } catch (err) {
       console.error('Failed to delete pace:', err)
     }
   }
 
   // Group nRM by rep_max
-  const nrmGroups = nrmRecords.reduce<Record<number, NRM[]>>((acc, r) => {
+  const nrmGroups = (nrmRecords ?? []).reduce<Record<number, NRM[]>>((acc, r) => {
     if (!acc[r.rep_max]) acc[r.rep_max] = []
     acc[r.rep_max].push(r)
     return acc
   }, {})
 
   // Group pace by equipment
-  const paceGroups = paceRecords.reduce<Record<string, PaceRecord[]>>((acc, r) => {
+  const paceGroups = (paceRecords ?? []).reduce<Record<string, PaceRecord[]>>((acc, r) => {
     if (!acc[r.equipment]) acc[r.equipment] = []
     acc[r.equipment].push(r)
     return acc

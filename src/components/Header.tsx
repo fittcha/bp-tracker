@@ -1,25 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import useSWR from 'swr'
 import { getLoggedInUser } from '@/lib/auth'
-import { getCurrentProgram, type CurrentProgram } from '@/lib/api/workouts'
+import { getCurrentProgram } from '@/lib/api/workouts'
+import { k } from '@/lib/swr/keys'
 import { toDateString } from '@/lib/utils'
 
 export default function Header() {
   const user = getLoggedInUser()
   const username = user?.username ?? toDateString(new Date())
+  const today = toDateString(new Date())
   // undefined=로딩, null=프로그램 없음
-  const [program, setProgram] = useState<CurrentProgram | null | undefined>(undefined)
-
-  useEffect(() => {
-    let cancelled = false
-    getCurrentProgram(toDateString(new Date()))
-      .then((p) => !cancelled && setProgram(p))
-      .catch(() => !cancelled && setProgram(null))
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const { data: program } = useSWR(k.program(today), () => getCurrentProgram(today))
 
   // 주차별 미니 세그먼트 색: 완료=남색 / 현재=골드 / 미래=빈칸
   const segColor = (wk: number) => {

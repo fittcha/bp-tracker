@@ -1,50 +1,30 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import useSWR from 'swr'
 import WorkoutCalendar from '@/components/home/WorkoutCalendar'
 import ChallengeWidgets from '@/components/home/ChallengeWidgets'
 import { getLoggedInUser } from '@/lib/auth'
 import { getCompletedDatesInRange } from '@/lib/api/workout-logs'
 import { toDateString } from '@/lib/utils'
+import { k } from '@/lib/swr/keys'
 
 export default function Home() {
-  const [weekCount, setWeekCount] = useState<number | null>(null)
-  const [monthCount, setMonthCount] = useState<number | null>(null)
-
-  useEffect(() => {
-    const user = getLoggedInUser()
-    if (!user) return
-
-    const now = new Date()
-    // 이번 주(일~토)
-    const weekStart = new Date(now)
-    const dow = weekStart.getDay() // 0=일..6=토
-    weekStart.setDate(weekStart.getDate() - dow)
-    const weekEnd = new Date(weekStart)
-    weekEnd.setDate(weekStart.getDate() + 6)
-    // 이번 달
+  const uid = getLoggedInUser()?.id ?? ''
+  const now = new Date()
+  const ym = `${now.getFullYear()}-${now.getMonth() + 1}`
+  const { data: stats } = useSWR(uid ? k.homeStats(uid, ym) : null, async () => {
+    const weekStart = new Date(now); weekStart.setDate(weekStart.getDate() - weekStart.getDay())
+    const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6)
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-
-    let cancelled = false
-    Promise.all([
-      getCompletedDatesInRange(user.id, toDateString(weekStart), toDateString(weekEnd)),
-      getCompletedDatesInRange(user.id, toDateString(monthStart), toDateString(monthEnd)),
+    const [week, month] = await Promise.all([
+      getCompletedDatesInRange(uid, toDateString(weekStart), toDateString(weekEnd)),
+      getCompletedDatesInRange(uid, toDateString(monthStart), toDateString(monthEnd)),
     ])
-      .then(([week, month]) => {
-        if (cancelled) return
-        setWeekCount(week.length)
-        setMonthCount(month.length)
-      })
-      .catch(() => {
-        if (cancelled) return
-        setWeekCount(0)
-        setMonthCount(0)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [])
+    return { week: week.length, month: month.length }
+  })
+  const weekCount = stats?.week ?? null
+  const monthCount = stats?.month ?? null
 
   return (
     <div className="flex flex-col gap-4">

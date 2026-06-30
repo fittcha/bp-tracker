@@ -1,32 +1,30 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
+import useSWR, { useSWRConfig } from 'swr'
 import { getLoggedInUser } from '@/lib/auth'
-import {
-  getActiveChallenges, getChallengeTemplates,
-  type ActiveChallenge, type ChallengeTemplate,
-} from '@/lib/api/challenges'
+import { getChallengesData, type ActiveChallenge, type ChallengeTemplate } from '@/lib/api/challenges'
+import { k } from '@/lib/swr/keys'
+import { matchPrefix } from '@/lib/swr/revalidate'
 import ChallengeDashboardCard from '@/components/challenge/ChallengeDashboardCard'
 import AddChallengePopup from '@/components/challenge/AddChallengePopup'
 
 export default function ChallengePage() {
-  const [actives, setActives] = useState<ActiveChallenge[]>([])
-  const [templates, setTemplates] = useState<Record<string, ChallengeTemplate>>({})
-  const [loading, setLoading] = useState(true)
+  const uid = getLoggedInUser()?.id ?? ''
+  const { data } = useSWR(uid ? k.challenges(uid) : null, () => getChallengesData(uid))
+  const { mutate } = useSWRConfig()
   const [addOpen, setAddOpen] = useState(false)
 
-  const reload = useCallback(async () => {
-    const user = getLoggedInUser()
-    if (!user) { setLoading(false); return }
-    const [list, temps] = await Promise.all([getActiveChallenges(user.id), getChallengeTemplates()])
-    setActives(list)
-    setTemplates(Object.fromEntries(temps.map((t) => [t.key, t])))
-    setLoading(false)
-  }, [])
+  const reload = () => { void mutate(matchPrefix('challenges', uid)) }
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { reload() }, [reload])
+  const actives: ActiveChallenge[] = data?.actives ?? []
+  const templateMap: Record<string, ChallengeTemplate> = useMemo(
+    () => Object.fromEntries((data?.templates ?? []).map((t) => [t.key, t])),
+    [data],
+  )
+
+  const loading = data === undefined
 
   return (
     <div className="flex flex-col gap-4">
@@ -39,7 +37,7 @@ export default function ChallengePage() {
         </div>
       ) : (
         actives.map((a) => (
-          <ChallengeDashboardCard key={a.challenge.id} active={a} template={templates[a.challenge.template_key]} onChanged={reload} />
+          <ChallengeDashboardCard key={a.challenge.id} active={a} template={templateMap[a.challenge.template_key]} onChanged={reload} />
         ))
       )}
 

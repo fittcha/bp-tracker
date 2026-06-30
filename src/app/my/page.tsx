@@ -1,12 +1,15 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import useSWR, { useSWRConfig } from 'swr'
 import { toDateString } from '@/lib/utils'
 import { getDailyLog, upsertDailyLog, DailyLog } from '@/lib/api/daily-logs'
 import { getLoggedInUser, logout } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
 import WeightChart from '@/components/summary/WeightChart'
+import { k } from '@/lib/swr/keys'
+import { matchPrefix } from '@/lib/swr/revalidate'
 
 interface DailyLogRow {
   date: string
@@ -36,99 +39,82 @@ const emptyLog = (date: string): DailyLog => ({
 
 export default function MyPage() {
   const router = useRouter()
+  const { mutate } = useSWRConfig()
   const user = getLoggedInUser()
-  const userId = user?.id ?? ''
+  const uid = user?.id ?? ''
   const [date, setDate] = useState(toDateString(new Date()))
-  const [log, setLog] = useState<DailyLog>(emptyLog(date))
-  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [weightData, setWeightData] = useState<{ date: string; weight: number | null }[]>([])
+  // Local weight state for optimistic editing while typing; null = follow SWR
+  const [localWeight, setLocalWeight] = useState<number | null | undefined>(undefined)
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
-  const isLoadedRef = useRef(false)
 
-  useEffect(() => {
-    async function load() {
-      isLoadedRef.current = false
-      setLoading(true)
-      try {
-        const existing = await getDailyLog(date, userId)
-        if (existing) {
-          setLog(existing)
-        } else {
-          setLog(emptyLog(date))
-        }
-      } catch (err) {
-        console.error('Load failed:', err)
-        setLog(emptyLog(date))
+  // Selected-date daily log
+  const { data: swrLog } = useSWR(
+    uid ? k.dailyLog(uid, date) : null,
+    () => getDailyLog(date, uid),
+  )
+
+  // Weight graph range query (all rows, ordered by date)
+  const { data: weightData } = useSWR(
+    uid ? k.weightRange(uid, '', '') : null,
+    async () => {
+      const { data } = await supabase
+        .from('daily_logs')
+        .select('date, weight_kg')
+        .eq('user_id', uid)
+        .order('date', { ascending: true })
+
+      const rows: DailyLogRow[] = data || []
+      const weighedLogs = rows.filter(l => l.weight_kg != null)
+      if (!weighedLogs.length) return []
+      const logMap = new Map(weighedLogs.map(l => [l.date, l.weight_kg!]))
+      const start = new Date(weighedLogs[0].date)
+      // x-axis end: last weight date + 2 days (label padding)
+      const end = new Date(weighedLogs[weighedLogs.length - 1].date)
+      end.setDate(end.getDate() + 2)
+      const days: { date: string; weight: number | null }[] = []
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().slice(0, 10)
+        days.push({ date: dateStr, weight: logMap.get(dateStr) ?? null })
       }
-      setLoading(false)
-      isLoadedRef.current = true
-    }
-    load()
-  }, [date, userId])
+      return days
+    },
+  )
 
-  // Load all weight logs for chart (mode="all", no program date bounds)
-  useEffect(() => {
-    async function loadWeightData() {
-      if (!userId) return
-      try {
-        const { data } = await supabase
-          .from('daily_logs')
-          .select('date, weight_kg')
-          .eq('user_id', userId)
-          .order('date', { ascending: true })
+  const loading = swrLog === undefined || weightData === undefined
 
-        const rows: DailyLogRow[] = data || []
-        const weighedLogs = rows.filter(l => l.weight_kg != null)
-        if (!weighedLogs.length) {
-          setWeightData([])
-          return
-        }
-        const logMap = new Map(weighedLogs.map(l => [l.date, l.weight_kg!]))
-        const start = new Date(weighedLogs[0].date)
-        // x-axis end: last weight date + 2 days (label padding)
-        const end = new Date(weighedLogs[weighedLogs.length - 1].date)
-        end.setDate(end.getDate() + 2)
-        const days: { date: string; weight: number | null }[] = []
-        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-          const dateStr = d.toISOString().slice(0, 10)
-          days.push({ date: dateStr, weight: logMap.get(dateStr) ?? null })
-        }
-        setWeightData(days)
-      } catch (err) {
-        console.error('Failed to load weight data:', err)
-      }
-    }
-    loadWeightData()
-  }, [userId])
+  // Resolved log: prefer SWR data; fall back to emptyLog while loading
+  const log: DailyLog = swrLog ?? emptyLog(date)
 
-  const autoSave = useCallback((updated: DailyLog) => {
-    if (!isLoadedRef.current) return
+  // Weight displayed: local optimistic value while typing; SWR after save
+  const displayWeight = localWeight !== undefined ? localWeight : log.weight_kg
+
+  const autoSave = useCallback((weight: number | null) => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(async () => {
       setSaving(true)
       try {
         // Read existing row first to preserve archived season1 columns
-        const existing = await getDailyLog(updated.date, userId)
+        const existing = await getDailyLog(date, uid)
         const toSave: DailyLog = existing
-          ? { ...existing, weight_kg: updated.weight_kg }
-          : { ...updated, user_id: userId }
-        await upsertDailyLog({ ...toSave, user_id: userId })
-        const saved = await getDailyLog(updated.date, userId)
-        if (saved) setLog(saved)
+          ? { ...existing, weight_kg: weight }
+          : { ...emptyLog(date), weight_kg: weight, user_id: uid }
+        await upsertDailyLog({ ...toSave, user_id: uid })
+        // Invalidate both keys; SWR will refetch and become source of truth
+        mutate(matchPrefix('daily-log', uid, date))
+        mutate(matchPrefix('weight-range', uid))
+        // Clear local shadow so SWR data takes over
+        setLocalWeight(undefined)
       } catch (err) {
         console.error('Auto-save failed:', err)
       }
       setSaving(false)
     }, 800)
-  }, [userId])
+  }, [uid, date, mutate, setSaving, setLocalWeight])
 
   function updateWeight(value: number | null) {
-    setLog(prev => {
-      const updated = { ...prev, weight_kg: value }
-      autoSave(updated)
-      return updated
-    })
+    setLocalWeight(value)
+    autoSave(value)
   }
 
   if (loading) {
@@ -175,7 +161,7 @@ export default function MyPage() {
             inputMode="decimal"
             step="0.1"
             placeholder="0.0"
-            value={log.weight_kg ?? ''}
+            value={displayWeight ?? ''}
             onChange={(e) => updateWeight(e.target.value ? parseFloat(e.target.value) : null)}
             className="w-24 border border-border rounded-lg px-3 py-2 text-sm bg-background"
           />
@@ -184,7 +170,7 @@ export default function MyPage() {
       </Section>
 
       {/* 체중 그래프 */}
-      <WeightChart data={weightData} />
+      <WeightChart data={weightData ?? []} />
 
       <button
         onClick={() => { logout(); router.push('/login') }}

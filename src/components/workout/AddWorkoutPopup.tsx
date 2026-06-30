@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import useSWR, { useSWRConfig } from 'swr'
 import {
   getPersonalWorkouts,
   createPersonalWorkout,
@@ -11,6 +12,8 @@ import {
 } from '@/lib/api/workouts'
 import { addWorkoutToDate } from '@/lib/api/workout-logs'
 import { buildExercisesFromGroups, type ExerciseRow, type SetGroup } from '@/lib/workout/build-exercises'
+import { k } from '@/lib/swr/keys'
+import { matchPrefix } from '@/lib/swr/revalidate'
 
 // 카테고리 표준 목록 (탭 순서·생성 폼 select 공용). '전체'는 UI 메타탭으로 별도.
 export const WORKOUT_CATEGORIES = ['전신', '가슴', '등', '어깨', '팔', '하체', '코어', '유산소']
@@ -30,9 +33,15 @@ interface AddWorkoutPopupProps {
 }
 
 export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddWorkoutPopupProps) {
-  const [workouts, setWorkouts] = useState<Workout[]>([])
-  const [loading, setLoading] = useState(true)
-  const [fetchError, setFetchError] = useState<string | null>(null)
+  const { mutate } = useSWRConfig()
+
+  const {
+    data: workouts,
+    isLoading: loading,
+    error: fetchErrorRaw,
+  } = useSWR(userId ? k.personalWorkouts(userId) : null, () => getPersonalWorkouts(userId))
+  const fetchError = fetchErrorRaw ? (fetchErrorRaw instanceof Error ? fetchErrorRaw.message : '운동 목록을 불러오지 못했습니다.') : null
+
   const [addError, setAddError] = useState<string | null>(null)
   const [selectedCat, setSelectedCat] = useState<string>('전체')
   const [addingId, setAddingId] = useState<string | null>(null)
@@ -47,21 +56,15 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
   const [createError, setCreateError] = useState<string | null>(null)
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
 
-  useEffect(() => {
-    getPersonalWorkouts(userId)
-      .then(setWorkouts)
-      .catch((e) => setFetchError(e instanceof Error ? e.message : '운동 목록을 불러오지 못했습니다.'))
-      .finally(() => setLoading(false))
-  }, [userId])
-
   // 활성 카테고리 탭 목록: 전체 + 실제 데이터 있는 카테고리만
+  const safeWorkouts = workouts ?? []
   const activeCats = [
     '전체',
-    ...WORKOUT_CATEGORIES.filter((c) => workouts.some((w) => w.category === c)),
+    ...WORKOUT_CATEGORIES.filter((c) => safeWorkouts.some((w) => w.category === c)),
   ]
 
   const filtered =
-    selectedCat === '전체' ? workouts : workouts.filter((w) => w.category === selectedCat)
+    selectedCat === '전체' ? safeWorkouts : safeWorkouts.filter((w) => w.category === selectedCat)
 
   // ── 카드 탭 → 담기 ──
   async function handleAddWorkout(workoutId: string) {
@@ -122,11 +125,11 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
     try {
       if (editingId) {
         await updatePersonalWorkout(editingId, newTitle.trim(), newCategory || null, exercises)
-        const updated = await getPersonalWorkouts(userId)
-        setWorkouts(updated)
+        mutate(matchPrefix('personal-workouts', userId))
         resetCreate()
       } else {
         const w = await createPersonalWorkout(userId, newTitle.trim(), newCategory || null, exercises)
+        mutate(matchPrefix('personal-workouts', userId))
         await addWorkoutToDate(userId, date, w.id)
         onAdded()
       }
@@ -184,8 +187,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
     if (!window.confirm(`"${title}" 운동을 숨길까요? 숨긴 운동은 목록에서 사라집니다.`)) return
     try {
       await archiveWorkout(workoutId)
-      const updated = await getPersonalWorkouts(userId)
-      setWorkouts(updated)
+      mutate(matchPrefix('personal-workouts', userId))
     } catch (e) {
       setAddError(e instanceof Error ? e.message : '보관에 실패했습니다.')
     }
@@ -395,7 +397,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
               ) : filtered.length === 0 ? (
                 <div className="px-4 pb-8 pt-4 text-center">
                   <p className="text-sm text-text-secondary">
-                    {workouts.length === 0
+                    {safeWorkouts.length === 0
                       ? '개인 운동이 없어요. + 새 운동으로 만들어 보세요.'
                       : '이 카테고리에 운동이 없어요.'}
                   </p>
