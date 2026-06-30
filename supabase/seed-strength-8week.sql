@@ -10,10 +10,10 @@ delete from workouts where owner_user_id is null and program_label like 'Strengt
 delete from workout_logs
   where date between '2026-07-06' and '2026-08-28'
     and workout_exercise_id is null and is_custom = false and template_id is null;
--- 박스 와드(요일 공용, 매일 맨 위)는 유지/복구
-update workouts set archived = false where owner_user_id is null and title = '박스 와드';
--- 그 외 레거시 요일반복 공용만 archive (박스 와드 제외, 재실행 안전)
-update workouts set archived = true where owner_user_id is null and program_date is null and archived = false and title <> '박스 와드';
+-- WOD(요일 공용, 매일 맨 위)는 유지/복구
+update workouts set archived = false where owner_user_id is null and title = 'WOD';
+-- 그 외 레거시 요일반복 공용만 archive (WOD 제외, 재실행 안전)
+update workouts set archived = true where owner_user_id is null and program_date is null and archived = false and title <> 'WOD';
 
 -- ============================================================
 -- 1주차 — 축적 (7/6 ~ 7/10)
