@@ -5,7 +5,7 @@ import { RotateCcw, Flame, MoreVertical, Pencil, Trash2 } from 'lucide-react'
 import { toDateString } from '@/lib/utils'
 import { deriveDayStates, computeStreak, monthlyAttemptCount, type DayState } from '@/lib/challenge/derive'
 import {
-  addAttempt, updateAttemptDate, resetChallenge, deleteChallenge,
+  addAttempt, updateAttemptDate, deleteAttempt, resetChallenge, deleteChallenge,
   type ActiveChallenge, type ChallengeTemplate, type ChallengeProgramDay,
 } from '@/lib/api/challenges'
 import DayStatusSheet from './DayStatusSheet'
@@ -60,6 +60,12 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
   }
   async function handleUpdateDate(attemptId: string, doneDate: string) {
     await updateAttemptDate(attemptId, doneDate)
+    setOpenDay(null)
+    onChanged()
+  }
+  async function handleDeleteAttempt(attemptId: string) {
+    if (!confirm('이 성공 기록을 삭제할까요? (되돌릴 수 없어요)')) return
+    await deleteAttempt(attemptId)
     setOpenDay(null)
     onChanged()
   }
@@ -143,6 +149,7 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
         onClose={() => setOpenDay(null)}
         onLog={handleLog}
         onUpdateDate={handleUpdateDate}
+        onDeleteAttempt={handleDeleteAttempt}
       />
 
       <EditChallengePopup

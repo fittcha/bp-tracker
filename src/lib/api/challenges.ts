@@ -183,6 +183,15 @@ export async function updateAttemptDate(attemptId: string, doneDate: string): Pr
   if (error) throw error
 }
 
+// 단일 attempt 물리삭제 (성공 잘못 누름 되돌리기 등). 삭제 후 그 day는 남은 attempt로 재파생.
+export async function deleteAttempt(attemptId: string): Promise<void> {
+  const { error } = await supabase
+    .from('challenge_attempts')
+    .delete()
+    .eq('id', attemptId)
+  if (error) throw error
+}
+
 export async function resetChallenge(userChallengeId: string): Promise<void> {
   const { error } = await supabase
     .from('challenge_attempts')
