@@ -200,6 +200,19 @@ export async function addWorkoutToDate(
   workoutId: string,
 ): Promise<WorkoutLog[]> {
   const exercises = await getWorkoutExercises(workoutId)
+  if (exercises.length === 0) return []
+  // 멱등: 이 운동의 동작이 이미 그날 담겨 있으면 추가하지 않는다.
+  // 자동담기가 stale 캐시(이전 세션의 빈/부분 day-logs)로 present를 계산해 재담기하면
+  // 정확히 2배 중복이 생기던 문제 방어 — DB 기준으로 한 번 더 막는다.
+  const { data: existing, error: ce } = await supabase
+    .from('workout_logs')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('date', date)
+    .in('workout_exercise_id', exercises.map((e) => e.id))
+    .limit(1)
+  if (ce) throw ce
+  if (existing && existing.length > 0) return []
   const rows: Omit<WorkoutLog, 'id'>[] = exercises.map((ex) => ({
     user_id: userId,
     date,
