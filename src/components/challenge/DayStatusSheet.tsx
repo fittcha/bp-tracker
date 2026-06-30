@@ -91,20 +91,6 @@ export default function DayStatusSheet({
           {/* 액션 */}
           {status === 'success' ? (
             <div className="space-y-3">
-              {/* 성공 완료 문구 + 휴지통(기록 삭제) — 중앙 정렬 */}
-              <div className="flex items-center justify-center gap-2">
-                <p className="inline-flex items-center gap-1.5 text-sm font-medium text-success">
-                  <Check size={16} /> 성공 완료
-                </p>
-                <button
-                  onClick={() => state?.successAttemptId && onDeleteAttempt(state.successAttemptId)}
-                  disabled={!state?.successAttemptId}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-danger/40 text-danger active:bg-danger/10 disabled:opacity-50"
-                  aria-label="기록 삭제"
-                >
-                  <Trash2 size={15} />
-                </button>
-              </div>
               {/* 날짜 입력 + 날짜 수정(오른편) */}
               <div className="flex items-center gap-2">
                 <input
@@ -119,6 +105,20 @@ export default function DayStatusSheet({
                   className="shrink-0 px-4 py-2.5 rounded-xl bg-accent text-white font-semibold text-sm disabled:opacity-50"
                 >
                   날짜 수정
+                </button>
+              </div>
+              {/* 성공 완료 문구 + 휴지통(기록 삭제) — 중앙 정렬, 맨 아래 */}
+              <div className="flex items-center justify-center gap-5 pt-1">
+                <p className="inline-flex items-center gap-1.5 text-sm font-medium text-success">
+                  <Check size={16} /> 성공 완료
+                </p>
+                <button
+                  onClick={() => state?.successAttemptId && onDeleteAttempt(state.successAttemptId)}
+                  disabled={!state?.successAttemptId}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-danger/40 text-danger active:bg-danger/10 disabled:opacity-50"
+                  aria-label="기록 삭제"
+                >
+                  <Trash2 size={15} />
                 </button>
               </div>
             </div>
