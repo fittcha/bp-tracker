@@ -207,7 +207,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
       }}
     >
       {/* 중앙 모달 */}
-      <div className="w-full max-w-lg bg-surface rounded-2xl h-[92vh] max-h-[92vh] flex flex-col overflow-hidden">
+      <div className="w-full max-w-lg bg-surface rounded-2xl h-[85vh] max-h-[85vh] flex flex-col overflow-hidden">
         {/* 헤더 */}
         <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-border flex-shrink-0">
           <h2 className="text-base font-bold text-foreground">운동 추가</h2>
