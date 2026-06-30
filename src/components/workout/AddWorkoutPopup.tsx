@@ -14,6 +14,7 @@ import { addWorkoutToDate } from '@/lib/api/workout-logs'
 import { buildExercisesFromGroups, type ExerciseRow, type SetGroup } from '@/lib/workout/build-exercises'
 import { k } from '@/lib/swr/keys'
 import { matchPrefix } from '@/lib/swr/revalidate'
+import ShareWorkoutModal from '@/components/workout/ShareWorkoutModal'
 
 // 카테고리 표준 목록 (탭 순서·생성 폼 select 공용). '전체'는 UI 메타탭으로 별도.
 export const WORKOUT_CATEGORIES = ['전신', '가슴', '등', '어깨', '팔', '하체', '코어', '유산소']
@@ -55,6 +56,7 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
   const [submitting, setSubmitting] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
+  const [shareTarget, setShareTarget] = useState<Workout | null>(null)
 
   // 활성 카테고리 탭 목록: 전체 + 실제 데이터 있는 카테고리만
   const safeWorkouts = workouts ?? []
@@ -443,6 +445,12 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
                             수정
                           </button>
                           <button
+                            onClick={() => { setMenuOpenId(null); setShareTarget(w) }}
+                            className="w-full text-left px-3 py-2 text-xs font-medium text-foreground hover:bg-accent-light transition-colors"
+                          >
+                            공유
+                          </button>
+                          <button
                             onClick={() => handleArchiveWorkout(w.id, w.title)}
                             className="w-full text-left px-3 py-2 text-xs font-medium text-danger hover:bg-accent-light transition-colors"
                           >
@@ -458,6 +466,9 @@ export default function AddWorkoutPopup({ userId, date, onAdded, onClose }: AddW
           )}
         </div>
       </div>
+      {shareTarget && (
+        <ShareWorkoutModal userId={userId} workout={shareTarget} onClose={() => setShareTarget(null)} />
+      )}
     </div>
   )
 }
