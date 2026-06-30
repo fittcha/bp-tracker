@@ -159,7 +159,9 @@ export default function WorkoutPage() {
       weekday <= 5 ? getDefaultWorkoutsForWeekday(weekday) : Promise.resolve([]),
       getWorkoutsForDate(ds),
     ])
-    return { weekday: weekday_, date: date_ }
+    // ds를 함께 실어 보낸다: keepPreviousData로 날짜 전환 중 이전 날짜 defaults가
+    // 잠깐 노출될 때, 자동담기가 그 stale 값으로 엉뚱한 날짜에 담는 것을 막기 위함.
+    return { ds, weekday: weekday_, date: date_ }
   })
 
   // ── day-logs: 그날 운동 로그 ──
@@ -176,6 +178,10 @@ export default function WorkoutPage() {
   const addingRef = useRef<Set<string>>(new Set())
   useEffect(() => {
     if (!uid || !defaults || !logs) return
+    // keepPreviousData가 날짜 전환 중 이전 날짜 defaults를 잠깐 내려줄 수 있다.
+    // defaults가 현재 ds용으로 채워진 게 확실할 때만 담는다(전날 프로그램이 다음 날짜에
+    // 담기던 off-by-one 오염 방지). 재검증으로 ds가 맞춰지면 effect가 다시 돌아 담는다.
+    if (defaults.ds !== ds) return
     if (addingRef.current.has(ds)) return
     const present = new Set(logs.map((l) => l.workout?.workout_id).filter(Boolean))
     const isPast = ds < toDateString(new Date())
