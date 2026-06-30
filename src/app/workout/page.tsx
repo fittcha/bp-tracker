@@ -168,22 +168,29 @@ export default function WorkoutPage() {
   // ── cardio: 저강도 유산소 (시즌1 레거시) ──
   const { data: cardio } = useSWR(uid ? k.cardio(uid, ds) : null, () => getCardioLogs(ds, uid))
 
-  // ── 자동담기: defaults·logs 로드 후, ds당 1회. ──
+  // ── 자동담기: defaults·logs 변경 시 누락분 재조정. ──
   // WOD(요일 공용)는 과거 포함 항상, 프로그램 등 날짜 공용은 오늘/미래만.
-  const autoAddedRef = useRef<Set<string>>(new Set())
+  // ds당 "영구 1회"가 아니라 "동시 실행만" 막는다(in-flight 락): SWR이 stale 캐시를
+  // 먼저 주고 뒤늦게 재검증으로 프로그램 defaults를 채워도 그때 다시 담기도록.
+  // 중복은 present(로그 기반)가 막고, 추가 후 mutate→logs 갱신으로 missing=[]에 수렴.
+  const addingRef = useRef<Set<string>>(new Set())
   useEffect(() => {
     if (!uid || !defaults || !logs) return
-    if (autoAddedRef.current.has(ds)) return
-    autoAddedRef.current.add(ds)
+    if (addingRef.current.has(ds)) return
     const present = new Set(logs.map((l) => l.workout?.workout_id).filter(Boolean))
     const isPast = ds < toDateString(new Date())
     const weekdayIds = new Set(defaults.weekday.map((w) => w.id))
     const all = [...defaults.weekday, ...defaults.date]
     const missing = all.filter((w) => !present.has(w.id) && (!isPast || weekdayIds.has(w.id)))
     if (missing.length === 0) return
+    addingRef.current.add(ds)
     ;(async () => {
-      for (const w of missing) await addWorkoutToDate(uid, ds, w.id)
-      mutate(k.dayLogs(uid, ds))
+      try {
+        for (const w of missing) await addWorkoutToDate(uid, ds, w.id)
+        await mutate(k.dayLogs(uid, ds))
+      } finally {
+        addingRef.current.delete(ds)
+      }
     })()
   }, [uid, ds, defaults, logs, mutate])
 
