@@ -121,22 +121,28 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
       {/* 주차 2열 그리드, 각 주: 요일=열 / 세트=세로 */}
       <div className={`px-4 pt-3 pb-4 grid ${gridCls} gap-y-4`}>
         {weeks.length === 0 && <p className="col-span-full text-xs text-text-secondary py-2">프로그램 데이터가 없어요.</p>}
-        {weeks.map(({ week, days: wd }) => (
-          <div key={week}>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary/70 mb-1.5">Week {week}</p>
-            <div className="flex gap-1">
-              {wd.map((d) => (
-                <DayColumn
-                  key={d.day_no}
-                  dayInWeek={d.day_in_week}
-                  setsText={d.sets_text}
-                  state={dayStates.get(d.day_no) ?? null}
-                  onTap={() => setOpenDay(d.day_no)}
-                />
-              ))}
+        {weeks.map(({ week, days: wd }) => {
+          // 한 주 내 day들의 세트 줄 수가 달라 칼럼 높이가 어긋나면 하단 도트가 안 맞음 →
+          // 주 내 최대 세트수로 통일해 칼럼 높이 균등 + 도트 정렬
+          const maxSets = wd.reduce((m, d) => Math.max(m, d.sets_text ? d.sets_text.split('·').length : 0), 0)
+          return (
+            <div key={week}>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary/70 mb-1.5">Week {week}</p>
+              <div className="flex gap-1">
+                {wd.map((d) => (
+                  <DayColumn
+                    key={d.day_no}
+                    dayInWeek={d.day_in_week}
+                    setsText={d.sets_text}
+                    maxSets={maxSets}
+                    state={dayStates.get(d.day_no) ?? null}
+                    onTap={() => setOpenDay(d.day_no)}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       <DayStatusSheet
@@ -163,9 +169,10 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
 }
 
 // ── day 칼럼: 헤더(D + 상태 점) + 세트 세로. 내용폭 고정(w-12), stretch 안 함. ──
-function DayColumn({ dayInWeek, setsText, state, onTap }: {
+function DayColumn({ dayInWeek, setsText, maxSets, state, onTap }: {
   dayInWeek: number
   setsText: string
+  maxSets: number
   state: DayState | null
   onTap: () => void
 }) {
@@ -175,6 +182,7 @@ function DayColumn({ dayInWeek, setsText, state, onTap }: {
     : status === 'fail' ? 'border-danger/40 bg-danger/5'
     : 'border-border bg-background'
   const sets = setsText ? setsText.split('·') : []
+  const pad = Math.max(0, maxSets - sets.length) // 주 내 최대 세트수에 맞춰 빈 줄 채워 높이 통일
   const md = state?.doneDate ? mdLabel(state.doneDate) : ''
   return (
     <button onClick={onTap} className={`flex-1 min-w-0 flex flex-col rounded-lg border overflow-hidden transition active:opacity-70 ${tint}`}>
@@ -182,6 +190,9 @@ function DayColumn({ dayInWeek, setsText, state, onTap }: {
       <div className="flex-1 flex flex-col items-center pb-1 tabular-nums">
         {sets.map((s, i) => (
           <span key={i} className="text-[11px] leading-tight text-foreground">{s}</span>
+        ))}
+        {Array.from({ length: pad }, (_, i) => (
+          <span key={`pad-${i}`} aria-hidden className="text-[11px] leading-tight text-transparent select-none">0</span>
         ))}
       </div>
       {/* 상태 구역: 회색 도트 → 성공/실패 시 색칠 + 날짜 */}
