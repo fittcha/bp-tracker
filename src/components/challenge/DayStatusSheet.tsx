@@ -75,36 +75,48 @@ export default function DayStatusSheet({
             </div>
           )}
 
-          {/* 날짜 */}
-          <div>
-            <label className={`block ${EYEBROW} mb-2`}>날짜</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full px-3.5 py-2 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:border-accent"
-            />
-          </div>
+          {/* 날짜 (성공 상태에선 아래 액션 줄로 이동) */}
+          {status !== 'success' && (
+            <div>
+              <label className={`block ${EYEBROW} mb-2`}>날짜</label>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-full px-3.5 py-2 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:border-accent"
+              />
+            </div>
+          )}
 
           {/* 액션 */}
           {status === 'success' ? (
             <div className="space-y-3">
-              <p className="inline-flex items-center gap-1.5 text-sm font-medium text-success">
-                <Check size={16} /> 성공 완료
-              </p>
-              <div className="flex items-center gap-2.5">
+              {/* 성공 완료 문구 + 휴지통(기록 삭제) — 중앙 정렬 */}
+              <div className="flex items-center justify-center gap-2">
+                <p className="inline-flex items-center gap-1.5 text-sm font-medium text-success">
+                  <Check size={16} /> 성공 완료
+                </p>
                 <button
                   onClick={() => state?.successAttemptId && onDeleteAttempt(state.successAttemptId)}
                   disabled={!state?.successAttemptId}
-                  className="shrink-0 w-12 h-12 flex items-center justify-center rounded-xl border border-danger/40 text-danger active:bg-danger/10 disabled:opacity-50"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-danger/40 text-danger active:bg-danger/10 disabled:opacity-50"
                   aria-label="기록 삭제"
                 >
-                  <Trash2 size={18} />
+                  <Trash2 size={15} />
                 </button>
+              </div>
+              {/* 날짜 입력 + 날짜 수정(오른편) */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="flex-1 min-w-0 px-3 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:border-accent"
+                />
                 <button
                   onClick={() => state?.successAttemptId && onUpdateDate(state.successAttemptId, date)}
                   disabled={!state?.successAttemptId}
-                  className="flex-1 py-3 rounded-xl bg-accent text-white font-semibold disabled:opacity-50"
+                  className="shrink-0 px-4 py-2.5 rounded-xl bg-accent text-white font-semibold text-sm disabled:opacity-50"
                 >
                   날짜 수정
                 </button>
