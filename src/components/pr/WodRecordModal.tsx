@@ -208,7 +208,7 @@ export default function WodRecordModal({
               type="date"
               value={recordedAt}
               onChange={e => setRecordedAt(e.target.value)}
-              className="w-full min-w-0 max-w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-accent"
+              className="block w-full min-w-0 max-w-full appearance-none px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-accent [&::-webkit-date-and-time-value]:text-left [&::-webkit-calendar-picker-indicator]:ml-auto"
             />
           </div>
 
