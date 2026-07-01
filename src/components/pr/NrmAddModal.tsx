@@ -76,7 +76,7 @@ export default function NrmAddModal({ isOpen, onClose, onSave, customExercises =
             </div>
           </div>
           <div className="flex gap-2">
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <label className="block text-sm text-text-secondary mb-1">무게 *</label>
               <input
                 type="number"

@@ -152,7 +152,7 @@ export default function WodRecordModal({
                   onChange={e => setMinutes(e.target.value)}
                   placeholder="mm"
                   min="0"
-                  className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-center focus:outline-none focus:border-accent"
+                  className="flex-1 min-w-0 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-center focus:outline-none focus:border-accent"
                 />
                 <span className="text-lg font-bold">:</span>
                 <input
@@ -162,7 +162,7 @@ export default function WodRecordModal({
                   placeholder="ss"
                   min="0"
                   max="59"
-                  className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-center focus:outline-none focus:border-accent"
+                  className="flex-1 min-w-0 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-center focus:outline-none focus:border-accent"
                 />
               </div>
             )}
@@ -175,7 +175,7 @@ export default function WodRecordModal({
                   onChange={e => setRounds(e.target.value)}
                   placeholder="Rounds"
                   min="0"
-                  className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-center focus:outline-none focus:border-accent"
+                  className="flex-1 min-w-0 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-center focus:outline-none focus:border-accent"
                 />
                 <span className="text-lg font-bold">+</span>
                 <input
@@ -184,7 +184,7 @@ export default function WodRecordModal({
                   onChange={e => setExtraReps(e.target.value)}
                   placeholder="Reps"
                   min="0"
-                  className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-center focus:outline-none focus:border-accent"
+                  className="flex-1 min-w-0 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-center focus:outline-none focus:border-accent"
                 />
               </div>
             )}
@@ -208,7 +208,7 @@ export default function WodRecordModal({
               type="date"
               value={recordedAt}
               onChange={e => setRecordedAt(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-accent"
+              className="w-full min-w-0 max-w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-accent"
             />
           </div>
 
@@ -220,7 +220,7 @@ export default function WodRecordModal({
               value={memo}
               onChange={e => setMemo(e.target.value)}
               placeholder="메모 (선택)"
-              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-accent"
+              className="w-full min-w-0 max-w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-accent"
             />
           </div>
 

@@ -56,7 +56,7 @@ export default function PaceAddModal({ isOpen, onClose, onSave }: PaceAddModalPr
   }
 
   const inputCls =
-    'w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-center focus:outline-none focus:border-accent'
+    'w-full min-w-0 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-center focus:outline-none focus:border-accent'
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
