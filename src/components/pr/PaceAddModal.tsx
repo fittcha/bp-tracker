@@ -2,11 +2,12 @@
 
 import { useState } from 'react'
 import { X } from 'lucide-react'
+import { PACE_DISTANCE_KM } from '@/lib/api/pr'
 
 const DEFAULT_EQUIPMENT = ['Rowing', 'Running']
 const DISTANCE_BY_EQUIPMENT: Record<string, string[]> = {
   'Rowing': ['2K', '5K'],
-  'Running': ['5K', '10K'],
+  'Running': ['5K', '10K', 'HALF', 'FULL'],
 }
 
 interface PaceAddModalProps {
@@ -18,29 +19,44 @@ interface PaceAddModalProps {
 export default function PaceAddModal({ isOpen, onClose, onSave }: PaceAddModalProps) {
   const [equipment, setEquipment] = useState('')
   const [distance, setDistance] = useState('')
+  const [hours, setHours] = useState('')
   const [minutes, setMinutes] = useState('')
   const [seconds, setSeconds] = useState('')
   const [saving, setSaving] = useState(false)
 
   if (!isOpen) return null
 
+  // 러닝은 하프/풀 등 1시간 초과가 흔해 hh:mm:ss, 로잉은 mm:ss.
+  const showHours = equipment === 'Running'
+  const totalSeconds =
+    (showHours ? (parseInt(hours) || 0) * 3600 : 0) +
+    (parseInt(minutes) || 0) * 60 +
+    (parseInt(seconds) || 0)
+
+  function reset() {
+    setEquipment('')
+    setDistance('')
+    setHours('')
+    setMinutes('')
+    setSeconds('')
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!equipment || !distance || !minutes || saving) return
-    const totalSeconds = parseInt(minutes) * 60 + (parseInt(seconds) || 0)
+    if (!equipment || !distance || totalSeconds <= 0 || saving) return
     setSaving(true)
     try {
       await onSave(equipment, distance, totalSeconds)
-      setEquipment('')
-      setDistance('')
-      setMinutes('')
-      setSeconds('')
+      reset()
     } catch (err) {
       console.error('Failed to save pace:', err)
     } finally {
       setSaving(false)
     }
   }
+
+  const inputCls =
+    'w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-center focus:outline-none focus:border-accent'
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -86,35 +102,25 @@ export default function PaceAddModal({ isOpen, onClose, onSave }: PaceAddModalPr
             </div>
           </div>
           <div>
-            <label className="block text-sm text-text-secondary mb-1">총 시간 (mm:ss) *</label>
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-              <input
-                type="number"
-                value={minutes}
-                onChange={e => setMinutes(e.target.value)}
-                required
-                placeholder="분"
-                min="0"
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-center focus:outline-none focus:border-accent"
-              />
+            <label className="block text-sm text-text-secondary mb-1">
+              총 시간 ({showHours ? 'hh:mm:ss' : 'mm:ss'}) *
+            </label>
+            <div className={`grid ${showHours ? 'grid-cols-[1fr_auto_1fr_auto_1fr]' : 'grid-cols-[1fr_auto_1fr]'} items-center gap-2`}>
+              {showHours && (
+                <>
+                  <input type="number" value={hours} onChange={e => setHours(e.target.value)} placeholder="시" min="0" className={inputCls} />
+                  <span className="text-lg font-bold">:</span>
+                </>
+              )}
+              <input type="number" value={minutes} onChange={e => setMinutes(e.target.value)} placeholder="분" min="0" className={inputCls} />
               <span className="text-lg font-bold">:</span>
-              <input
-                type="number"
-                value={seconds}
-                onChange={e => setSeconds(e.target.value)}
-                placeholder="초"
-                min="0"
-                max="59"
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-center focus:outline-none focus:border-accent"
-              />
+              <input type="number" value={seconds} onChange={e => setSeconds(e.target.value)} placeholder="초" min="0" max="59" className={inputCls} />
             </div>
-            {equipment && distance && minutes && (() => {
-              const total = parseInt(minutes) * 60 + (parseInt(seconds) || 0)
-              if (total <= 0) return null
-              const splits = equipment === 'Rowing'
-                ? (parseInt(distance) * 1000) / 500
-                : parseInt(distance)
-              const paceSeconds = total / splits
+            {equipment && distance && totalSeconds > 0 && (() => {
+              const km = PACE_DISTANCE_KM[distance] ?? parseInt(distance) ?? 0
+              const splits = equipment === 'Rowing' ? (km * 1000) / 500 : km
+              if (splits <= 0) return null
+              const paceSeconds = totalSeconds / splits
               const pm = Math.floor(paceSeconds / 60)
               const ps = paceSeconds % 60
               const label = equipment === 'Rowing' ? '/500m' : '/km'
@@ -127,7 +133,7 @@ export default function PaceAddModal({ isOpen, onClose, onSave }: PaceAddModalPr
           </div>
           <button
             type="submit"
-            disabled={!equipment || !distance || !minutes || saving}
+            disabled={!equipment || !distance || totalSeconds <= 0 || saving}
             className="w-full py-2.5 rounded-lg bg-accent text-white font-medium disabled:opacity-50"
           >
             {saving ? '저장 중...' : '저장'}

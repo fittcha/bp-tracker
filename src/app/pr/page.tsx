@@ -6,7 +6,7 @@ import { Plus, Trash2 } from 'lucide-react'
 import {
   getAll1RM, upsert1RM, type OneRM,
   getAllNRM, upsertNRM, deleteNRM, type NRM,
-  getAllPaceRecords, upsertPaceRecord, deletePaceRecord, type PaceRecord,
+  getAllPaceRecords, upsertPaceRecord, deletePaceRecord, type PaceRecord, PACE_DISTANCE_KM,
 } from '@/lib/api/pr'
 import { getExerciseIcon, getEquipmentIcon } from '@/components/pr/ExerciseIcons'
 import NrmAddModal from '@/components/pr/NrmAddModal'
@@ -33,9 +33,12 @@ const DEFAULT_1RM = [
 ]
 
 function formatTime(seconds: number): string {
-  const m = Math.floor(seconds / 60)
-  const s = seconds % 60
-  return `${m}:${String(s).padStart(2, '0')}`
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  const s = Math.floor(seconds % 60)
+  return h > 0
+    ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+    : `${m}:${String(s).padStart(2, '0')}`
 }
 
 function formatPaceWithDecimal(seconds: number): string {
@@ -45,14 +48,9 @@ function formatPaceWithDecimal(seconds: number): string {
 }
 
 function getPaceSplits(equipment: string, distance: string): number {
-  if (equipment === 'Rowing') {
-    // 500m splits
-    const meters = parseInt(distance) * 1000
-    return meters / 500
-  }
-  // Running: 1km splits
-  const km = parseInt(distance)
-  return km
+  const km = PACE_DISTANCE_KM[distance] ?? parseInt(distance) ?? 0
+  if (equipment === 'Rowing') return (km * 1000) / 500 // 500m splits
+  return km // Running: 1km splits
 }
 
 function calcPace(equipment: string, distance: string, totalSeconds: number): string {

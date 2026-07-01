@@ -122,6 +122,11 @@ export interface PaceRecord {
   updated_at: string
 }
 
+// 거리 라벨 → km (페이스 계산·표시 공용). HALF=하프마라톤, FULL=풀마라톤.
+export const PACE_DISTANCE_KM: Record<string, number> = {
+  '2K': 2, '5K': 5, '10K': 10, HALF: 21.0975, FULL: 42.195,
+}
+
 export async function getAllPaceRecords(userId: string): Promise<PaceRecord[]> {
   const { data, error } = await supabase
     .from('user_pace_records')
