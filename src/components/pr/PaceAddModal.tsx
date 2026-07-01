@@ -43,9 +43,9 @@ export default function PaceAddModal({ isOpen, onClose, onSave }: PaceAddModalPr
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full max-w-lg bg-surface rounded-t-2xl p-6 pb-8 animate-slide-up">
+      <div className="relative w-full max-w-lg bg-surface rounded-2xl p-6 max-h-[85vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold">페이스 기록 추가</h3>
           <button onClick={onClose} className="p-1 text-text-secondary" aria-label="닫기"><X size={20} /></button>

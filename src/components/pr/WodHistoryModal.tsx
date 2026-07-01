@@ -82,9 +82,9 @@ export default function WodHistoryModal({ isOpen, onClose, onAdd, onDelete, wodN
   const prId = findPrId(records)
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full max-w-lg bg-surface rounded-t-2xl flex flex-col max-h-[70vh] animate-slide-up">
+      <div className="relative w-full max-w-lg bg-surface rounded-2xl flex flex-col max-h-[85vh]">
         {/* Header */}
         <div className="p-6 pb-3">
           <h3 className="text-lg font-bold">{wodName}</h3>

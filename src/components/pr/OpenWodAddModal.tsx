@@ -31,9 +31,9 @@ export default function OpenWodAddModal({ isOpen, onClose, onSave }: OpenWodAddM
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full max-w-lg bg-surface rounded-t-2xl p-6 pb-8 animate-slide-up">
+      <div className="relative w-full max-w-lg bg-surface rounded-2xl p-6 max-h-[85vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold">Open WOD 추가</h3>
