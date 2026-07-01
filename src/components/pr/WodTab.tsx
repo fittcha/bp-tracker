@@ -377,7 +377,7 @@ export default function WodTab({ userId }: WodTabProps) {
         wodName={selectedWod?.name || ''}
         description={selectedWod?.description}
         defaultScoreType={selectedWod?.scoreType || 'time'}
-        allowScoreTypeChange={false}
+        allowScoreTypeChange={selectedWod?.wodType === 'named'}
       />
     </div>
   )
