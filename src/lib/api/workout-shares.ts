@@ -2,8 +2,8 @@ import { supabase } from '@/lib/supabase'
 import { buildSharePayload, filterNewRecipients, type SharePayload } from '@/lib/workout/share-payload'
 import { createPersonalWorkout, getWorkoutExercises, type Workout } from '@/lib/api/workouts'
 
-export interface PendingShare { id: string; fromUsername: string; title: string }
-export interface SentShare { id: string; toUsername: string }
+export interface PendingShare { id: string; fromUsername: string; title: string; avatarUrl: string | null }
+export interface SentShare { id: string; toUsername: string; avatarUrl: string | null }
 
 // 보낸 사람 본인 → 선택 유저들에게 공유. payload 스냅샷, 이미 대기 중인 수신자는 건너뜀.
 export async function shareWorkout(fromId: string, sourceWorkoutId: string, toIds: string[]): Promise<void> {
@@ -38,10 +38,15 @@ export async function getPendingShares(toId: string): Promise<PendingShare[]> {
   const rows = (data ?? []) as { id: string; from_user_id: string; payload: SharePayload }[]
   if (rows.length === 0) return []
   const fromIds = [...new Set(rows.map((r) => r.from_user_id))]
-  const { data: us, error: ue } = await supabase.from('users').select('id, username').in('id', fromIds)
+  const { data: us, error: ue } = await supabase.from('users').select('id, username, avatar_url').in('id', fromIds)
   if (ue) throw ue
-  const nameById = new Map((us ?? []).map((u) => [u.id as string, u.username as string]))
-  return rows.map((r) => ({ id: r.id, fromUsername: nameById.get(r.from_user_id) ?? '알 수 없음', title: r.payload?.title ?? '운동' }))
+  const byId = new Map(
+    (us ?? []).map((u) => [u.id as string, { username: u.username as string, avatarUrl: (u.avatar_url as string | null) ?? null }]),
+  )
+  return rows.map((r) => {
+    const info = byId.get(r.from_user_id)
+    return { id: r.id, fromUsername: info?.username ?? '알 수 없음', title: r.payload?.title ?? '운동', avatarUrl: info?.avatarUrl ?? null }
+  })
 }
 
 // 공유 모달의 '대기 중' 목록(이 운동을 누구에게 보냈나) + 받는사람 username.
@@ -53,10 +58,15 @@ export async function getSentPendingShares(fromId: string, sourceWorkoutId: stri
   const rows = (data ?? []) as { id: string; to_user_id: string }[]
   if (rows.length === 0) return []
   const toIds = [...new Set(rows.map((r) => r.to_user_id))]
-  const { data: us, error: ue } = await supabase.from('users').select('id, username').in('id', toIds)
+  const { data: us, error: ue } = await supabase.from('users').select('id, username, avatar_url').in('id', toIds)
   if (ue) throw ue
-  const nameById = new Map((us ?? []).map((u) => [u.id as string, u.username as string]))
-  return rows.map((r) => ({ id: r.id, toUsername: nameById.get(r.to_user_id) ?? '알 수 없음' }))
+  const byId = new Map(
+    (us ?? []).map((u) => [u.id as string, { username: u.username as string, avatarUrl: (u.avatar_url as string | null) ?? null }]),
+  )
+  return rows.map((r) => {
+    const info = byId.get(r.to_user_id)
+    return { id: r.id, toUsername: info?.username ?? '알 수 없음', avatarUrl: info?.avatarUrl ?? null }
+  })
 }
 
 // 수락: payload로 내 라이브러리에 개인운동 생성 후 행 삭제.

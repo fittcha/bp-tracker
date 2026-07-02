@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { searchUsersByUsername, type User } from '@/lib/api/users'
 import { shareWorkout, getSentPendingShares, cancelShare, type SentShare } from '@/lib/api/workout-shares'
 import type { Workout } from '@/lib/api/workouts'
+import Avatar from '@/components/Avatar'
 
 interface Props { userId: string; workout: Workout; onClose: () => void }
 
@@ -149,6 +150,7 @@ export default function ShareWorkoutModal({ userId, workout, onClose }: Props) {
                         </svg>
                       )}
                     </span>
+                    <Avatar src={u.avatar_url ?? null} name={u.username} size={28} />
                     <span className="text-sm text-foreground flex-1 font-medium">{u.username}</span>
                     {isPending && (
                       <span className="text-[10px] font-medium text-text-secondary bg-border/60 px-1.5 py-0.5 rounded-full">대기 중</span>
@@ -166,7 +168,10 @@ export default function ShareWorkoutModal({ userId, workout, onClose }: Props) {
               <div className="space-y-0.5">
                 {pending.map((p) => (
                   <div key={p.id} className="flex items-center justify-between px-2.5 py-1.5 rounded-xl">
-                    <span className="text-sm text-foreground font-medium">{p.toUsername}</span>
+                    <span className="flex items-center gap-2 min-w-0">
+                      <Avatar src={p.avatarUrl ?? null} name={p.toUsername} size={24} />
+                      <span className="text-sm text-foreground font-medium truncate">{p.toUsername}</span>
+                    </span>
                     <button
                       onClick={() => handleCancel(p.id)}
                       className="min-h-[36px] px-3 text-[12px] font-semibold text-danger rounded-lg transition-colors hover:bg-danger/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/30"

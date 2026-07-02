@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import useSWR, { useSWRConfig } from 'swr'
 import { getPendingShares, acceptShare, rejectShare } from '@/lib/api/workout-shares'
+import Avatar from '@/components/Avatar'
 import { k } from '@/lib/swr/keys'
 import { matchPrefix } from '@/lib/swr/revalidate'
 
@@ -59,12 +60,17 @@ export default function PendingSharesGate({ uid }: { uid: string }) {
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5">
           {shares.map((s) => (
             <div key={s.id} className="border border-border rounded-xl px-3 py-3">
-              {/* 보낸 사람 */}
-              <p className="text-[11px] text-text-secondary mb-0.5">
-                <span className="font-bold text-foreground">{s.fromUsername}</span>님이 공유했어요
-              </p>
-              {/* 운동명 */}
-              <p className="text-sm font-bold text-foreground">{s.title}</p>
+              <div className="flex items-center gap-2.5">
+                <Avatar src={s.avatarUrl ?? null} name={s.fromUsername} size={36} />
+                <div className="min-w-0">
+                  {/* 보낸 사람 */}
+                  <p className="text-[11px] text-text-secondary mb-0.5">
+                    <span className="font-bold text-foreground">{s.fromUsername}</span>님이 공유했어요
+                  </p>
+                  {/* 운동명 */}
+                  <p className="text-sm font-bold text-foreground truncate">{s.title}</p>
+                </div>
+              </div>
               {/* 액션 버튼 */}
               <div className="flex items-center gap-2 mt-3">
                 <button
