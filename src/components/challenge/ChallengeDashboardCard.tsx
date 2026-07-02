@@ -187,12 +187,12 @@ function DayColumn({ dayInWeek, setsText, maxSets, state, onTap }: {
   return (
     <button onClick={onTap} className={`flex-1 min-w-0 flex flex-col rounded-lg border overflow-hidden transition active:opacity-70 ${tint}`}>
       <div className="py-0.5 text-center text-[10px] font-semibold text-text-secondary">D{dayInWeek}</div>
-      <div className="flex-1 flex flex-col items-center pb-1 tabular-nums">
+      <div className="flex-1 flex flex-col items-center justify-center pb-1 tabular-nums">
         {sets.map((s, i) => (
-          <span key={i} className="text-[11px] leading-tight text-foreground">{s}</span>
+          <span key={i} className="w-full text-center text-[11px] leading-tight text-foreground">{s}</span>
         ))}
         {Array.from({ length: pad }, (_, i) => (
-          <span key={`pad-${i}`} aria-hidden className="text-[11px] leading-tight text-transparent select-none">0</span>
+          <span key={`pad-${i}`} aria-hidden className="w-full text-center text-[11px] leading-tight text-transparent select-none">0</span>
         ))}
       </div>
       {/* 상태 구역: 회색 도트 → 성공/실패 시 색칠 + 날짜 */}
