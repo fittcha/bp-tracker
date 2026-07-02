@@ -115,7 +115,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'Single Arm DB Row', '12/12', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'DB Romanian Deadlift', '10', '햄스트링 늘리며 천천히', 0, 1, 'Superset · 4 Sets'),
   ('B', 'Banded Face Pull', '20', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
@@ -279,7 +279,7 @@ with w as (
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
   ('B', 'DB Bent Over Row', '10', null, 0, 1, 'Superset · 4 Sets'),
-  ('B', 'Banded Face Pull', '20', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
+  ('B', 'Band Pull Aparts', '20', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -441,8 +441,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'Banded Bent Over Row', '12', null, 0, 1, 'Superset · 4 Sets'),
-  ('B', 'Banded Face Pull', '20', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
+  ('B', 'DB Single Leg RDL', '8/8', '한 다리씩 · 천천히', 0, 1, 'Superset · 4 Sets'),
+  ('B', 'DB Rear Delt Fly', '15', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -605,7 +605,7 @@ with w as (
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
   ('B', 'Single Arm DB Row', '12/12', null, 0, 1, 'Superset · 2 Sets'),
-  ('B', 'Band Pull Aparts', '20', 'Rest as needed', 1, 1, 'Superset · 2 Sets')
+  ('B', 'Banded Face Pull', '20', 'Rest as needed', 1, 1, 'Superset · 2 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -769,8 +769,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'Pendlay Row', '8', null, 0, 1, 'Superset · 4 Sets'),
-  ('B', 'Banded Face Pull', '20', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
+  ('B', 'DB Romanian Deadlift', '10', '햄스트링 늘리며 천천히', 0, 1, 'Superset · 4 Sets'),
+  ('B', 'Banded Lat Pulldown', '12', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -1096,8 +1096,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'DB Bent Over Row', '10', null, 0, 1, 'Superset · 2~3 Sets'),
-  ('B', 'Banded Face Pull', '20', 'Rest as needed', 1, 1, 'Superset · 2~3 Sets')
+  ('B', 'DB Romanian Deadlift', '10', '햄스트링 늘리며 천천히', 0, 1, 'Superset · 2~3 Sets'),
+  ('B', 'DB Rear Delt Fly', '15', 'Rest as needed', 1, 1, 'Superset · 2~3 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -1258,8 +1258,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'Single Arm DB Row', '12/12', null, 0, 1, 'Superset · 2~3 Sets'),
-  ('B', 'Band Pull Aparts', '20', 'Rest as needed', 1, 1, 'Superset · 2~3 Sets')
+  ('B', 'Chest-Supported DB Row', '10', null, 0, 1, 'Superset · 2~3 Sets'),
+  ('B', 'Banded Face Pull', '20', 'Rest as needed', 1, 1, 'Superset · 2~3 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
