@@ -38,10 +38,7 @@ export default function Header() {
       <div className="max-w-lg mx-auto">
         <div className="flex items-center justify-between">
           <h1 className="text-sm font-bold text-foreground">Road to Rx&apos;d</h1>
-          <div className="flex items-center gap-2">
-            {uid && <Avatar src={profile?.avatarUrl ?? null} name={username} size={22} />}
-            <span className="text-xs text-text-secondary">{username}</span>
-          </div>
+          {uid && <Avatar src={profile?.avatarUrl ?? null} name={username} size={26} />}
         </div>
         {/* 진행 중 프로그램 (작게) */}
         {program !== undefined && (
