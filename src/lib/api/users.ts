@@ -8,6 +8,7 @@ export interface User {
   created_by: string | null
   created_at: string
   active?: boolean
+  avatar_url?: string | null
 }
 
 export async function getUserByUsername(username: string): Promise<User | null> {
@@ -62,4 +63,28 @@ export async function createUser(username: string, createdBy: string | null): Pr
     .single()
   if (error) throw error
   return data
+}
+
+// 아바타 이미지 업로드(avatars 버킷). 경로에 timestamp 포함 → URL 변경으로 캐시버스트.
+export async function uploadAvatar(file: Blob, userId: string): Promise<string> {
+  const fileName = `${userId}/avatar-${Date.now()}.jpg`
+  const { error } = await supabase.storage
+    .from('avatars')
+    .upload(fileName, file, { contentType: 'image/jpeg', upsert: false })
+  if (error) throw error
+  const { data } = supabase.storage.from('avatars').getPublicUrl(fileName)
+  return data.publicUrl
+}
+
+export async function updateAvatarUrl(userId: string, url: string | null): Promise<void> {
+  const { error } = await supabase.from('users').update({ avatar_url: url }).eq('id', userId)
+  if (error) throw error
+}
+
+// 본인 프로필(username + 아바타). k.profile SWR 페처.
+export async function getUserProfile(userId: string): Promise<{ username: string; avatarUrl: string | null }> {
+  const { data, error } = await supabase
+    .from('users').select('username, avatar_url').eq('id', userId).single()
+  if (error) throw error
+  return { username: data.username as string, avatarUrl: (data.avatar_url as string | null) ?? null }
 }
