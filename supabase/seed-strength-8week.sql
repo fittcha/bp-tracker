@@ -96,7 +96,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('D', 'Sit ups', '15', 'Rest as needed', 0, 1, 'EMOM 8분')
+  ('D', 'DB Lateral Raise', '15~20', '번아웃 · Rest 0:45', 0, 1, '3 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- 2026-07-08 (수) 데드리프트
