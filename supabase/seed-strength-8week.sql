@@ -36,7 +36,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('A', 'Back Squat', '5', '@ 75% 1RM · Rest 2:00', 0, 1, '4 Sets')
+  ('A', 'Back Squat', '5', '@ 75% 1RM · Rest 2:00', 0, 1, '5 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -199,7 +199,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('A', 'Back Squat', '5', '@ 77.5% 1RM · Rest 2:00', 0, 1, '4 Sets')
+  ('A', 'Pause Back Squat', '3', '하단 2-3초 정지 · @ 72.5% 1RM · Rest 2:00', 0, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -361,8 +361,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('A', 'Back Squat', '5', '@ 80% 1RM · Rest 2:00', 0, 1, '5 Sets'),
-  ('A', 'Back Squat', 'Max', '45% × Max reps · 1개 남기는 선', 1, 2, '백오프 · 1 Set')
+  ('A', 'Back Squat', '7', '@ 65% 1RM', 0, 1, '3 Sets'),
+  ('A', 'Back Squat', '3', '@ 82.5% 1RM · Rest 2:00', 1, 1, '3 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -847,7 +847,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('A', 'Back Squat', '3', '@ 87.5% 1RM · Rest 2:00', 0, 1, '4 Sets')
+  ('A', 'Back Squat', '7', '@ 70% 1RM', 0, 1, '4 Sets'),
+  ('A', 'Back Squat', '3', '@ 87.5% 1RM · Rest 2:00', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
