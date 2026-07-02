@@ -8,6 +8,7 @@ import { getDailyLog, upsertDailyLog, DailyLog } from '@/lib/api/daily-logs'
 import { getLoggedInUser, logout } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
 import WeightChart from '@/components/summary/WeightChart'
+import AvatarEditor from '@/components/profile/AvatarEditor'
 import { k } from '@/lib/swr/keys'
 import { matchPrefix } from '@/lib/swr/revalidate'
 
@@ -132,6 +133,8 @@ export default function MyPage() {
 
   return (
     <div className="space-y-4 pb-4">
+      {uid && user && <AvatarEditor uid={uid} username={user.username} />}
+
       {/* Date picker */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1">
