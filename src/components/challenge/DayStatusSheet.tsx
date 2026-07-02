@@ -83,7 +83,7 @@ export default function DayStatusSheet({
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-3.5 py-2 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:border-accent"
+                className="block w-full min-w-0 max-w-full appearance-none px-3.5 py-2 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:border-accent [&::-webkit-date-and-time-value]:text-left [&::-webkit-calendar-picker-indicator]:ml-auto"
               />
             </div>
           )}
@@ -97,7 +97,7 @@ export default function DayStatusSheet({
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="flex-1 min-w-0 px-3 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:border-accent"
+                  className="flex-1 min-w-0 max-w-full appearance-none px-3 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:border-accent [&::-webkit-date-and-time-value]:text-left [&::-webkit-calendar-picker-indicator]:ml-auto"
                 />
                 <button
                   onClick={() => state?.successAttemptId && onUpdateDate(state.successAttemptId, date)}
