@@ -41,11 +41,11 @@ export default function DayStatusSheet({
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="relative w-full max-w-sm bg-surface rounded-2xl p-5 max-h-[85vh] overflow-y-auto animate-slide-up">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-bold text-foreground">
+        <div className="relative flex items-center justify-center mb-4">
+          <h3 className="text-base font-bold text-foreground text-center">
             WEEK {weekNo} <span className="text-text-secondary/40">·</span> DAY {dayInWeek}
           </h3>
-          <button onClick={onClose} className="-mr-1 p-1 text-text-secondary/60 hover:text-text-secondary transition-colors" aria-label="닫기"><X size={20} /></button>
+          <button onClick={onClose} className="absolute right-0 -mr-1 p-1 text-text-secondary/60 hover:text-text-secondary transition-colors" aria-label="닫기"><X size={20} /></button>
         </div>
 
         <div className="space-y-4">
@@ -60,7 +60,7 @@ export default function DayStatusSheet({
                   </span>
                 )}
               </div>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1.5 justify-center">
                 {sets.map((s, i) => (
                   <span key={i} className="min-w-[2.75rem] text-center px-2.5 py-2 rounded-lg border border-accent/40 text-foreground text-base font-medium tabular-nums">
                     {s}
