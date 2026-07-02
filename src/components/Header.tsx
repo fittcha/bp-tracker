@@ -5,10 +5,14 @@ import { getLoggedInUser } from '@/lib/auth'
 import { getCurrentProgram } from '@/lib/api/workouts'
 import { k } from '@/lib/swr/keys'
 import { toDateString } from '@/lib/utils'
+import Avatar from '@/components/Avatar'
+import { getUserProfile } from '@/lib/api/users'
 
 export default function Header() {
   const user = getLoggedInUser()
+  const uid = user?.id ?? ''
   const username = user?.username ?? toDateString(new Date())
+  const { data: profile } = useSWR(uid ? k.profile(uid) : null, () => getUserProfile(uid))
   const today = toDateString(new Date())
   // undefined=로딩, null=프로그램 없음
   const { data: program } = useSWR(k.program(today), () => getCurrentProgram(today))
@@ -34,7 +38,10 @@ export default function Header() {
       <div className="max-w-lg mx-auto">
         <div className="flex items-center justify-between">
           <h1 className="text-sm font-bold text-foreground">Road to Rx&apos;d</h1>
-          <span className="text-xs text-text-secondary">{username}</span>
+          <div className="flex items-center gap-2">
+            {uid && <Avatar src={profile?.avatarUrl ?? null} name={username} size={22} />}
+            <span className="text-xs text-text-secondary">{username}</span>
+          </div>
         </div>
         {/* 진행 중 프로그램 (작게) */}
         {program !== undefined && (
