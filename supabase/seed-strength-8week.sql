@@ -36,7 +36,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('A', 'Back Squat', '5', '@ 75% 1RM · Rest 2:00', 0, 1, '5 Sets')
+  ('A', 'Back Squat', '5', '@ 75% 1RM · Rest 2:00', 0, 1, '5 Sets'),
+  ('A', 'Back Squat', 'AMRAP', '@ 65% 1RM · 2~3개 남기고', 1, 2, '백오프 · 1 Set')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -45,8 +46,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'Banded Strict Chest to bar', '8', null, 0, 1, 'Superset · 3 Sets'),
-  ('B', 'Single Arm DB Row', '12/12', 'Rest as needed', 1, 1, 'Superset · 3 Sets')
+  ('B', 'Banded Strict Chest to bar', '8', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'Single Arm DB Row', '12/12', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -55,8 +56,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Hollow Rock Hold', '0:40', null, 0, 1, '3 Sets'),
-  ('C', 'Plank Pull Through', '26', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Hollow Rock Hold', '0:40', null, 0, 1, '4 Sets'),
+  ('C', 'Plank Pull Through', '26', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- 2026-07-07 (화) 덤벨 상체
@@ -75,8 +76,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'Bar/Box Dips', '8~12', null, 0, 1, 'Superset · 3 Sets'),
-  ('B', 'Close-grip Push up', '10~15', 'Rest as needed', 1, 1, 'Superset · 3 Sets')
+  ('B', 'Bar/Box Dips', '8~12', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'Close-grip Push up', '10~15', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -85,8 +86,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Side V ups', '15/15', null, 0, 1, '3 Sets'),
-  ('C', 'Pallof Press', '12/12', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Side V ups', '15/15', null, 0, 1, '4 Sets'),
+  ('C', 'Pallof Press', '12/12', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -114,8 +115,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'Single Arm DB Row', '12/12', null, 0, 1, 'Superset · 3 Sets'),
-  ('B', 'Banded Face Pull', '20', 'Rest as needed', 1, 1, 'Superset · 3 Sets')
+  ('B', 'Single Arm DB Row', '12/12', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'Banded Face Pull', '20', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -124,8 +125,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'V ups', '18', null, 0, 1, '3 Sets'),
-  ('C', 'Single Arm Waiter Hold', '0:40/0:40', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'V ups', '18', null, 0, 1, '4 Sets'),
+  ('C', 'Single Arm Waiter Hold', '0:40/0:40', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- 2026-07-09 (목) 단측 하체
@@ -164,8 +165,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('A', 'Bench Press', '5', '@ 75% 1RM · Rest 2:00', 0, 1, '4 Sets'),
-  ('A', 'Bench Press', 'Max', '45% × Max reps · 1개 남기는 선', 1, 2, '백오프 · 1 Set')
+  ('A', 'Bench Press', '5', '@ 75% 1RM · Rest 2:00', 0, 1, '5 Sets'),
+  ('A', 'Bench Press', 'AMRAP', '@ 65% 1RM · 2~3개 남기고', 1, 2, '백오프 · 1 Set')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -174,8 +175,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'Banded Strict Pull up', '8', null, 0, 1, 'Superset · 3 Sets'),
-  ('B', 'Barbell Curl', '10', 'Rest as needed', 1, 1, 'Superset · 3 Sets')
+  ('B', 'Banded Strict Pull up', '8', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'Barbell Curl', '10', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -184,8 +185,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Flutter Kick w/ Hollow Rock Hold', '0:30', null, 0, 1, '3 Sets'),
-  ('C', 'Serratus Punch (band)', '15', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Flutter Kick w/ Hollow Rock Hold', '0:30', null, 0, 1, '4 Sets'),
+  ('C', 'Serratus Punch (band)', '15', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- ============================================================
@@ -199,7 +200,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('A', 'Pause Back Squat', '3', '하단 2-3초 정지 · @ 72.5% 1RM · Rest 2:00', 0, 1, '4 Sets')
+  ('A', 'Pause Back Squat', '5', '하단 2-3초 정지 · @ 72.5% 1RM · Rest 2:00', 0, 1, '5 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -208,8 +209,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'Banded Strict Pull up', '8', null, 0, 1, 'Superset · 3 Sets'),
-  ('B', 'Pendlay Row', '8', 'Rest as needed', 1, 1, 'Superset · 3 Sets')
+  ('B', 'Banded Strict Pull up', '8', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'Pendlay Row', '8', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -218,8 +219,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'V ups', '18', null, 0, 1, '3 Sets'),
-  ('C', 'Pallof Press', '12/12', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'V ups', '18', null, 0, 1, '4 Sets'),
+  ('C', 'Pallof Press', '12/12', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- 2026-07-14 (화) 덤벨 상체
@@ -238,8 +239,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'Diamond Push up', '10~15', null, 0, 1, 'Superset · 3 Sets'),
-  ('B', 'DB Arnold Press', '10~12', 'Rest as needed', 1, 1, 'Superset · 3 Sets')
+  ('B', 'Diamond Push up', '10~15', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'DB Arnold Press', '10~12', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -248,8 +249,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Flutter Kick w/ Hollow Rock Hold', '0:30', null, 0, 1, '3 Sets'),
-  ('C', 'Dead Bug', '10/10', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Flutter Kick w/ Hollow Rock Hold', '0:30', null, 0, 1, '4 Sets'),
+  ('C', 'Dead Bug', '10/10', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -268,7 +269,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('A', 'Deadlift', '5', '@ 77.5% 1RM · Rest 2:30', 0, 1, '4 Sets')
+  ('A', 'Deadlift', '3', '폭발적(스피드) · @ 70% 1RM · Rest 1:30', 0, 1, '8 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -277,8 +278,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'DB Bent Over Row', '10', null, 0, 1, 'Superset · 3 Sets'),
-  ('B', 'Banded Face Pull', '20', 'Rest as needed', 1, 1, 'Superset · 3 Sets')
+  ('B', 'DB Bent Over Row', '10', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'Banded Face Pull', '20', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -287,8 +288,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Side V ups', '15/15', null, 0, 1, '3 Sets'),
-  ('C', 'Serratus Punch (band)', '15', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Side V ups', '15/15', null, 0, 1, '4 Sets'),
+  ('C', 'Serratus Punch (band)', '15', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- 2026-07-16 (목) 오버헤드 프레스
@@ -327,7 +328,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('A', 'Bench Press', '5', '@ 77.5% 1RM · Rest 2:00', 0, 1, '4 Sets')
+  ('A', 'Pause Bench Press', '5', '가슴 1~2초 정지 · @ 72.5% 1RM · Rest 2:00', 0, 1, '5 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -336,8 +337,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'Single Arm DB Row', '12/12', null, 0, 1, 'Superset · 3 Sets'),
-  ('B', 'Seated DB Curl', '12', 'Rest as needed', 1, 1, 'Superset · 3 Sets')
+  ('B', 'Single Arm DB Row', '12/12', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'Seated DB Curl', '12', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -346,8 +347,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'GHD or AB Sit ups', '20', null, 0, 1, '3 Sets'),
-  ('C', 'Plank Shoulder Taps', '0:45', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'GHD or AB Sit ups', '20', null, 0, 1, '4 Sets'),
+  ('C', 'Plank Shoulder Taps', '0:45', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- ============================================================
@@ -361,8 +362,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('A', 'Back Squat', '7', '@ 65% 1RM', 0, 1, '3 Sets'),
-  ('A', 'Back Squat', '3', '@ 82.5% 1RM · Rest 2:00', 1, 1, '3 Sets')
+  ('A', 'Back Squat', '7', '@ 65% 1RM', 0, 1, '4 Sets'),
+  ('A', 'Back Squat', '3', '@ 82.5% 1RM · Rest 2:00', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -371,8 +372,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'Banded Lat Pulldown', '12', null, 0, 1, 'Superset · 3 Sets'),
-  ('B', 'DB Bent Over Row', '10', 'Rest as needed', 1, 1, 'Superset · 3 Sets')
+  ('B', 'Banded Lat Pulldown', '12', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'DB Bent Over Row', '10', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -381,8 +382,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Side V ups', '15/15', null, 0, 1, '3 Sets'),
-  ('C', 'Dead Bug', '10/10', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Side V ups', '15/15', null, 0, 1, '4 Sets'),
+  ('C', 'Dead Bug', '10/10', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- 2026-07-21 (화) 덤벨 상체
@@ -401,8 +402,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'DB Skull Crusher', '10~12', null, 0, 1, 'Superset · 3 Sets'),
-  ('B', 'DB Fly', '12~15', 'Rest as needed', 1, 1, 'Superset · 3 Sets')
+  ('B', 'DB Skull Crusher', '10~12', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'DB Fly', '12~15', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -411,8 +412,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'GHD or AB Sit ups', '20', null, 0, 1, '3 Sets'),
-  ('C', 'Plank Pull Through', '26', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'GHD or AB Sit ups', '20', null, 0, 1, '4 Sets'),
+  ('C', 'Plank Pull Through', '26', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -440,8 +441,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'Banded Bent Over Row', '12', null, 0, 1, 'Superset · 3 Sets'),
-  ('B', 'Banded Face Pull', '20', 'Rest as needed', 1, 1, 'Superset · 3 Sets')
+  ('B', 'Banded Bent Over Row', '12', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'Banded Face Pull', '20', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -450,8 +451,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Flutter Kick w/ Hollow Rock Hold', '0:30', null, 0, 1, '3 Sets'),
-  ('C', 'Plank Shoulder Taps', '0:45', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Flutter Kick w/ Hollow Rock Hold', '0:30', null, 0, 1, '4 Sets'),
+  ('C', 'Plank Shoulder Taps', '0:45', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- 2026-07-23 (목) 단측 하체
@@ -490,7 +491,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('A', 'Bench Press', '5', '@ 80% 1RM · Rest 2:00', 0, 1, '5 Sets')
+  ('A', 'Bench Press', '8', '@ 70% 1RM', 0, 1, '4 Sets'),
+  ('A', 'Bench Press', '3', '@ 82.5% 1RM · Rest 2:00', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -499,8 +501,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'Banded Lat Pulldown', '12', null, 0, 1, 'Superset · 3 Sets'),
-  ('B', 'Hammer Curl', '12', 'Rest as needed', 1, 1, 'Superset · 3 Sets')
+  ('B', 'Banded Lat Pulldown', '12', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'Hammer Curl', '12', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -509,8 +511,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Russian Twist', '30', null, 0, 1, '3 Sets'),
-  ('C', 'Single Arm Waiter Hold', '0:40/0:40', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Russian Twist', '30', null, 0, 1, '4 Sets'),
+  ('C', 'Single Arm Waiter Hold', '0:40/0:40', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- ============================================================
@@ -543,8 +545,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Flutter Kick w/ Hollow Rock Hold', '0:30', null, 0, 1, '3 Sets'),
-  ('C', 'Plank Pull Through', '26', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Flutter Kick w/ Hollow Rock Hold', '0:30', null, 0, 1, '4 Sets'),
+  ('C', 'Plank Pull Through', '26', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- 2026-07-28 (화) 덤벨 상체
@@ -573,8 +575,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Russian Twist', '30', null, 0, 1, '3 Sets'),
-  ('C', 'Pallof Press', '12/12', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Russian Twist', '30', null, 0, 1, '4 Sets'),
+  ('C', 'Pallof Press', '12/12', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -612,8 +614,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'GHD or AB Sit ups', '20', null, 0, 1, '3 Sets'),
-  ('C', 'Single Arm Waiter Hold', '0:40/0:40', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'GHD or AB Sit ups', '20', null, 0, 1, '4 Sets'),
+  ('C', 'Single Arm Waiter Hold', '0:40/0:40', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- 2026-07-30 (목) 오버헤드 프레스
@@ -670,8 +672,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Hollow Rock Hold', '0:40', null, 0, 1, '3 Sets'),
-  ('C', 'Serratus Punch (band)', '15', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Hollow Rock Hold', '0:40', null, 0, 1, '4 Sets'),
+  ('C', 'Serratus Punch (band)', '15', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- ============================================================
@@ -685,7 +687,9 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('A', 'Back Squat', '3', '@ 85% 1RM · Rest 2:00', 0, 1, '5 Sets')
+  ('A', 'Back Squat', '3', '웨이브 · @ 76% 1RM', 0, 1, '2 Sets'),
+  ('A', 'Back Squat', '2', '웨이브 · @ 82% 1RM', 1, 2, '2 Sets'),
+  ('A', 'Back Squat', '1', '웨이브 · @ 88% 1RM · Rest 2:30', 2, 3, '2 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -694,8 +698,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'Banded Strict Pull up', '8', null, 0, 1, 'Superset · 3 Sets'),
-  ('B', 'KB Gorilla Row', '10/10', 'Rest as needed', 1, 1, 'Superset · 3 Sets')
+  ('B', 'Banded Strict Pull up', '8', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'KB Gorilla Row', '10/10', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -704,8 +708,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'GHD or AB Sit ups', '20', null, 0, 1, '3 Sets'),
-  ('C', 'Pallof Press', '12/12', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'GHD or AB Sit ups', '20', null, 0, 1, '4 Sets'),
+  ('C', 'Pallof Press', '12/12', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- 2026-08-04 (화) 덤벨 상체
@@ -724,8 +728,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'DB Overhead Tricep Extension', '10~12', null, 0, 1, 'Superset · 3 Sets'),
-  ('B', 'DB Lateral Raise', '12~15', 'Rest as needed', 1, 1, 'Superset · 3 Sets')
+  ('B', 'DB Overhead Tricep Extension', '10~12', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'DB Lateral Raise', '12~15', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -734,8 +738,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Hollow Rock Hold', '0:40', null, 0, 1, '3 Sets'),
-  ('C', 'Dead Bug', '10/10', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Hollow Rock Hold', '0:40', null, 0, 1, '4 Sets'),
+  ('C', 'Dead Bug', '10/10', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -754,7 +758,9 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('A', 'Deadlift', '3', '@ 85% 1RM · Rest 2:30', 0, 1, '5 Sets')
+  ('A', 'Deadlift', '3', '웨이브 · @ 70% 1RM', 0, 1, '2 Sets'),
+  ('A', 'Deadlift', '2', '웨이브 · @ 78% 1RM', 1, 2, '2 Sets'),
+  ('A', 'Deadlift', '2', '웨이브 · @ 85% 1RM · Rest 2:30', 2, 3, '2 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -763,8 +769,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'Pendlay Row', '8', null, 0, 1, 'Superset · 3 Sets'),
-  ('B', 'Banded Face Pull', '20', 'Rest as needed', 1, 1, 'Superset · 3 Sets')
+  ('B', 'Pendlay Row', '8', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'Banded Face Pull', '20', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -773,8 +779,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Russian Twist', '30', null, 0, 1, '3 Sets'),
-  ('C', 'Serratus Punch (band)', '15', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Russian Twist', '30', null, 0, 1, '4 Sets'),
+  ('C', 'Serratus Punch (band)', '15', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- 2026-08-06 (목) 단측 하체
@@ -813,7 +819,9 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('A', 'Bench Press', '3', '@ 85% 1RM · Rest 2:00', 0, 1, '5 Sets')
+  ('A', 'Bench Press', '3', '웨이브 · @ 76% 1RM', 0, 1, '2 Sets'),
+  ('A', 'Bench Press', '2', '웨이브 · @ 82% 1RM', 1, 2, '2 Sets'),
+  ('A', 'Bench Press', '1', '웨이브 · @ 88% 1RM · Rest 2:00', 2, 3, '2 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -822,8 +830,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'DB Bent Over Row', '10', null, 0, 1, 'Superset · 3 Sets'),
-  ('B', 'Seated DB Curl', '12', 'Rest as needed', 1, 1, 'Superset · 3 Sets')
+  ('B', 'DB Bent Over Row', '10', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'Seated DB Curl', '12', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -832,8 +840,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'V ups', '18', null, 0, 1, '3 Sets'),
-  ('C', 'Plank Shoulder Taps', '0:45', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'V ups', '18', null, 0, 1, '4 Sets'),
+  ('C', 'Plank Shoulder Taps', '0:45', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- ============================================================
@@ -847,8 +855,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('A', 'Back Squat', '7', '@ 70% 1RM', 0, 1, '4 Sets'),
-  ('A', 'Back Squat', '3', '@ 87.5% 1RM · Rest 2:00', 1, 1, '4 Sets')
+  ('A', 'Back Squat', '1·1·1', '클러스터 · @ 87.5% 1RM · 렙 사이 15~20초 · Rest 2:30', 0, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -857,8 +864,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'Banded Lat Pulldown', '12', null, 0, 1, 'Superset · 3 Sets'),
-  ('B', 'Single Arm DB Row', '12/12', 'Rest as needed', 1, 1, 'Superset · 3 Sets')
+  ('B', 'Banded Lat Pulldown', '12', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'Single Arm DB Row', '12/12', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -867,8 +874,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Russian Twist', '30', null, 0, 1, '3 Sets'),
-  ('C', 'Dead Bug', '10/10', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Russian Twist', '30', null, 0, 1, '4 Sets'),
+  ('C', 'Dead Bug', '10/10', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- 2026-08-11 (화) 덤벨 상체
@@ -887,8 +894,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'Ring Push up', '8~12', null, 0, 1, 'Superset · 3 Sets'),
-  ('B', 'DB Front Raise', '12~15', 'Rest as needed', 1, 1, 'Superset · 3 Sets')
+  ('B', 'Ring Push up', '8~12', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'DB Front Raise', '12~15', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -897,8 +904,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'V ups', '18', null, 0, 1, '3 Sets'),
-  ('C', 'Plank Pull Through', '26', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'V ups', '18', null, 0, 1, '4 Sets'),
+  ('C', 'Plank Pull Through', '26', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -917,7 +924,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('A', 'Deadlift', '3', '@ 87.5% 1RM · Rest 2:30', 0, 1, '4 Sets')
+  ('A', 'Deadlift', '1·1·1', '클러스터 · @ 87.5% 1RM · 렙 사이 15~20초 · Rest 2:30', 0, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -926,8 +933,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'KB Gorilla Row', '10/10', null, 0, 1, 'Superset · 3 Sets'),
-  ('B', 'Band Pull Aparts', '20', 'Rest as needed', 1, 1, 'Superset · 3 Sets')
+  ('B', 'KB Gorilla Row', '10/10', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'Band Pull Aparts', '20', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -936,8 +943,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Hollow Rock Hold', '0:40', null, 0, 1, '3 Sets'),
-  ('C', 'Plank Shoulder Taps', '0:45', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Hollow Rock Hold', '0:40', null, 0, 1, '4 Sets'),
+  ('C', 'Plank Shoulder Taps', '0:45', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- 2026-08-13 (목) 오버헤드 프레스
@@ -976,7 +983,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('A', 'Bench Press', '3', '@ 87.5% 1RM · Rest 2:00', 0, 1, '4 Sets')
+  ('A', 'Bench Press', '8', '@ 70% 1RM', 0, 1, '5 Sets'),
+  ('A', 'Bench Press', '3', '@ 87.5% 1RM · Rest 2:00', 1, 1, '5 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -985,8 +993,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('B', 'Banded Strict Pull up', '8', null, 0, 1, 'Superset · 3 Sets'),
-  ('B', 'Hammer Curl', '12', 'Rest as needed', 1, 1, 'Superset · 3 Sets')
+  ('B', 'Banded Strict Pull up', '8', null, 0, 1, 'Superset · 4 Sets'),
+  ('B', 'Hammer Curl', '12', 'Rest as needed', 1, 1, 'Superset · 4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -995,8 +1003,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Side V ups', '15/15', null, 0, 1, '3 Sets'),
-  ('C', 'Single Arm Waiter Hold', '0:40/0:40', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Side V ups', '15/15', null, 0, 1, '4 Sets'),
+  ('C', 'Single Arm Waiter Hold', '0:40/0:40', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- ============================================================
@@ -1029,8 +1037,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Hollow Rock Hold', '0:40', null, 0, 1, '3 Sets'),
-  ('C', 'Plank Pull Through', '26', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Hollow Rock Hold', '0:40', null, 0, 1, '4 Sets'),
+  ('C', 'Plank Pull Through', '26', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- 2026-08-18 (화) 덤벨 상체
@@ -1059,8 +1067,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Side V ups', '15/15', null, 0, 1, '3 Sets'),
-  ('C', 'Pallof Press', '12/12', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Side V ups', '15/15', null, 0, 1, '4 Sets'),
+  ('C', 'Pallof Press', '12/12', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -1098,8 +1106,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'V ups', '18', null, 0, 1, '3 Sets'),
-  ('C', 'Single Arm Waiter Hold', '0:40/0:40', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'V ups', '18', null, 0, 1, '4 Sets'),
+  ('C', 'Single Arm Waiter Hold', '0:40/0:40', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- 2026-08-20 (목) 단측 하체
@@ -1157,8 +1165,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Flutter Kick w/ Hollow Rock Hold', '0:30', null, 0, 1, '3 Sets'),
-  ('C', 'Serratus Punch (band)', '15', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Flutter Kick w/ Hollow Rock Hold', '0:30', null, 0, 1, '4 Sets'),
+  ('C', 'Serratus Punch (band)', '15', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- ============================================================
@@ -1191,8 +1199,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'V ups', '18', null, 0, 1, '3 Sets'),
-  ('C', 'Pallof Press', '12/12', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'V ups', '18', null, 0, 1, '4 Sets'),
+  ('C', 'Pallof Press', '12/12', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- 2026-08-25 (화) 덤벨 상체
@@ -1221,8 +1229,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Flutter Kick w/ Hollow Rock Hold', '0:30', null, 0, 1, '3 Sets'),
-  ('C', 'Dead Bug', '10/10', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Flutter Kick w/ Hollow Rock Hold', '0:30', null, 0, 1, '4 Sets'),
+  ('C', 'Dead Bug', '10/10', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 with w as (
@@ -1260,8 +1268,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'Side V ups', '15/15', null, 0, 1, '3 Sets'),
-  ('C', 'Serratus Punch (band)', '15', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'Side V ups', '15/15', null, 0, 1, '4 Sets'),
+  ('C', 'Serratus Punch (band)', '15', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
 -- 2026-08-27 (목) 오버헤드 프레스
@@ -1318,6 +1326,6 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('C', 'GHD or AB Sit ups', '20', null, 0, 1, '3 Sets'),
-  ('C', 'Plank Shoulder Taps', '0:45', 'Rest as needed', 1, 1, '3 Sets')
+  ('C', 'GHD or AB Sit ups', '20', null, 0, 1, '4 Sets'),
+  ('C', 'Plank Shoulder Taps', '0:45', 'Rest as needed', 1, 1, '4 Sets')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
