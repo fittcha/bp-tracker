@@ -165,7 +165,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info)
 select w.id, v.* from w, (values
-  ('A', 'Bench Press', '5', '@ 75% 1RM · Rest 2:00', 0, 1, '5 Sets'),
+  ('A', 'Bench Press', '8', '@ 70% 1RM · Rest 2:00', 0, 1, '5 Sets'),
   ('A', 'Bench Press', 'AMRAP', '@ 50% 1RM · 2~3개 남기고', 1, 2, '백오프 · 1 Set')
 ) as v(section, exercise_name, reps, notes, sort_order, set_group, set_info);
 
