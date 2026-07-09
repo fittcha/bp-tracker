@@ -98,3 +98,48 @@ export function computeStreak(
 export function monthlyAttemptCount(doneDates: string[], yearMonth: string): number {
   return doneDates.filter((d) => d.slice(0, 7) === yearMonth).length
 }
+
+// 세트 완료 인덱스 토글(0-based). 순수.
+export function toggleSet(doneSets: number[], index: number): number[] {
+  return doneSets.includes(index)
+    ? doneSets.filter((i) => i !== index)
+    : [...doneSets, index].sort((a, b) => a - b)
+}
+
+// 유효 인덱스(0..total-1)가 total개 모두 채워졌는지. 순수.
+export function isDayComplete(doneSets: number[], totalSets: number): boolean {
+  if (totalSets <= 0) return false
+  const valid = new Set(doneSets.filter((i) => Number.isInteger(i) && i >= 0 && i < totalSets))
+  return valid.size === totalSets
+}
+
+// carried 이어받기 반영 스트릭. 오늘부터 훈련일 역순, startDate 이전으로 끊김없이 넘으면 carried 합산.
+// startDate 이전(완료~시작 갭)은 검사하지 않음(=7일 보호). 중간 훈련일 미출석은 끊김.
+export function computeStreakWithCarry(
+  trainingWeekdays: number[],
+  attemptDates: string[],
+  today: string,
+  startDate: string,
+  carried: number,
+): { count: number; alive: boolean } {
+  if (trainingWeekdays.length === 0) {
+    return carried > 0 ? { count: carried, alive: true } : { count: 0, alive: false }
+  }
+  const attended = new Set(attemptDates)
+  const training = new Set(trainingWeekdays)
+  const isTraining = (s: string) => training.has(weekdayMon1(s))
+
+  let cur = today
+  if (isTraining(cur) && !attended.has(cur)) cur = addDays(cur, -1) // 오늘 미출석 유예
+
+  let count = 0
+  while (cur >= startDate) {
+    if (isTraining(cur)) {
+      if (attended.has(cur)) count++
+      else return { count, alive: count > 0 } // 끊김 → carried 미포함
+    }
+    cur = addDays(cur, -1)
+  }
+  const total = count + carried // startDate 이전으로 무결 도달 → carried 합산
+  return { count: total, alive: total > 0 }
+}
