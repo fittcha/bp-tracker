@@ -36,6 +36,9 @@ export interface UserChallenge {
   started_at: string
   status: 'active' | 'archived'
   created_at?: string
+  completed_at?: string | null
+  carried_streak?: number
+  final_streak?: number
 }
 
 export interface ChallengeAttempt {
@@ -51,6 +54,7 @@ export interface ActiveChallenge {
   challenge: UserChallenge
   days: ChallengeProgramDay[]
   attempts: ChallengeAttempt[]
+  progress: Record<number, number[]> // day_no → 완료 세트 인덱스
 }
 
 const MISSING = 'PGRST205' // 테이블 미생성(마이그레이션 PENDING)
@@ -97,6 +101,22 @@ async function getAttempts(userChallengeId: string): Promise<ChallengeAttempt[]>
   return (data ?? []) as ChallengeAttempt[]
 }
 
+async function getDayProgress(userChallengeId: string): Promise<Record<number, number[]>> {
+  const { data, error } = await supabase
+    .from('challenge_day_progress')
+    .select('day_no, done_sets')
+    .eq('user_challenge_id', userChallengeId)
+  if (error) {
+    if (error.code === MISSING) return {} // 테이블 미생성 폴백
+    throw error
+  }
+  const map: Record<number, number[]> = {}
+  for (const r of (data ?? []) as { day_no: number; done_sets: number[] }[]) {
+    map[r.day_no] = Array.isArray(r.done_sets) ? r.done_sets : []
+  }
+  return map
+}
+
 export async function getActiveChallenges(userId: string): Promise<ActiveChallenge[]> {
   const { data, error } = await supabase
     .from('user_challenges')
@@ -111,11 +131,12 @@ export async function getActiveChallenges(userId: string): Promise<ActiveChallen
   const challenges = (data ?? []) as UserChallenge[]
   return Promise.all(
     challenges.map(async (challenge) => {
-      const [days, attempts] = await Promise.all([
+      const [days, attempts, progress] = await Promise.all([
         getProgramDays(challenge.program_id),
         getAttempts(challenge.id),
+        getDayProgress(challenge.id),
       ])
-      return { challenge, days, attempts }
+      return { challenge, days, attempts, progress }
     }),
   )
 }
@@ -127,6 +148,21 @@ export async function startChallenge(p: {
   difficulty: Record<string, unknown>
   trainingWeekdays: number[]
 }): Promise<UserChallenge> {
+  // 같은 종목, 7일 내 완료건의 final_streak 이어받기
+  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  const { data: prev } = await supabase
+    .from('user_challenges')
+    .select('final_streak, completed_at')
+    .eq('user_id', p.userId)
+    .eq('template_key', p.templateKey)
+    .eq('status', 'archived')
+    .not('completed_at', 'is', null)
+    .gte('completed_at', cutoff)
+    .order('completed_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  const carried = (prev?.final_streak as number | undefined) ?? 0
+
   const { data, error } = await supabase
     .from('user_challenges')
     .insert({
@@ -135,6 +171,7 @@ export async function startChallenge(p: {
       program_id: p.programId,
       difficulty: p.difficulty,
       training_weekdays: p.trainingWeekdays,
+      carried_streak: carried,
     })
     .select()
     .single()
@@ -171,6 +208,25 @@ export async function addAttempt(p: {
     .single()
   if (error) throw error
   return data as ChallengeAttempt
+}
+
+export async function setDayProgress(userChallengeId: string, dayNo: number, doneSets: number[]): Promise<void> {
+  const { error } = await supabase
+    .from('challenge_day_progress')
+    .upsert(
+      { user_challenge_id: userChallengeId, day_no: dayNo, done_sets: doneSets, updated_at: new Date().toISOString() },
+      { onConflict: 'user_challenge_id,day_no' },
+    )
+  if (error) throw error
+}
+
+export async function clearDayProgress(userChallengeId: string, dayNo: number): Promise<void> {
+  const { error } = await supabase
+    .from('challenge_day_progress')
+    .delete()
+    .eq('user_challenge_id', userChallengeId)
+    .eq('day_no', dayNo)
+  if (error) throw error
 }
 
 export async function updateAttemptDate(attemptId: string, doneDate: string): Promise<void> {
@@ -211,6 +267,15 @@ export async function updateChallenge(userChallengeId: string, p: {
     .eq('id', userChallengeId)
     .select()
     .single()
+  if (error) throw error
+}
+
+// 완료: 아카이브 + 완료시각 + 스트릭 스냅샷(삭제 아님, attempts 보존).
+export async function completeChallenge(userChallengeId: string, finalStreak: number): Promise<void> {
+  const { error } = await supabase
+    .from('user_challenges')
+    .update({ status: 'archived', completed_at: new Date().toISOString(), final_streak: finalStreak })
+    .eq('id', userChallengeId)
   if (error) throw error
 }
 
