@@ -206,6 +206,9 @@ src/
 | 2026.06.29 | 공용운동 **날짜 기반 8주 스트렝스 프로그램** |
 | 2026.06.30 | **SWR 클라이언트 캐시**(전 화면) + 개인운동 **공유 기능** + '내 운동' 라이브러리 |
 | 2026.07.01 | 중복로그 버그 근본수정, 8주 데이터 다듬기, PR 모달 팝업화·HALF/FULL |
+| 2026.07.02 | **유저 프로필 사진(아바타)** — 크롭 업로드/배경색, 헤더·공유 표시 |
+| 2026.07.02~09 | **공용 8주 스트렝스 프로그램 다양화 v2** — 정지·컨트라스트·웨이브·클러스터·스피드 + 리프트별 볼륨 |
+| 2026.07.09 | **챌린지 세트별 진행 클릭 + 전체완료/연속기록 보호** |
 
 ---
 
@@ -247,6 +250,32 @@ src/
 | `workouts` | 공용/개인 운동 정의 | owner_user_id, default_weekday, program_date, program_label, set_group/set_info/set_lead(exercises) |
 | `workout_exercises` | 운동 동작 | workout_id, section, exercise_name, reps, notes, sort_order, set_group, set_info, set_lead |
 | `challenge_*` | 챌린지 | templates/programs/program_days/user_challenges/attempts |
+| `challenge_day_progress` | 챌린지 세트별 진행 | user_challenge_id, day_no, done_sets(jsonb), unique(challenge,day) |
+| `user_challenges`(+완료/스트릭) | 챌린지 인스턴스 | …, status('active'|'archived'), completed_at, carried_streak, final_streak |
+| `users`(+아바타) | 유저 | …, avatar_url |
 | `user_1rm` · `user_nrm_records` · `user_pace_records` · `wod_records` | PR 기록 | — |
 | `workout_shares` | 개인운동 공유 대기 | from/to_user_id, source_workout_id, payload(jsonb) |
+| Storage `avatars`(공용 버킷) | 프로필 사진 | `${uid}/avatar-{ts}.jpg` |
 | `daily_logs`(체중/수면 등 시즌1 유지) | — | — |
+
+### 8.7 유저 프로필 사진 (2026.07.02)
+- `users.avatar_url` + Storage 공용 버킷 `avatars`. MY 탭 파일 선택 → **react-easy-crop 수동 정사각 크롭 + 배경색 선택**(투명 PNG용 스와치 4 + 커스텀) → **256px JPEG**(경로 timestamp = 자동 캐시버스트) 업로드.
+- 공용 `Avatar`(이니셜 폴백): MY(64)·**헤더(26, 아이디 텍스트 대체)**·공유 검색(28)/받기(36)/대기(24). 본인 아바타는 `k.profile(uid)` SWR(변경 시 `mutate`로 헤더·MY 동기화). 다른 유저는 공유 쿼리 select에 `avatar_url` 포함.
+- ⚠️ 마이그레이션 `supabase/migration-user-avatar.sql` 라이브 적용 필요.
+
+### 8.8 챌린지 세트별 진행 + 완료/스트릭 보호 (2026.07.09)
+- **세트 진행 클릭**: day 상세의 세트칩 = 토글 버튼(신규 `challenge_day_progress.done_sets` jsonb). **모든 세트 완료 → 자동 성공 + 칩 잠금**. 성공 상태에 **"잠금 해제"**(성공 attempt만 취소·진행 보존) / **"기록 삭제"**(성공 + 진행 초기화). 부분 진행은 서버 보존하되 카드(밖)엔 미표시. 기존 성공/실패 버튼 유지(성공 경로 2개).
+- **전체 완료 & 연속기록 보호**: **"완료"** = 아카이브(`status='archived'` + `completed_at` + `final_streak`, 삭제 아님·attempts 보존 → 활성 목록서 제거). **같은 종목** 챌린지를 완료 후 **7일 내** 시작하면 `carried_streak` 스냅샷 이어받기. `computeStreakWithCarry`: 오늘부터 훈련일 역순으로 세다 **시작일까지 무결하면 carried 합산**, 중간 끊기면 제외, 완료~시작 갭은 면제(검사 안 함). 홈 위젯 스트릭도 동일 계산.
+- 안내문구 3곳(완료 확인 다이얼로그 · "이전 기록 N일 이어받음" 배지 · 대시보드 상단). ⚠️ 마이그레이션 `supabase/migration-challenge-progress.sql` 라이브 적용 필요.
+
+### 8.9 공용 8주 스트렝스 프로그램 v2 (2026.07.02~09)
+- 세 메인리프트(월 스쿼트 / 수 데드 / 금 벤치)가 판박이 선형(5→3→2렙)이라 지루 → **리프트별 방식 다양화 + 볼륨 차등**(회복 여력 **벤치 > 스쿼트 > 데드**).
+- 방식: **5×5 · 정지(pause) · 컨트라스트(7|8@가벼움 + 3@헤비, 한 그룹) · 웨이브(오름차순 %, 스텝별 스택) · 클러스터(1·1·1@87.5%) · 스피드(데드 3@70%×8) · 백오프 AMRAP(@50% = 본세트의 ~65%)**. 디로드(W4)·피크(W7 2@90%)·테스트(W8 Heavy Single) 저볼륨 유지, 헤비% **82.5→85→87.5→90** 단조 증가.
+- 보조: B·보조 전 요일 **4세트**, C·안정화 3세트. 수요일 보조에 **DB RDL 계열 격주**(후면사슬 보강). 화(밀기) 피니셔는 어깨/삼두로 통일.
+- 데이터: 컨트라스트=두 동작 `set_group` 같은값 / 웨이브=스텝별 `set_group` 다르게. `supabase/seed-strength-8week.sql` **재시드(wipe 포함)**로 반영, 옛 스냅샷 로그 자동 정리. **프로그램 수정 후 이미 열어본 날짜는 해당 섹션 `workout_logs` 삭제 → 앱이 재스냅샷**(auto-add). *데이터 원본: `docs/data/season2-strength-8week-data.md`.*
+
+### 8.10 ⚠️ 라이브 마이그레이션 PENDING (배포됐으나 DB 미적용)
+아래 SQL을 Supabase SQL 에디터에서 1회 실행해야 해당 기능이 켜짐(미적용 시 앱은 폴백으로 정상 동작):
+- `supabase/migration-workout-shares.sql` — 개인운동 공유(§8.3)
+- `supabase/migration-user-avatar.sql` — 프로필 사진(§8.7)
+- `supabase/migration-challenge-progress.sql` — 챌린지 세트진행/완료(§8.8)
