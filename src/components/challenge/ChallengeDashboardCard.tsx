@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { RotateCcw, Flame, MoreVertical, Pencil, Trash2 } from 'lucide-react'
+import { RotateCcw, Flame, MoreVertical, Pencil, Trash2, CheckCircle2 } from 'lucide-react'
 import { toDateString } from '@/lib/utils'
-import { deriveDayStates, computeStreak, monthlyAttemptCount, type DayState } from '@/lib/challenge/derive'
+import { deriveDayStates, computeStreakWithCarry, monthlyAttemptCount, toggleSet, isDayComplete, type DayState } from '@/lib/challenge/derive'
 import {
   addAttempt, updateAttemptDate, deleteAttempt, resetChallenge, deleteChallenge,
+  setDayProgress, clearDayProgress, completeChallenge,
   type ActiveChallenge, type ChallengeTemplate, type ChallengeProgramDay,
 } from '@/lib/api/challenges'
 import DayStatusSheet from './DayStatusSheet'
@@ -19,7 +20,7 @@ interface ChallengeDashboardCardProps {
 }
 
 export default function ChallengeDashboardCard({ active, template, onChanged }: ChallengeDashboardCardProps) {
-  const { challenge, days, attempts } = active
+  const { challenge, days, attempts, progress } = active
   const [openDay, setOpenDay] = useState<number | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
@@ -27,7 +28,8 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
   const dayStates = deriveDayStates(attempts)
   const attemptDates = attempts.map((a) => a.done_date)
   const today = toDateString(new Date())
-  const streak = computeStreak(challenge.training_weekdays, attemptDates, today)
+  const startDate = challenge.started_at.slice(0, 10)
+  const streak = computeStreakWithCarry(challenge.training_weekdays, attemptDates, today, startDate, challenge.carried_streak ?? 0)
   const monthCount = monthlyAttemptCount(attemptDates, today.slice(0, 7))
 
   const name = template?.exercise ?? template?.name ?? challenge.template_key
@@ -52,6 +54,25 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
   const openDayObj = openDay != null ? (days.find((d) => d.day_no === openDay) ?? null) : null
   const openState: DayState | null = openDay != null ? (dayStates.get(openDay) ?? null) : null
 
+  const openDoneSets = openDay != null ? (progress[openDay] ?? []) : []
+  const openTotalSets = openDayObj?.sets_text ? openDayObj.sets_text.split('·').length : 0
+
+  async function handleToggleSet(index: number) {
+    if (openDay == null) return
+    const next = toggleSet(progress[openDay] ?? [], index)
+    await setDayProgress(challenge.id, openDay, next)
+    if (isDayComplete(next, openTotalSets)) {
+      await addAttempt({ userChallengeId: challenge.id, dayNo: openDay, result: 'success', doneDate: toDateString(new Date()) })
+    }
+    onChanged()
+  }
+  async function handleUnlock() {
+    if (openDay == null || openState?.successAttemptId == null) return
+    await deleteAttempt(openState.successAttemptId) // done_sets 보존 → 편집 가능
+    setOpenDay(null)
+    onChanged()
+  }
+
   async function handleLog(result: 'success' | 'fail', doneDate: string) {
     if (openDay == null) return
     await addAttempt({ userChallengeId: challenge.id, dayNo: openDay, result, doneDate })
@@ -64,7 +85,8 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
     onChanged()
   }
   async function handleDeleteAttempt(attemptId: string) {
-    if (!confirm('이 성공 기록을 삭제할까요? (되돌릴 수 없어요)')) return
+    if (!confirm('이 성공 기록을 삭제할까요? 세트 진행도 함께 초기화돼요. (되돌릴 수 없어요)')) return
+    if (openDay != null) await clearDayProgress(challenge.id, openDay)
     await deleteAttempt(attemptId)
     setOpenDay(null)
     onChanged()
@@ -79,6 +101,11 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
     await deleteChallenge(challenge.id)
     onChanged()
   }
+  async function handleComplete() {
+    if (!confirm('이 챌린지를 완료할까요?\n기록은 보존되고, 7일 안에 같은 종목 다음 난이도를 시작하면 연속기록이 이어져요.')) return
+    await completeChallenge(challenge.id, streak.count)
+    onChanged()
+  }
 
   return (
     <div className="bg-surface border border-border rounded-xl">
@@ -87,6 +114,9 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
         <div className="min-w-0 flex-1">
           <p className="text-base font-bold text-foreground leading-tight">{name}</p>
           {diffLabel && <p className="text-[11px] text-text-secondary mt-0.5 truncate">{diffLabel}</p>}
+          {(challenge.carried_streak ?? 0) > 0 && (
+            <p className="text-[10px] font-semibold text-accent-pop mt-0.5">🔥 이전 기록 {challenge.carried_streak}일 이어받음</p>
+          )}
         </div>
         <div className="flex flex-col items-end shrink-0">
           <div className="flex items-center gap-1">
@@ -105,6 +135,9 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
               <div className="absolute right-0 top-full mt-1 z-50 w-36 bg-surface border border-border rounded-xl shadow-lg py-1">
                 <button onClick={() => { setMenuOpen(false); setEditOpen(true) }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-background">
                   <Pencil size={14} /> 수정
+                </button>
+                <button onClick={() => { setMenuOpen(false); handleComplete() }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-accent-pop hover:bg-background">
+                  <CheckCircle2 size={14} /> 완료(다음 난이도로)
                 </button>
                 <button onClick={() => { setMenuOpen(false); handleReset() }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-background">
                   <RotateCcw size={14} /> 전체 초기화
@@ -151,6 +184,9 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
         dayInWeek={openDayObj?.day_in_week ?? 0}
         setsText={openDayObj?.sets_text ?? ''}
         restSeconds={openDayObj?.rest_seconds ?? null}
+        doneSets={openDoneSets}
+        onToggleSet={handleToggleSet}
+        onUnlock={handleUnlock}
         state={openState ? { status: openState.status, doneDate: openState.doneDate, successAttemptId: openState.successAttemptId } : null}
         onClose={() => setOpenDay(null)}
         onLog={handleLog}
