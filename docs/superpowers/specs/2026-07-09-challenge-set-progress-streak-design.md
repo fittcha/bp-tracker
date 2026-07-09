@@ -55,7 +55,10 @@ props에 `doneSets: number[]`, `totalSets`(파생), `onToggleSet(index)`, `onCle
   - `status === 'success'`: **잠금**(disabled) + 전부 채운 스타일(성공 = 완료 의미). 어느 경로로 성공했든 동일.
 - 클릭 흐름: `onToggleSet(i)` → 부모가 `toggleSet` 계산 → `setDayProgress` → 결과가 `isDayComplete`면 이어서 `addAttempt(success, 날짜)`(→ day 성공·잠금). 아니면 진행만 저장.
 - **성공 버튼 유지**: 누르면 기존대로 `addAttempt(success)`(세트 클릭 없이 즉시 성공·잠금). **실패 버튼 유지**: `addAttempt(fail)` — `done_sets`는 **보존**(clear 안 함).
-- **되돌리기**: 성공 상태의 기존 "기록 삭제"(휴지통) → `deleteAttempt(successId)` **+ `clearDayProgress`** → day untried, 세트 초기화.
+- **성공 상태 되돌리기(잠금 해제 장치, 2가지)** — 성공 시 칩이 잠기므로 반드시 해제 수단 제공:
+  - **"잠금 해제"(수정) 버튼**: `deleteAttempt(successId)` 만 호출(`done_sets` **보존**) → 성공 취소, 칩 다시 편집 가능(전부 채워진 부분 상태). 세트 조정 후 다시 전부 채우면 재성공. 가벼운 되돌리기.
+  - **"기록 삭제"(휴지통, 기존)**: `deleteAttempt(successId)` **+ `clearDayProgress`** → day 완전 리셋(untried, 세트 초기화). 완전 삭제.
+  - 두 버튼은 성공 상태 액션 줄에 함께 노출(잠금해제=보더/세컨더리, 기록삭제=danger 휴지통).
 - 부분 진행(성공/실패 attempt 없음): sheet엔 채운 칩 유지, **카드(ChallengeDashboardCard)엔 미표시**(untried 점 그대로).
 
 ### A6. 카드
@@ -86,6 +89,7 @@ alter table user_challenges add column if not exists final_streak int not null d
 - walk가 **`startDate` 이전으로 끊김 없이 넘어가면 → count + carried 반환**(시작부터 오늘까지 무결 = 이어받기 유효).
 - 반환 `{ count, alive }`. 카드는 이걸로 표시.
 - `carried`는 시작 시점에 이미 "7일 내" 조건을 통과해야 >0이므로, 이후 계산은 무결성만 본다. 체인(A→B→C)은 `final_streak` 스냅샷이 전이돼 자연 연결.
+- **완료~시작 사이의 갭 면제**: walk는 `startDate`에서 멈추고 carried를 더하므로, **시작일 이전(갭 구간)의 훈련일 미출석은 검사하지 않는다**(=7일 보호). 즉 갭에 기록이 없어도 **시작일부터 이전 스트릭이 이어진다**. 시작 직후(기록 0)면 표시 스트릭 = carried. 단 시작 후 B에서 훈련일을 빠뜨리면 walk가 시작일에 못 닿아 carried 미포함(정상 리셋).
 
 ### B4. API
 - `startChallenge`: insert 전 `carried_streak` 산출 — 같은 `template_key`의 `status='archived' AND completed_at is not null AND completed_at >= (오늘 − 7일)` 중 `completed_at` 최신의 `final_streak`(없으면 0). insert에 `carried_streak` 포함.
