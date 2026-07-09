@@ -11,6 +11,9 @@ interface DayStatusSheetProps {
   dayInWeek: number
   setsText: string
   restSeconds: number | null
+  doneSets?: number[]
+  onToggleSet?: (index: number) => void
+  onUnlock?: () => void
   state: { status: DayStatus; doneDate: string | null; successAttemptId: string | null } | null
   onClose: () => void
   onLog: (result: 'success' | 'fail', doneDate: string) => void
@@ -21,7 +24,9 @@ interface DayStatusSheetProps {
 const EYEBROW = 'text-[11px] font-semibold text-text-secondary'
 
 export default function DayStatusSheet({
-  isOpen, weekNo, dayInWeek, setsText, restSeconds, state, onClose, onLog, onUpdateDate, onDeleteAttempt,
+  isOpen, weekNo, dayInWeek, setsText, restSeconds,
+  doneSets = [], onToggleSet, onUnlock,
+  state, onClose, onLog, onUpdateDate, onDeleteAttempt,
 }: DayStatusSheetProps) {
   const status: DayStatus = state?.status ?? 'untried'
   const [date, setDate] = useState(toDateString(new Date()))
@@ -61,11 +66,24 @@ export default function DayStatusSheet({
                 )}
               </div>
               <div className="flex flex-wrap gap-1.5">
-                {sets.map((s, i) => (
-                  <span key={i} className="min-w-[2.75rem] text-center px-2.5 py-2 rounded-lg border border-accent/40 text-foreground text-base font-medium tabular-nums">
-                    {s}
-                  </span>
-                ))}
+                {sets.map((s, i) => {
+                  const done = status === 'success' || doneSets.includes(i)
+                  const locked = status === 'success'
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      disabled={locked}
+                      onClick={() => onToggleSet?.(i)}
+                      aria-pressed={done}
+                      className={`min-w-[2.75rem] text-center px-2.5 py-2 rounded-lg border text-base font-medium tabular-nums transition-colors ${
+                        done ? 'border-accent bg-accent text-white' : 'border-accent/40 text-foreground active:bg-accent-light'
+                      } ${locked ? 'opacity-100 cursor-default' : ''}`}
+                    >
+                      {s}
+                    </button>
+                  )
+                })}
               </div>
               {hasAmrap && (
                 <p className="text-[11px] text-text-secondary mt-2">
@@ -107,11 +125,17 @@ export default function DayStatusSheet({
                   날짜 수정
                 </button>
               </div>
-              {/* 성공 완료 문구 + 휴지통(기록 삭제) — 중앙 정렬, 맨 아래 */}
-              <div className="flex items-center justify-center gap-5 pt-1">
+              {/* 성공 완료 + 잠금해제(수정) + 휴지통(완전삭제) */}
+              <div className="flex items-center justify-center gap-4 pt-1">
                 <p className="inline-flex items-center gap-1.5 text-sm font-medium text-success">
                   <Check size={16} /> 성공 완료
                 </p>
+                <button
+                  onClick={onUnlock}
+                  className="px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-text-secondary active:bg-background"
+                >
+                  잠금 해제
+                </button>
                 <button
                   onClick={() => state?.successAttemptId && onDeleteAttempt(state.successAttemptId)}
                   disabled={!state?.successAttemptId}
