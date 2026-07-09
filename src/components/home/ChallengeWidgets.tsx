@@ -6,7 +6,7 @@ import { Flame } from 'lucide-react'
 import useSWR from 'swr'
 import { getLoggedInUser } from '@/lib/auth'
 import { getChallengesData } from '@/lib/api/challenges'
-import { deriveDayStates, computeStreak, monthlyAttemptCount } from '@/lib/challenge/derive'
+import { deriveDayStates, computeStreakWithCarry, monthlyAttemptCount } from '@/lib/challenge/derive'
 import { formatDifficulty } from '@/lib/challenge/format'
 import { toDateString } from '@/lib/utils'
 import { k } from '@/lib/swr/keys'
@@ -38,7 +38,7 @@ export default function ChallengeWidgets() {
         id: a.challenge.id,
         name: exByKey[a.challenge.template_key] ?? a.challenge.template_key,
         diff: formatDifficulty(a.challenge.difficulty),
-        streak: computeStreak(a.challenge.training_weekdays, dates, today),
+        streak: computeStreakWithCarry(a.challenge.training_weekdays, dates, today, a.challenge.started_at.slice(0, 10), a.challenge.carried_streak ?? 0),
         monthCount: monthlyAttemptCount(dates, today.slice(0, 7)),
         doneDays,
         totalDays: a.days.length,

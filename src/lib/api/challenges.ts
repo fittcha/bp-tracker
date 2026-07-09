@@ -217,7 +217,10 @@ export async function setDayProgress(userChallengeId: string, dayNo: number, don
       { user_challenge_id: userChallengeId, day_no: dayNo, done_sets: doneSets, updated_at: new Date().toISOString() },
       { onConflict: 'user_challenge_id,day_no' },
     )
-  if (error) throw error
+  if (error) {
+    if (error.code === MISSING) return
+    throw error
+  }
 }
 
 export async function clearDayProgress(userChallengeId: string, dayNo: number): Promise<void> {
@@ -226,7 +229,10 @@ export async function clearDayProgress(userChallengeId: string, dayNo: number): 
     .delete()
     .eq('user_challenge_id', userChallengeId)
     .eq('day_no', dayNo)
-  if (error) throw error
+  if (error) {
+    if (error.code === MISSING) return
+    throw error
+  }
 }
 
 export async function updateAttemptDate(attemptId: string, doneDate: string): Promise<void> {
