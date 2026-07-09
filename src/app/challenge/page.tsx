@@ -36,9 +36,14 @@ export default function ChallengePage() {
           <p className="text-sm text-text-secondary">아래 버튼으로 풀업·푸쉬업 챌린지를 시작해보세요.</p>
         </div>
       ) : (
-        actives.map((a) => (
-          <ChallengeDashboardCard key={a.challenge.id} active={a} template={templateMap[a.challenge.template_key]} onChanged={reload} />
-        ))
+        <>
+          <p className="text-[11px] text-text-secondary/80 px-1 mb-2">
+            💡 완주 후 <span className="font-semibold text-text-secondary">7일 안에</span> 다음 난이도를 시작하면 🔥연속기록이 이어져요. (카드 ⋯ → 완료)
+          </p>
+          {actives.map((a) => (
+            <ChallengeDashboardCard key={a.challenge.id} active={a} template={templateMap[a.challenge.template_key]} onChanged={reload} />
+          ))}
+        </>
       )}
 
       {!loading && (
