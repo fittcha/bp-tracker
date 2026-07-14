@@ -1,4 +1,4 @@
--- 챌린지 시드 v2 (제공 챌린지: 푸쉬업 6주 / 풀업 4주)
+-- 챌린지 시드 v2 (제공 챌린지: 푸쉬업 6주 / 풀업 5주)
 -- migration-challenges.sql + migration-challenges-2.sql 적용 이후 실행.
 -- 재실행 안전: 아래 wipe로 기존 프로그램/일 데이터를 비우고 재시드한다.
 --   ⚠️ user_challenges(진행 인스턴스)와 그 attempts(이력)도 함께 삭제된다(QA 데이터 초기화).
@@ -131,7 +131,7 @@ insert into challenge_programs (template_key, difficulty_key, label, sort_order)
   ('pullup', 'c2b',      'Chest-to-Bar',     3),
   ('pullup', 'weighted', 'Weighted Pull-up', 4);
 
--- 풀업 day 데이터(4주×5일, R1~R5). 4개 변형 프로그램에 동일 복제(cross join). 휴식 표기 없음(null).
+-- 풀업 day 데이터(5주×5일, R1~R5). 4개 변형 프로그램에 동일 복제(cross join). 휴식 표기 없음(null).
 insert into challenge_program_days (program_id, day_no, week_no, day_in_week, sets_text, rest_seconds)
 select p.id, v.day_no, v.week_no, v.diw, v.sets, null
 from challenge_programs p, (values
@@ -154,6 +154,11 @@ from challenge_programs p, (values
   (17,4,2,'8·7·6·5·5'),
   (18,4,3,'8·7·6·6·5'),
   (19,4,4,'8·7·7·6·5'),
-  (20,4,5,'8·7·7·6·6')
+  (20,4,5,'8·7·7·6·6'),
+  (21,5,1,'9·8·7·6·5'),
+  (22,5,2,'9·8·7·6·6'),
+  (23,5,3,'9·8·7·7·6'),
+  (24,5,4,'9·8·8·7·6'),
+  (25,5,5,'9·8·8·7·7')
 ) as v(day_no, week_no, diw, sets)
 where p.template_key = 'pullup';
