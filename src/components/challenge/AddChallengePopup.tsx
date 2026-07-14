@@ -96,6 +96,10 @@ export default function AddChallengePopup({ isOpen, onClose, onStarted }: AddCha
       })
       onStarted()
       onClose()
+    } catch (e) {
+      // 콘솔에 삼켜지지 않게 원인을 노출 (예: 마이그레이션 미적용으로 컬럼 없음)
+      const msg = e instanceof Error ? e.message : String(e)
+      alert(`챌린지 시작에 실패했어요. 잠시 후 다시 시도해 주세요.\n\n(${msg})`)
     } finally {
       setSaving(false)
     }

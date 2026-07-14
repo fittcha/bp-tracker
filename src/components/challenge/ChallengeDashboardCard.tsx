@@ -57,54 +57,86 @@ export default function ChallengeDashboardCard({ active, template, onChanged }: 
   const openDoneSets = openDay != null ? (progress[openDay] ?? []) : []
   const openTotalSets = openDayObj?.sets_text ? openDayObj.sets_text.split('·').length : 0
 
+  // 쓰기 실패를 콘솔에 삼키지 말고 사용자에게 노출.
+  // (예: 마이그레이션 미적용으로 컬럼/테이블이 없을 때 조용히 무반응하던 문제 방지)
+  // 성공 시에만 후속 상태 전환(onChanged/setOpenDay)이 일어나도록 fn 안에 함께 둔다.
+  async function runWrite(fn: () => Promise<void>) {
+    try {
+      await fn()
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      alert(`저장에 실패했어요. 잠시 후 다시 시도해 주세요.\n\n(${msg})`)
+    }
+  }
+
   async function handleToggleSet(index: number) {
     if (openDay == null) return
-    const next = toggleSet(progress[openDay] ?? [], index)
-    await setDayProgress(challenge.id, openDay, next)
-    if (isDayComplete(next, openTotalSets)) {
-      await addAttempt({ userChallengeId: challenge.id, dayNo: openDay, result: 'success', doneDate: toDateString(new Date()) })
-    }
-    onChanged()
+    const day = openDay
+    const next = toggleSet(progress[day] ?? [], index)
+    await runWrite(async () => {
+      await setDayProgress(challenge.id, day, next)
+      if (isDayComplete(next, openTotalSets)) {
+        await addAttempt({ userChallengeId: challenge.id, dayNo: day, result: 'success', doneDate: toDateString(new Date()) })
+      }
+      onChanged()
+    })
   }
   async function handleUnlock() {
     if (openDay == null || openState?.successAttemptId == null) return
-    await deleteAttempt(openState.successAttemptId) // done_sets 보존 → 편집 가능
-    setOpenDay(null)
-    onChanged()
+    const attemptId = openState.successAttemptId
+    await runWrite(async () => {
+      await deleteAttempt(attemptId) // done_sets 보존 → 편집 가능
+      setOpenDay(null)
+      onChanged()
+    })
   }
 
   async function handleLog(result: 'success' | 'fail', doneDate: string) {
     if (openDay == null) return
-    await addAttempt({ userChallengeId: challenge.id, dayNo: openDay, result, doneDate })
-    setOpenDay(null)
-    onChanged()
+    const day = openDay
+    await runWrite(async () => {
+      await addAttempt({ userChallengeId: challenge.id, dayNo: day, result, doneDate })
+      setOpenDay(null)
+      onChanged()
+    })
   }
   async function handleUpdateDate(attemptId: string, doneDate: string) {
-    await updateAttemptDate(attemptId, doneDate)
-    setOpenDay(null)
-    onChanged()
+    await runWrite(async () => {
+      await updateAttemptDate(attemptId, doneDate)
+      setOpenDay(null)
+      onChanged()
+    })
   }
   async function handleDeleteAttempt(attemptId: string) {
     if (!confirm('이 성공 기록을 삭제할까요? 세트 진행도 함께 초기화돼요. (되돌릴 수 없어요)')) return
-    if (openDay != null) await clearDayProgress(challenge.id, openDay)
-    await deleteAttempt(attemptId)
-    setOpenDay(null)
-    onChanged()
+    const day = openDay
+    await runWrite(async () => {
+      if (day != null) await clearDayProgress(challenge.id, day)
+      await deleteAttempt(attemptId)
+      setOpenDay(null)
+      onChanged()
+    })
   }
   async function handleReset() {
     if (!confirm('이 챌린지의 모든 도전 기록을 초기화할까요? (되돌릴 수 없어요)')) return
-    await resetChallenge(challenge.id)
-    onChanged()
+    await runWrite(async () => {
+      await resetChallenge(challenge.id)
+      onChanged()
+    })
   }
   async function handleDelete() {
     if (!confirm('이 챌린지를 삭제할까요? 모든 기록이 함께 삭제돼요. (되돌릴 수 없어요)')) return
-    await deleteChallenge(challenge.id)
-    onChanged()
+    await runWrite(async () => {
+      await deleteChallenge(challenge.id)
+      onChanged()
+    })
   }
   async function handleComplete() {
     if (!confirm('이 챌린지를 완료할까요?\n기록은 보존되고, 7일 안에 같은 종목 다음 난이도를 시작하면 연속기록이 이어져요.')) return
-    await completeChallenge(challenge.id, streak.count)
-    onChanged()
+    await runWrite(async () => {
+      await completeChallenge(challenge.id, streak.count)
+      onChanged()
+    })
   }
 
   return (
