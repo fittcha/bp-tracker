@@ -165,19 +165,28 @@ export async function getWorkoutLogsWithWorkout(
   const { data, error } = await supabase
     .from('workout_logs')
     .select(
-      'id, user_id, date, template_id, workout_exercise_id, is_custom, exercise_name, section, completed, weight_lb, weight_unit, memo, custom_sets, custom_reps, custom_notes, set_group, set_info, set_lead, ' +
+      'id, user_id, date, created_at, template_id, workout_exercise_id, is_custom, exercise_name, section, completed, weight_lb, weight_unit, memo, custom_sets, custom_reps, custom_notes, set_group, set_info, set_lead, ' +
         'workout_exercises ( workout_id, sort_order, workouts ( title, owner_user_id, program_label ) ), ' +
-        'workout_templates ( sets, reps, notes )',
+        'workout_templates ( sets, reps, notes, sort_order )',
     )
     .eq('date', date)
     .eq('user_id', userId)
   if (error) throw error
-  // 동작 표시 순서 = workout_exercises.sort_order. 로그 테이블엔 sort_order가 없어 조회가
-  // 비결정적 순서로 와서 '같은 카드 안 동작이 뒤섞여' 보이던 문제(예: 페어 Rest 위치 어긋남) 해결.
+  // 동작 표시 순서. 시즌2 로그는 workout_exercises.sort_order, 시즌1 템플릿 로그는
+  // workout_templates.sort_order로 원래 순서가 보존돼 있다. 둘 다 없으면(커스텀) 동순위 →
+  // created_at·id로 안정 정렬. 예전엔 we.sort_order만 봐서 템플릿/커스텀 행이 비결정적
+  // 순서로 와 '같은 섹션 안 동작이 뒤섞여' 보이던 문제 해결.
+  const orderKey = (r: Record<string, unknown>): number => {
+    const we = (r.workout_exercises as { sort_order?: number } | null)?.sort_order
+    const tpl = (r.workout_templates as { sort_order?: number } | null)?.sort_order
+    return we ?? tpl ?? 9999
+  }
   const sorted = ((data ?? []) as unknown as Record<string, unknown>[]).slice().sort((a, b) => {
-    const sa = (a.workout_exercises as { sort_order?: number } | null)?.sort_order ?? 9999
-    const sb = (b.workout_exercises as { sort_order?: number } | null)?.sort_order ?? 9999
-    return sa - sb
+    const d = orderKey(a) - orderKey(b)
+    if (d !== 0) return d
+    const ca = String(a.created_at ?? ''), cb = String(b.created_at ?? '')
+    if (ca !== cb) return ca < cb ? -1 : 1
+    return String(a.id ?? '') < String(b.id ?? '') ? -1 : 1
   })
   return sorted.map((row) => {
     const we = row.workout_exercises as
@@ -220,7 +229,21 @@ export async function addWorkoutToDate(
     .limit(1)
   if (ce) throw ce
   if (existing && existing.length > 0) return []
-  const rows: Omit<WorkoutLog, 'id'>[] = exercises.map((ex) => ({
+  // 이름 기준 중복 방어: 같은 이름의 동작이 이미 그날 있으면(예: 시즌1 템플릿 WOD '박스 와드'
+  // placeholder) 그 동작은 담지 않는다. 위 we_id 가드는 동작 id만 비교해, 이름만 같은
+  // 템플릿/커스텀 행과의 중복(박스 와드 2행)을 못 막던 문제 방어.
+  const names = [...new Set(exercises.map((e) => e.exercise_name))]
+  const { data: sameName, error: sne } = await supabase
+    .from('workout_logs')
+    .select('exercise_name')
+    .eq('user_id', userId)
+    .eq('date', date)
+    .in('exercise_name', names)
+  if (sne) throw sne
+  const dupNames = new Set((sameName ?? []).map((r: { exercise_name: string }) => r.exercise_name))
+  const toAdd = exercises.filter((ex) => !dupNames.has(ex.exercise_name))
+  if (toAdd.length === 0) return []
+  const rows: Omit<WorkoutLog, 'id'>[] = toAdd.map((ex) => ({
     user_id: userId,
     date,
     template_id: null,
