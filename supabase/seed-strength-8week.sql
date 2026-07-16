@@ -42,7 +42,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '하체(스쿼트)', '2026-07-06', 'Strength 8주 · 1주차', 1) returning id
+  values ('B · 등', null, null, '하체(스쿼트)', '2026-07-06', 'Strength 8주 · 1주차', 1) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -60,13 +60,12 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 삼두', null, null, '하체(스쿼트)', '2026-07-06', 'Strength 8주 · 1주차', 3) returning id
+  values ('D · 이두', null, null, '하체(스쿼트)', '2026-07-06', 'Strength 8주 · 1주차', 3) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Bar Dips (Banded)', null, '9~12', null, 0, 1, 'Superset · 3 Sets', null),
-  ('D', 'Bench Dips', null, '9~12', null, 1, 1, 'Superset · 3 Sets', null),
-  ('D', 'Banded Tricep Pushdown', null, '18~24', '* Rest 2:00 b/w sets', 2, 1, 'Superset · 3 Sets', null)
+  ('D', 'Seated DB Curls', null, '12', null, 0, 1, 'Superset · 3 Sets', null),
+  ('D', 'Alter DB Hammer Curls', null, '24', 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -89,7 +88,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '상체(밀기)', '2026-07-07', 'Strength 8주 · 1주차', 4) returning id
+  values ('B · 삼두', null, null, '상체(밀기)', '2026-07-07', 'Strength 8주 · 1주차', 4) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -98,20 +97,21 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 등', null, null, '상체(밀기)', '2026-07-07', 'Strength 8주 · 1주차', 5) returning id
+  values ('C · 삼두', null, null, '상체(밀기)', '2026-07-07', 'Strength 8주 · 1주차', 5) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Banded Strict Pull ups', null, '15', 'Rest 2:00 b/w sets', 0, 1, '4 Sets', null)
+  ('C', 'Bar Dips (Banded)', null, '9~12', null, 0, 1, 'Superset · 3 Sets', null),
+  ('C', 'Bench Dips', null, '9~12', null, 1, 1, 'Superset · 3 Sets', null),
+  ('C', 'Banded Tricep Pushdown', null, '18~24', '* Rest 2:00 b/w sets', 2, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 이두', null, null, '상체(밀기)', '2026-07-07', 'Strength 8주 · 1주차', 6) returning id
+  values ('D · 어깨', null, null, '상체(밀기)', '2026-07-07', 'Strength 8주 · 1주차', 6) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Seated DB Curls', null, '12', null, 0, 1, 'Superset · 3 Sets', null),
-  ('D', 'Alter DB Hammer Curls', null, '24', 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
+  ('D', 'Seated DB Arnold Press', null, '12', 'Rest 1:30 b/w sets', 0, 1, '3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -150,7 +150,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '하체(힌지)', '2026-07-08', 'Strength 8주 · 1주차', 8) returning id
+  values ('B · 후면', null, null, '하체(힌지)', '2026-07-08', 'Strength 8주 · 1주차', 8) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -159,11 +159,12 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 어깨', null, null, '하체(힌지)', '2026-07-08', 'Strength 8주 · 1주차', 9) returning id
+  values ('C · 이두', null, null, '하체(힌지)', '2026-07-08', 'Strength 8주 · 1주차', 9) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Seated DB Arnold Press', null, '12', 'Rest 1:30 b/w sets', 0, 1, '3 Sets', null)
+  ('C', 'Barbell Curls', null, '8~10', null, 0, 1, 'Superset · 3 Sets', null),
+  ('C', '0:30 Max Empty Bar Reverse Curls', null, null, 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -198,17 +199,18 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('B', 'Single Arm DB Row', null, '15/15', 'Rest 1:00', 0, 1, 'Superset · 4 Sets', null),
-  ('B', 'Banded Face Pull', null, '20~30', 'Rest 2:00', 1, 1, 'Superset · 4 Sets', null)
+  ('B', 'Banded Strict Pull ups', null, '15', 'Rest 2:00 b/w sets', 0, 1, '4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 이두', null, null, '하체(단측)', '2026-07-09', 'Strength 8주 · 1주차', 12) returning id
+  values ('C · 어깨', null, null, '하체(단측)', '2026-07-09', 'Strength 8주 · 1주차', 12) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Barbell Curls', null, '8~10', null, 0, 1, 'Superset · 3 Sets', null),
-  ('C', '0:30 Max Empty Bar Reverse Curls', null, null, 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
+  ('C', 'Deficit Push ups or Hand-release Push ups', null, '8~12', 'Rest 1:00', 0, 1, 'Superset · 4 Sets', null),
+  ('C', 'Seated DB Lateral Raises', null, '15~20', 'Rest 1:00', 1, 1, 'Superset · 4 Sets', null),
+  ('C', 'Seated DB Press', null, '8~12', 'Rest 1:00', 2, 1, 'Superset · 4 Sets', null),
+  ('C', 'Seated DB Front Raises', null, '15~20', 'Rest 2:00', 3, 1, 'Superset · 4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -240,7 +242,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '상체(벤치)', '2026-07-10', 'Strength 8주 · 1주차', 14) returning id
+  values ('B · 등이두', null, null, '상체(벤치)', '2026-07-10', 'Strength 8주 · 1주차', 14) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -258,11 +260,11 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 삼두', null, null, '상체(벤치)', '2026-07-10', 'Strength 8주 · 1주차', 16) returning id
+  values ('D · 이두', null, null, '상체(벤치)', '2026-07-10', 'Strength 8주 · 1주차', 16) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Rolling DB Skull Crusher', null, '25', '* Rest as needed between sets', 0, 1, '4 Sets', null)
+  ('D', 'Banded Hammer Curls', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -299,7 +301,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '하체(스쿼트)', '2026-07-13', 'Strength 8주 · 2주차', 17) returning id
+  values ('B · 등', null, null, '하체(스쿼트)', '2026-07-13', 'Strength 8주 · 2주차', 17) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -308,22 +310,21 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 어깨', null, null, '하체(스쿼트)', '2026-07-13', 'Strength 8주 · 2주차', 18) returning id
+  values ('C · 삼두', null, null, '하체(스쿼트)', '2026-07-13', 'Strength 8주 · 2주차', 18) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Deficit Push ups or Hand-release Push ups', null, '8~12', 'Rest 1:00', 0, 1, 'Superset · 4 Sets', null),
-  ('C', 'Seated DB Lateral Raises', null, '15~20', 'Rest 1:00', 1, 1, 'Superset · 4 Sets', null),
-  ('C', 'Seated DB Press', null, '8~12', 'Rest 1:00', 2, 1, 'Superset · 4 Sets', null),
-  ('C', 'Seated DB Front Raises', null, '15~20', 'Rest 2:00', 3, 1, 'Superset · 4 Sets', null)
+  ('C', 'Rolling DB Skull Crusher', null, '25', '* Rest as needed between sets', 0, 1, '4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 삼두', null, null, '하체(스쿼트)', '2026-07-13', 'Strength 8주 · 2주차', 19) returning id
+  values ('D · 어깨', null, null, '하체(스쿼트)', '2026-07-13', 'Strength 8주 · 2주차', 19) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', '15/15 DB Tricep Kickback', null, null, '* Rest as needed between sets', 0, 1, '4 Sets', null)
+  ('D', 'DB Front Raises', null, '20', null, 0, 1, 'Superset · 3 Sets', null),
+  ('D', 'DB Lateral Raises', null, '20', null, 1, 1, 'Superset · 3 Sets', null),
+  ('D', 'DB Push Press', null, '20', '* Rest as needed between sets', 2, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -346,7 +347,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '상체(밀기)', '2026-07-14', 'Strength 8주 · 2주차', 20) returning id
+  values ('B · 삼두', null, null, '상체(밀기)', '2026-07-14', 'Strength 8주 · 2주차', 20) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -355,20 +356,20 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 등', null, null, '상체(밀기)', '2026-07-14', 'Strength 8주 · 2주차', 21) returning id
+  values ('C · 이두', null, null, '상체(밀기)', '2026-07-14', 'Strength 8주 · 2주차', 21) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Banded Wide Grip Strict Pull ups', null, '10', null, 0, 1, 'Superset · 3 Sets', null),
-  ('C', 'Bent Over DB Row', null, '10~15', 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
+  ('C', '21''s (7/7/7) Barbell Curls', null, null, null, 0, 1, 'Superset · 4 Sets', null),
+  ('C', '15 KB Curls', null, null, '* Rest as needed between sets', 1, 1, 'Superset · 4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 이두', null, null, '상체(밀기)', '2026-07-14', 'Strength 8주 · 2주차', 22) returning id
+  values ('D · 삼두', null, null, '상체(밀기)', '2026-07-14', 'Strength 8주 · 2주차', 22) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Banded Hammer Curls', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '4 Sets', null)
+  ('D', '15/15 DB Tricep Kickback', null, null, '* Rest as needed between sets', 0, 1, '4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -408,7 +409,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '하체(힌지)', '2026-07-15', 'Strength 8주 · 2주차', 24) returning id
+  values ('B · 후면', null, null, '하체(힌지)', '2026-07-15', 'Strength 8주 · 2주차', 24) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -421,17 +422,17 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'DB Front Raises', null, '20', null, 0, 1, 'Superset · 3 Sets', null),
-  ('C', 'DB Lateral Raises', null, '20', null, 1, 1, 'Superset · 3 Sets', null),
-  ('C', 'DB Push Press', null, '20', '* Rest as needed between sets', 2, 1, 'Superset · 3 Sets', null)
+  ('C', 'Rear Delt Fly', null, '15', 'Superset', 0, 1, 'Superset · 3 Sets', null),
+  ('C', 'Lateral Raises', null, '15', '* Rest 1:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 삼두', null, null, '하체(힌지)', '2026-07-15', 'Strength 8주 · 2주차', 26) returning id
+  values ('D · 이두', null, null, '하체(힌지)', '2026-07-15', 'Strength 8주 · 2주차', 26) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Banded Tricep Extension', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '3 Sets', null)
+  ('D', 'Seated DB Curls', null, '12', null, 0, 1, 'Superset · 3 Sets', null),
+  ('D', 'Alter DB Hammer Curls', null, '24', 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -458,8 +459,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('B', 'Single Arm DB Row', null, '15/15', 'Rest 1:00', 0, 1, 'Superset · 3 Sets', null),
-  ('B', 'Banded Lat Pulldown', null, '30', 'Rest 2:00', 1, 1, 'Superset · 3 Sets', null)
+  ('B', 'Single Arm DB Row', null, '15/15', 'Rest 1:00', 0, 1, 'Superset · 4 Sets', null),
+  ('B', 'Banded Face Pull', null, '20~30', 'Rest 2:00', 1, 1, 'Superset · 4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -467,7 +468,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Tricep Bench Dip', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '3 Sets', null)
+  ('C', 'Banded Tricep Extension', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -508,7 +509,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '상체(벤치)', '2026-07-17', 'Strength 8주 · 2주차', 30) returning id
+  values ('B · 등이두', null, null, '상체(벤치)', '2026-07-17', 'Strength 8주 · 2주차', 30) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -525,13 +526,11 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 삼두', null, null, '상체(벤치)', '2026-07-17', 'Strength 8주 · 2주차', 32) returning id
+  values ('D · 어깨', null, null, '상체(벤치)', '2026-07-17', 'Strength 8주 · 2주차', 32) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Bar Dips (Banded)', null, '9~12', null, 0, 1, 'Superset · 3 Sets', null),
-  ('D', 'Bench Dips', null, '9~12', null, 1, 1, 'Superset · 3 Sets', null),
-  ('D', 'Banded Tricep Pushdown', null, '18~24', '* Rest 2:00 b/w sets', 2, 1, 'Superset · 3 Sets', null)
+  ('D', 'Seated DB Arnold Press', null, '12', 'Rest 1:30 b/w sets', 0, 1, '3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -567,7 +566,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '하체(스쿼트)', '2026-07-20', 'Strength 8주 · 3주차', 33) returning id
+  values ('B · 등', null, null, '하체(스쿼트)', '2026-07-20', 'Strength 8주 · 3주차', 33) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -576,12 +575,12 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 어깨', null, null, '하체(스쿼트)', '2026-07-20', 'Strength 8주 · 3주차', 34) returning id
+  values ('C · 이두', null, null, '하체(스쿼트)', '2026-07-20', 'Strength 8주 · 3주차', 34) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Rear Delt Fly', null, '15', 'Superset', 0, 1, 'Superset · 3 Sets', null),
-  ('C', 'Lateral Raises', null, '15', '* Rest 1:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
+  ('C', 'Barbell Curls', null, '8~10', null, 0, 1, 'Superset · 3 Sets', null),
+  ('C', '0:30 Max Empty Bar Reverse Curls', null, null, 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -589,7 +588,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Behind the Neck Overhead DB Tricep Extension', null, '12', 'Rest 1:00 b/w sets', 0, 1, '3 Sets', null)
+  ('D', 'Tricep Bench Dip', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -612,7 +611,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '상체(밀기)', '2026-07-21', 'Strength 8주 · 3주차', 36) returning id
+  values ('B · 삼두', null, null, '상체(밀기)', '2026-07-21', 'Strength 8주 · 3주차', 36) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -621,12 +620,14 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 등', null, null, '상체(밀기)', '2026-07-21', 'Strength 8주 · 3주차', 37) returning id
+  values ('C · 어깨', null, null, '상체(밀기)', '2026-07-21', 'Strength 8주 · 3주차', 37) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Chest Supported DB Row', null, '10', '@ Heaviest Weight of Last Week / Rest 1:00', 0, 1, 'Superset · 3 Sets', null),
-  ('C', 'Banded Face Pull', null, '20', 'Rest 2:00', 1, 1, 'Superset · 3 Sets', null)
+  ('C', 'Deficit Push ups or Hand-release Push ups', null, '8~12', 'Rest 1:00', 0, 1, 'Superset · 4 Sets', null),
+  ('C', 'Seated DB Lateral Raises', null, '15~20', 'Rest 1:00', 1, 1, 'Superset · 4 Sets', null),
+  ('C', 'Seated DB Press', null, '8~12', 'Rest 1:00', 2, 1, 'Superset · 4 Sets', null),
+  ('C', 'Seated DB Front Raises', null, '15~20', 'Rest 2:00', 3, 1, 'Superset · 4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -634,8 +635,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', '21''s (7/7/7) Barbell Curls', null, null, null, 0, 1, 'Superset · 4 Sets', null),
-  ('D', '15 KB Curls', null, null, '* Rest as needed between sets', 1, 1, 'Superset · 4 Sets', null)
+  ('D', 'Banded Hammer Curls', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -674,7 +674,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '하체(힌지)', '2026-07-22', 'Strength 8주 · 3주차', 40) returning id
+  values ('B · 후면', null, null, '하체(힌지)', '2026-07-22', 'Strength 8주 · 3주차', 40) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -683,19 +683,23 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 어깨', null, null, '하체(힌지)', '2026-07-22', 'Strength 8주 · 3주차', 41) returning id
+  values ('C · 삼두', null, null, '하체(힌지)', '2026-07-22', 'Strength 8주 · 3주차', 41) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Seated DB Arnold Press', null, '12', 'Rest 1:30 b/w sets', 0, 1, '3 Sets', null)
+  ('C', 'Bar Dips (Banded)', null, '9~12', null, 0, 1, 'Superset · 3 Sets', null),
+  ('C', 'Bench Dips', null, '9~12', null, 1, 1, 'Superset · 3 Sets', null),
+  ('C', 'Banded Tricep Pushdown', null, '18~24', '* Rest 2:00 b/w sets', 2, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 삼두', null, null, '하체(힌지)', '2026-07-22', 'Strength 8주 · 3주차', 42) returning id
+  values ('D · 어깨', null, null, '하체(힌지)', '2026-07-22', 'Strength 8주 · 3주차', 42) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Rolling DB Skull Crusher', null, '25', '* Rest as needed between sets', 0, 1, '4 Sets', null)
+  ('D', 'DB Front Raises', null, '20', null, 0, 1, 'Superset · 3 Sets', null),
+  ('D', 'DB Lateral Raises', null, '20', null, 1, 1, 'Superset · 3 Sets', null),
+  ('D', 'DB Push Press', null, '20', '* Rest as needed between sets', 2, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -722,7 +726,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('B', 'Banded Strict Pull ups', null, '15', 'Rest 2:00 b/w sets', 0, 1, '4 Sets', null)
+  ('B', 'Banded Wide Grip Strict Pull ups', null, '10', null, 0, 1, 'Superset · 3 Sets', null),
+  ('B', 'Bent Over DB Row', null, '10~15', 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -730,8 +735,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Seated DB Curls', null, '12', null, 0, 1, 'Superset · 3 Sets', null),
-  ('C', 'Alter DB Hammer Curls', null, '24', 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
+  ('C', '21''s (7/7/7) Barbell Curls', null, null, null, 0, 1, 'Superset · 4 Sets', null),
+  ('C', '15 KB Curls', null, null, '* Rest as needed between sets', 1, 1, 'Superset · 4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -763,7 +768,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '상체(벤치)', '2026-07-24', 'Strength 8주 · 3주차', 46) returning id
+  values ('B · 등이두', null, null, '상체(벤치)', '2026-07-24', 'Strength 8주 · 3주차', 46) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -785,7 +790,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', '15/15 DB Tricep Kickback', null, null, '* Rest as needed between sets', 0, 1, '4 Sets', null)
+  ('D', 'Behind the Neck Overhead DB Tricep Extension', null, '12', 'Rest 1:00 b/w sets', 0, 1, '3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -822,7 +827,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '하체(스쿼트)', '2026-07-27', 'Strength 8주 · 4주차', 49) returning id
+  values ('B · 등', null, null, '하체(스쿼트)', '2026-07-27', 'Strength 8주 · 4주차', 49) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -835,18 +840,17 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Deficit Push ups or Hand-release Push ups', null, '8~12', 'Rest 1:00', 0, 1, 'Superset · 4 Sets', null),
-  ('C', 'Seated DB Lateral Raises', null, '15~20', 'Rest 1:00', 1, 1, 'Superset · 4 Sets', null),
-  ('C', 'Seated DB Press', null, '8~12', 'Rest 1:00', 2, 1, 'Superset · 4 Sets', null),
-  ('C', 'Seated DB Front Raises', null, '15~20', 'Rest 2:00', 3, 1, 'Superset · 4 Sets', null)
+  ('C', 'Rear Delt Fly', null, '15', 'Superset', 0, 1, 'Superset · 3 Sets', null),
+  ('C', 'Lateral Raises', null, '15', '* Rest 1:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 삼두', null, null, '하체(스쿼트)', '2026-07-27', 'Strength 8주 · 4주차', 51) returning id
+  values ('D · 이두', null, null, '하체(스쿼트)', '2026-07-27', 'Strength 8주 · 4주차', 51) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Banded Tricep Extension', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '3 Sets', null)
+  ('D', 'Seated DB Curls', null, '12', null, 0, 1, 'Superset · 3 Sets', null),
+  ('D', 'Alter DB Hammer Curls', null, '24', 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -869,7 +873,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '상체(밀기)', '2026-07-28', 'Strength 8주 · 4주차', 52) returning id
+  values ('B · 삼두', null, null, '상체(밀기)', '2026-07-28', 'Strength 8주 · 4주차', 52) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -878,21 +882,19 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 등', null, null, '상체(밀기)', '2026-07-28', 'Strength 8주 · 4주차', 53) returning id
+  values ('C · 삼두', null, null, '상체(밀기)', '2026-07-28', 'Strength 8주 · 4주차', 53) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Single Arm DB Row', null, '15/15', 'Rest 1:00', 0, 1, 'Superset · 4 Sets', null),
-  ('C', 'Banded Face Pull', null, '20~30', 'Rest 2:00', 1, 1, 'Superset · 4 Sets', null)
+  ('C', 'Rolling DB Skull Crusher', null, '25', '* Rest as needed between sets', 0, 1, '4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 이두', null, null, '상체(밀기)', '2026-07-28', 'Strength 8주 · 4주차', 54) returning id
+  values ('D · 어깨', null, null, '상체(밀기)', '2026-07-28', 'Strength 8주 · 4주차', 54) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Barbell Curls', null, '8~10', null, 0, 1, 'Superset · 3 Sets', null),
-  ('D', '0:30 Max Empty Bar Reverse Curls', null, null, 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
+  ('D', 'Seated DB Arnold Press', null, '12', 'Rest 1:30 b/w sets', 0, 1, '3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -932,7 +934,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '하체(힌지)', '2026-07-29', 'Strength 8주 · 4주차', 56) returning id
+  values ('B · 후면', null, null, '하체(힌지)', '2026-07-29', 'Strength 8주 · 4주차', 56) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -941,13 +943,12 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 어깨', null, null, '하체(힌지)', '2026-07-29', 'Strength 8주 · 4주차', 57) returning id
+  values ('C · 이두', null, null, '하체(힌지)', '2026-07-29', 'Strength 8주 · 4주차', 57) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'DB Front Raises', null, '20', null, 0, 1, 'Superset · 3 Sets', null),
-  ('C', 'DB Lateral Raises', null, '20', null, 1, 1, 'Superset · 3 Sets', null),
-  ('C', 'DB Push Press', null, '20', '* Rest as needed between sets', 2, 1, 'Superset · 3 Sets', null)
+  ('C', 'Barbell Curls', null, '8~10', null, 0, 1, 'Superset · 3 Sets', null),
+  ('C', '0:30 Max Empty Bar Reverse Curls', null, null, 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -955,7 +956,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Tricep Bench Dip', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '3 Sets', null)
+  ('D', '15/15 DB Tricep Kickback', null, null, '* Rest as needed between sets', 0, 1, '4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -982,18 +983,19 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('B', 'Banded Wide Grip Strict Pull ups', null, '10', null, 0, 1, 'Superset · 3 Sets', null),
-  ('B', 'Bent Over DB Row', null, '10~15', 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
+  ('B', 'Single Arm DB Row', null, '15/15', 'Rest 1:00', 0, 1, 'Superset · 3 Sets', null),
+  ('B', 'Banded Lat Pulldown', null, '30', 'Rest 2:00', 1, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 삼두', null, null, '상체(오버헤드)', '2026-07-30', 'Strength 8주 · 4주차', 60) returning id
+  values ('C · 어깨', null, null, '상체(오버헤드)', '2026-07-30', 'Strength 8주 · 4주차', 60) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Bar Dips (Banded)', null, '9~12', null, 0, 1, 'Superset · 3 Sets', null),
-  ('C', 'Bench Dips', null, '9~12', null, 1, 1, 'Superset · 3 Sets', null),
-  ('C', 'Banded Tricep Pushdown', null, '18~24', '* Rest 2:00 b/w sets', 2, 1, 'Superset · 3 Sets', null)
+  ('C', 'Deficit Push ups or Hand-release Push ups', null, '8~12', 'Rest 1:00', 0, 1, 'Superset · 4 Sets', null),
+  ('C', 'Seated DB Lateral Raises', null, '15~20', 'Rest 1:00', 1, 1, 'Superset · 4 Sets', null),
+  ('C', 'Seated DB Press', null, '8~12', 'Rest 1:00', 2, 1, 'Superset · 4 Sets', null),
+  ('C', 'Seated DB Front Raises', null, '15~20', 'Rest 2:00', 3, 1, 'Superset · 4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1032,7 +1034,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '상체(벤치)', '2026-07-31', 'Strength 8주 · 4주차', 62) returning id
+  values ('B · 등이두', null, null, '상체(벤치)', '2026-07-31', 'Strength 8주 · 4주차', 62) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -1050,11 +1052,11 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 삼두', null, null, '상체(벤치)', '2026-07-31', 'Strength 8주 · 4주차', 64) returning id
+  values ('D · 이두', null, null, '상체(벤치)', '2026-07-31', 'Strength 8주 · 4주차', 64) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Behind the Neck Overhead DB Tricep Extension', null, '12', 'Rest 1:00 b/w sets', 0, 1, '3 Sets', null)
+  ('D', 'Banded Hammer Curls', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1091,7 +1093,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '하체(스쿼트)', '2026-08-03', 'Strength 8주 · 5주차', 65) returning id
+  values ('B · 등', null, null, '하체(스쿼트)', '2026-08-03', 'Strength 8주 · 5주차', 65) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -1100,20 +1102,21 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 어깨', null, null, '하체(스쿼트)', '2026-08-03', 'Strength 8주 · 5주차', 66) returning id
+  values ('C · 삼두', null, null, '하체(스쿼트)', '2026-08-03', 'Strength 8주 · 5주차', 66) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Rear Delt Fly', null, '15', 'Superset', 0, 1, 'Superset · 3 Sets', null),
-  ('C', 'Lateral Raises', null, '15', '* Rest 1:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
+  ('C', 'Banded Tricep Extension', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 삼두', null, null, '하체(스쿼트)', '2026-08-03', 'Strength 8주 · 5주차', 67) returning id
+  values ('D · 어깨', null, null, '하체(스쿼트)', '2026-08-03', 'Strength 8주 · 5주차', 67) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Rolling DB Skull Crusher', null, '25', '* Rest as needed between sets', 0, 1, '4 Sets', null)
+  ('D', 'DB Front Raises', null, '20', null, 0, 1, 'Superset · 3 Sets', null),
+  ('D', 'DB Lateral Raises', null, '20', null, 1, 1, 'Superset · 3 Sets', null),
+  ('D', 'DB Push Press', null, '20', '* Rest as needed between sets', 2, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1136,7 +1139,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '상체(밀기)', '2026-08-04', 'Strength 8주 · 5주차', 68) returning id
+  values ('B · 삼두', null, null, '상체(밀기)', '2026-08-04', 'Strength 8주 · 5주차', 68) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -1145,20 +1148,20 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 등', null, null, '상체(밀기)', '2026-08-04', 'Strength 8주 · 5주차', 69) returning id
+  values ('C · 이두', null, null, '상체(밀기)', '2026-08-04', 'Strength 8주 · 5주차', 69) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Single Arm DB Row', null, '15/15', 'Rest 1:00', 0, 1, 'Superset · 3 Sets', null),
-  ('C', 'Banded Lat Pulldown', null, '30', 'Rest 2:00', 1, 1, 'Superset · 3 Sets', null)
+  ('C', '21''s (7/7/7) Barbell Curls', null, null, null, 0, 1, 'Superset · 4 Sets', null),
+  ('C', '15 KB Curls', null, null, '* Rest as needed between sets', 1, 1, 'Superset · 4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 이두', null, null, '상체(밀기)', '2026-08-04', 'Strength 8주 · 5주차', 70) returning id
+  values ('D · 삼두', null, null, '상체(밀기)', '2026-08-04', 'Strength 8주 · 5주차', 70) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Banded Hammer Curls', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '4 Sets', null)
+  ('D', 'Tricep Bench Dip', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1199,7 +1202,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '하체(힌지)', '2026-08-05', 'Strength 8주 · 5주차', 72) returning id
+  values ('B · 후면', null, null, '하체(힌지)', '2026-08-05', 'Strength 8주 · 5주차', 72) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -1212,15 +1215,17 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Seated DB Arnold Press', null, '12', 'Rest 1:30 b/w sets', 0, 1, '3 Sets', null)
+  ('C', 'Rear Delt Fly', null, '15', 'Superset', 0, 1, 'Superset · 3 Sets', null),
+  ('C', 'Lateral Raises', null, '15', '* Rest 1:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 삼두', null, null, '하체(힌지)', '2026-08-05', 'Strength 8주 · 5주차', 74) returning id
+  values ('D · 이두', null, null, '하체(힌지)', '2026-08-05', 'Strength 8주 · 5주차', 74) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', '15/15 DB Tricep Kickback', null, null, '* Rest as needed between sets', 0, 1, '4 Sets', null)
+  ('D', 'Seated DB Curls', null, '12', null, 0, 1, 'Superset · 3 Sets', null),
+  ('D', 'Alter DB Hammer Curls', null, '24', 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1252,12 +1257,13 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 이두', null, null, '하체(단측)', '2026-08-06', 'Strength 8주 · 5주차', 76) returning id
+  values ('C · 삼두', null, null, '하체(단측)', '2026-08-06', 'Strength 8주 · 5주차', 76) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', '21''s (7/7/7) Barbell Curls', null, null, null, 0, 1, 'Superset · 4 Sets', null),
-  ('C', '15 KB Curls', null, null, '* Rest as needed between sets', 1, 1, 'Superset · 4 Sets', null)
+  ('C', 'Bar Dips (Banded)', null, '9~12', null, 0, 1, 'Superset · 3 Sets', null),
+  ('C', 'Bench Dips', null, '9~12', null, 1, 1, 'Superset · 3 Sets', null),
+  ('C', 'Banded Tricep Pushdown', null, '18~24', '* Rest 2:00 b/w sets', 2, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1291,7 +1297,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '상체(벤치)', '2026-08-07', 'Strength 8주 · 5주차', 78) returning id
+  values ('B · 등이두', null, null, '상체(벤치)', '2026-08-07', 'Strength 8주 · 5주차', 78) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -1309,11 +1315,11 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 삼두', null, null, '상체(벤치)', '2026-08-07', 'Strength 8주 · 5주차', 80) returning id
+  values ('D · 어깨', null, null, '상체(벤치)', '2026-08-07', 'Strength 8주 · 5주차', 80) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Banded Tricep Extension', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '3 Sets', null)
+  ('D', 'Seated DB Arnold Press', null, '12', 'Rest 1:30 b/w sets', 0, 1, '3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1350,7 +1356,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '하체(스쿼트)', '2026-08-10', 'Strength 8주 · 6주차', 81) returning id
+  values ('B · 등', null, null, '하체(스쿼트)', '2026-08-10', 'Strength 8주 · 6주차', 81) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -1359,14 +1365,12 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 어깨', null, null, '하체(스쿼트)', '2026-08-10', 'Strength 8주 · 6주차', 82) returning id
+  values ('C · 이두', null, null, '하체(스쿼트)', '2026-08-10', 'Strength 8주 · 6주차', 82) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Deficit Push ups or Hand-release Push ups', null, '8~12', 'Rest 1:00', 0, 1, 'Superset · 4 Sets', null),
-  ('C', 'Seated DB Lateral Raises', null, '15~20', 'Rest 1:00', 1, 1, 'Superset · 4 Sets', null),
-  ('C', 'Seated DB Press', null, '8~12', 'Rest 1:00', 2, 1, 'Superset · 4 Sets', null),
-  ('C', 'Seated DB Front Raises', null, '15~20', 'Rest 2:00', 3, 1, 'Superset · 4 Sets', null)
+  ('C', 'Barbell Curls', null, '8~10', null, 0, 1, 'Superset · 3 Sets', null),
+  ('C', '0:30 Max Empty Bar Reverse Curls', null, null, 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1374,7 +1378,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Tricep Bench Dip', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '3 Sets', null)
+  ('D', 'Behind the Neck Overhead DB Tricep Extension', null, '12', 'Rest 1:00 b/w sets', 0, 1, '3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1397,7 +1401,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '상체(밀기)', '2026-08-11', 'Strength 8주 · 6주차', 84) returning id
+  values ('B · 삼두', null, null, '상체(밀기)', '2026-08-11', 'Strength 8주 · 6주차', 84) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -1406,11 +1410,14 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 등', null, null, '상체(밀기)', '2026-08-11', 'Strength 8주 · 6주차', 85) returning id
+  values ('C · 어깨', null, null, '상체(밀기)', '2026-08-11', 'Strength 8주 · 6주차', 85) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Banded Strict Pull ups', null, '15', 'Rest 2:00 b/w sets', 0, 1, '4 Sets', null)
+  ('C', 'Deficit Push ups or Hand-release Push ups', null, '8~12', 'Rest 1:00', 0, 1, 'Superset · 4 Sets', null),
+  ('C', 'Seated DB Lateral Raises', null, '15~20', 'Rest 1:00', 1, 1, 'Superset · 4 Sets', null),
+  ('C', 'Seated DB Press', null, '8~12', 'Rest 1:00', 2, 1, 'Superset · 4 Sets', null),
+  ('C', 'Seated DB Front Raises', null, '15~20', 'Rest 2:00', 3, 1, 'Superset · 4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1418,8 +1425,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Seated DB Curls', null, '12', null, 0, 1, 'Superset · 3 Sets', null),
-  ('D', 'Alter DB Hammer Curls', null, '24', 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
+  ('D', 'Banded Hammer Curls', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1459,7 +1465,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '하체(힌지)', '2026-08-12', 'Strength 8주 · 6주차', 88) returning id
+  values ('B · 후면', null, null, '하체(힌지)', '2026-08-12', 'Strength 8주 · 6주차', 88) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -1468,23 +1474,21 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 어깨', null, null, '하체(힌지)', '2026-08-12', 'Strength 8주 · 6주차', 89) returning id
+  values ('C · 삼두', null, null, '하체(힌지)', '2026-08-12', 'Strength 8주 · 6주차', 89) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'DB Front Raises', null, '20', null, 0, 1, 'Superset · 3 Sets', null),
-  ('C', 'DB Lateral Raises', null, '20', null, 1, 1, 'Superset · 3 Sets', null),
-  ('C', 'DB Push Press', null, '20', '* Rest as needed between sets', 2, 1, 'Superset · 3 Sets', null)
+  ('C', 'Rolling DB Skull Crusher', null, '25', '* Rest as needed between sets', 0, 1, '4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 삼두', null, null, '하체(힌지)', '2026-08-12', 'Strength 8주 · 6주차', 90) returning id
+  values ('D · 어깨', null, null, '하체(힌지)', '2026-08-12', 'Strength 8주 · 6주차', 90) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Bar Dips (Banded)', null, '9~12', null, 0, 1, 'Superset · 3 Sets', null),
-  ('D', 'Bench Dips', null, '9~12', null, 1, 1, 'Superset · 3 Sets', null),
-  ('D', 'Banded Tricep Pushdown', null, '18~24', '* Rest 2:00 b/w sets', 2, 1, 'Superset · 3 Sets', null)
+  ('D', 'DB Front Raises', null, '20', null, 0, 1, 'Superset · 3 Sets', null),
+  ('D', 'DB Lateral Raises', null, '20', null, 1, 1, 'Superset · 3 Sets', null),
+  ('D', 'DB Push Press', null, '20', '* Rest as needed between sets', 2, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1511,16 +1515,16 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('B', 'Single Arm DB Row', null, '15/15', 'Rest 1:00', 0, 1, 'Superset · 4 Sets', null),
-  ('B', 'Banded Face Pull', null, '20~30', 'Rest 2:00', 1, 1, 'Superset · 4 Sets', null)
+  ('B', 'Banded Strict Pull ups', null, '15', 'Rest 2:00 b/w sets', 0, 1, '4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 삼두', null, null, '상체(오버헤드)', '2026-08-13', 'Strength 8주 · 6주차', 92) returning id
+  values ('C · 이두', null, null, '상체(오버헤드)', '2026-08-13', 'Strength 8주 · 6주차', 92) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Behind the Neck Overhead DB Tricep Extension', null, '12', 'Rest 1:00 b/w sets', 0, 1, '3 Sets', null)
+  ('C', '21''s (7/7/7) Barbell Curls', null, null, null, 0, 1, 'Superset · 4 Sets', null),
+  ('C', '15 KB Curls', null, null, '* Rest as needed between sets', 1, 1, 'Superset · 4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1561,7 +1565,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '상체(벤치)', '2026-08-14', 'Strength 8주 · 6주차', 94) returning id
+  values ('B · 등이두', null, null, '상체(벤치)', '2026-08-14', 'Strength 8주 · 6주차', 94) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -1582,7 +1586,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Rolling DB Skull Crusher', null, '25', '* Rest as needed between sets', 0, 1, '4 Sets', null)
+  ('D', '15/15 DB Tricep Kickback', null, null, '* Rest as needed between sets', 0, 1, '4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1617,7 +1621,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '하체(스쿼트)', '2026-08-17', 'Strength 8주 · 7주차', 97) returning id
+  values ('B · 등', null, null, '하체(스쿼트)', '2026-08-17', 'Strength 8주 · 7주차', 97) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -1635,11 +1639,12 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 삼두', null, null, '하체(스쿼트)', '2026-08-17', 'Strength 8주 · 7주차', 99) returning id
+  values ('D · 이두', null, null, '하체(스쿼트)', '2026-08-17', 'Strength 8주 · 7주차', 99) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', '15/15 DB Tricep Kickback', null, null, '* Rest as needed between sets', 0, 1, '4 Sets', null)
+  ('D', 'Seated DB Curls', null, '12', null, 0, 1, 'Superset · 3 Sets', null),
+  ('D', 'Alter DB Hammer Curls', null, '24', 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1662,7 +1667,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '상체(밀기)', '2026-08-18', 'Strength 8주 · 7주차', 100) returning id
+  values ('B · 삼두', null, null, '상체(밀기)', '2026-08-18', 'Strength 8주 · 7주차', 100) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -1671,21 +1676,19 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 등', null, null, '상체(밀기)', '2026-08-18', 'Strength 8주 · 7주차', 101) returning id
+  values ('C · 삼두', null, null, '상체(밀기)', '2026-08-18', 'Strength 8주 · 7주차', 101) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Banded Wide Grip Strict Pull ups', null, '10', null, 0, 1, 'Superset · 3 Sets', null),
-  ('C', 'Bent Over DB Row', null, '10~15', 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
+  ('C', 'Banded Tricep Extension', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 이두', null, null, '상체(밀기)', '2026-08-18', 'Strength 8주 · 7주차', 102) returning id
+  values ('D · 어깨', null, null, '상체(밀기)', '2026-08-18', 'Strength 8주 · 7주차', 102) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Barbell Curls', null, '8~10', null, 0, 1, 'Superset · 3 Sets', null),
-  ('D', '0:30 Max Empty Bar Reverse Curls', null, null, 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
+  ('D', 'Seated DB Arnold Press', null, '12', 'Rest 1:30 b/w sets', 0, 1, '3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1724,7 +1727,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '하체(힌지)', '2026-08-19', 'Strength 8주 · 7주차', 104) returning id
+  values ('B · 후면', null, null, '하체(힌지)', '2026-08-19', 'Strength 8주 · 7주차', 104) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -1733,11 +1736,12 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 어깨', null, null, '하체(힌지)', '2026-08-19', 'Strength 8주 · 7주차', 105) returning id
+  values ('C · 이두', null, null, '하체(힌지)', '2026-08-19', 'Strength 8주 · 7주차', 105) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Seated DB Arnold Press', null, '12', 'Rest 1:30 b/w sets', 0, 1, '3 Sets', null)
+  ('C', 'Barbell Curls', null, '8~10', null, 0, 1, 'Superset · 3 Sets', null),
+  ('C', '0:30 Max Empty Bar Reverse Curls', null, null, 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1745,7 +1749,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Banded Tricep Extension', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '3 Sets', null)
+  ('D', 'Tricep Bench Dip', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1772,16 +1776,19 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('B', 'Single Arm DB Row', null, '15/15', 'Rest 1:00', 0, 1, 'Superset · 3 Sets', null),
-  ('B', 'Banded Lat Pulldown', null, '30', 'Rest 2:00', 1, 1, 'Superset · 3 Sets', null)
+  ('B', 'Single Arm DB Row', null, '15/15', 'Rest 1:00', 0, 1, 'Superset · 4 Sets', null),
+  ('B', 'Banded Face Pull', null, '20~30', 'Rest 2:00', 1, 1, 'Superset · 4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 이두', null, null, '하체(단측)', '2026-08-20', 'Strength 8주 · 7주차', 108) returning id
+  values ('C · 어깨', null, null, '하체(단측)', '2026-08-20', 'Strength 8주 · 7주차', 108) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Banded Hammer Curls', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '4 Sets', null)
+  ('C', 'Deficit Push ups or Hand-release Push ups', null, '8~12', 'Rest 1:00', 0, 1, 'Superset · 4 Sets', null),
+  ('C', 'Seated DB Lateral Raises', null, '15~20', 'Rest 1:00', 1, 1, 'Superset · 4 Sets', null),
+  ('C', 'Seated DB Press', null, '8~12', 'Rest 1:00', 2, 1, 'Superset · 4 Sets', null),
+  ('C', 'Seated DB Front Raises', null, '15~20', 'Rest 2:00', 3, 1, 'Superset · 4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1812,7 +1819,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '상체(벤치)', '2026-08-21', 'Strength 8주 · 7주차', 110) returning id
+  values ('B · 등이두', null, null, '상체(벤치)', '2026-08-21', 'Strength 8주 · 7주차', 110) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -1830,11 +1837,11 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 삼두', null, null, '상체(벤치)', '2026-08-21', 'Strength 8주 · 7주차', 112) returning id
+  values ('D · 이두', null, null, '상체(벤치)', '2026-08-21', 'Strength 8주 · 7주차', 112) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Tricep Bench Dip', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '3 Sets', null)
+  ('D', 'Banded Hammer Curls', null, 'Max', '(0:30 On / 0:30 Off)', 0, 1, '4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1871,7 +1878,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '하체(스쿼트)', '2026-08-24', 'Strength 8주 · 8주차', 113) returning id
+  values ('B · 등', null, null, '하체(스쿼트)', '2026-08-24', 'Strength 8주 · 8주차', 113) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -1880,24 +1887,23 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 어깨', null, null, '하체(스쿼트)', '2026-08-24', 'Strength 8주 · 8주차', 114) returning id
+  values ('C · 삼두', null, null, '하체(스쿼트)', '2026-08-24', 'Strength 8주 · 8주차', 114) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Deficit Push ups or Hand-release Push ups', null, '8~12', 'Rest 1:00', 0, 1, 'Superset · 4 Sets', null),
-  ('C', 'Seated DB Lateral Raises', null, '15~20', 'Rest 1:00', 1, 1, 'Superset · 4 Sets', null),
-  ('C', 'Seated DB Press', null, '8~12', 'Rest 1:00', 2, 1, 'Superset · 4 Sets', null),
-  ('C', 'Seated DB Front Raises', null, '15~20', 'Rest 2:00', 3, 1, 'Superset · 4 Sets', null)
+  ('C', 'Bar Dips (Banded)', null, '9~12', null, 0, 1, 'Superset · 3 Sets', null),
+  ('C', 'Bench Dips', null, '9~12', null, 1, 1, 'Superset · 3 Sets', null),
+  ('C', 'Banded Tricep Pushdown', null, '18~24', '* Rest 2:00 b/w sets', 2, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 삼두', null, null, '하체(스쿼트)', '2026-08-24', 'Strength 8주 · 8주차', 115) returning id
+  values ('D · 어깨', null, null, '하체(스쿼트)', '2026-08-24', 'Strength 8주 · 8주차', 115) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Bar Dips (Banded)', null, '9~12', null, 0, 1, 'Superset · 3 Sets', null),
-  ('D', 'Bench Dips', null, '9~12', null, 1, 1, 'Superset · 3 Sets', null),
-  ('D', 'Banded Tricep Pushdown', null, '18~24', '* Rest 2:00 b/w sets', 2, 1, 'Superset · 3 Sets', null)
+  ('D', 'DB Front Raises', null, '20', null, 0, 1, 'Superset · 3 Sets', null),
+  ('D', 'DB Lateral Raises', null, '20', null, 1, 1, 'Superset · 3 Sets', null),
+  ('D', 'DB Push Press', null, '20', '* Rest as needed between sets', 2, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1920,7 +1926,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '상체(밀기)', '2026-08-25', 'Strength 8주 · 8주차', 116) returning id
+  values ('B · 삼두', null, null, '상체(밀기)', '2026-08-25', 'Strength 8주 · 8주차', 116) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -1929,21 +1935,20 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('C · 등', null, null, '상체(밀기)', '2026-08-25', 'Strength 8주 · 8주차', 117) returning id
+  values ('C · 이두', null, null, '상체(밀기)', '2026-08-25', 'Strength 8주 · 8주차', 117) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'Chest Supported DB Row', null, '10', '@ Heaviest Weight of Last Week / Rest 1:00', 0, 1, 'Superset · 3 Sets', null),
-  ('C', 'Banded Face Pull', null, '20', 'Rest 2:00', 1, 1, 'Superset · 3 Sets', null)
+  ('C', '21''s (7/7/7) Barbell Curls', null, null, null, 0, 1, 'Superset · 4 Sets', null),
+  ('C', '15 KB Curls', null, null, '* Rest as needed between sets', 1, 1, 'Superset · 4 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 이두', null, null, '상체(밀기)', '2026-08-25', 'Strength 8주 · 8주차', 118) returning id
+  values ('D · 삼두', null, null, '상체(밀기)', '2026-08-25', 'Strength 8주 · 8주차', 118) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', '21''s (7/7/7) Barbell Curls', null, null, null, 0, 1, 'Superset · 4 Sets', null),
-  ('D', '15 KB Curls', null, null, '* Rest as needed between sets', 1, 1, 'Superset · 4 Sets', null)
+  ('D', 'Behind the Neck Overhead DB Tricep Extension', null, '12', 'Rest 1:00 b/w sets', 0, 1, '3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -1983,7 +1988,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '하체(힌지)', '2026-08-26', 'Strength 8주 · 8주차', 120) returning id
+  values ('B · 후면', null, null, '하체(힌지)', '2026-08-26', 'Strength 8주 · 8주차', 120) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -1996,17 +2001,17 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('C', 'DB Front Raises', null, '20', null, 0, 1, 'Superset · 3 Sets', null),
-  ('C', 'DB Lateral Raises', null, '20', null, 1, 1, 'Superset · 3 Sets', null),
-  ('C', 'DB Push Press', null, '20', '* Rest as needed between sets', 2, 1, 'Superset · 3 Sets', null)
+  ('C', 'Rear Delt Fly', null, '15', 'Superset', 0, 1, 'Superset · 3 Sets', null),
+  ('C', 'Lateral Raises', null, '15', '* Rest 1:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 삼두', null, null, '하체(힌지)', '2026-08-26', 'Strength 8주 · 8주차', 122) returning id
+  values ('D · 이두', null, null, '하체(힌지)', '2026-08-26', 'Strength 8주 · 8주차', 122) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', 'Behind the Neck Overhead DB Tricep Extension', null, '12', 'Rest 1:00 b/w sets', 0, 1, '3 Sets', null)
+  ('D', 'Seated DB Curls', null, '12', null, 0, 1, 'Superset · 3 Sets', null),
+  ('D', 'Alter DB Hammer Curls', null, '24', 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -2033,7 +2038,8 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('B', 'Banded Strict Pull ups', null, '15', 'Rest 2:00 b/w sets', 0, 1, '4 Sets', null)
+  ('B', 'Banded Wide Grip Strict Pull ups', null, '10', null, 0, 1, 'Superset · 3 Sets', null),
+  ('B', 'Bent Over DB Row', null, '10~15', 'Rest 2:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -2080,7 +2086,7 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('B · 보조', null, null, '상체(벤치)', '2026-08-28', 'Strength 8주 · 8주차', 126) returning id
+  values ('B · 등이두', null, null, '상체(벤치)', '2026-08-28', 'Strength 8주 · 8주차', 126) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
@@ -2098,11 +2104,11 @@ select w.id, v.* from w, (values
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  values ('D · 삼두', null, null, '상체(벤치)', '2026-08-28', 'Strength 8주 · 8주차', 128) returning id
+  values ('D · 어깨', null, null, '상체(벤치)', '2026-08-28', 'Strength 8주 · 8주차', 128) returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('D', '15/15 DB Tricep Kickback', null, null, '* Rest as needed between sets', 0, 1, '4 Sets', null)
+  ('D', 'Seated DB Arnold Press', null, '12', 'Rest 1:30 b/w sets', 0, 1, '3 Sets', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
