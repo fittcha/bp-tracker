@@ -6,7 +6,7 @@
 
 ## 1. 배경
 
-ZEST SURVIVOR(이하 제서) 예선이 **7/27(월)~8/5(수)** 로 진행돼 이 기간 아무도 추가운동(8주 스트렝스)을 하지 못했다. 예선 완주를 축하하는 의미로 그 기간을 `제서 측정` 한 장으로 대체하고, 8/6~8/7은 스페셜 세션으로 채우고, 남은 프로그램(4~8주차)을 **8/10(월)부터 2주 뒤로** 미룬다. 주차 표기도 콘텐츠와 함께 밀려 8/10이 4주차가 된다.
+ZEST SURVIVOR(이하 제서) 예선이 **7/27(월)~8/5(수)** 로 진행돼 이 기간 아무도 추가운동(8주 스트렝스)을 하지 못했다. 예선 완주를 축하하는 의미로 그 기간을 `ZEST SURVIVOR 예선` 카드 한 장으로 대체하고, 8/6~8/7은 스페셜 세션으로 채우고, 남은 프로그램(4~8주차)을 **8/10(월)부터 2주 뒤로** 미룬다. 주차 표기도 콘텐츠와 함께 밀려 8/10이 4주차가 된다.
 
 ## 2. 확인된 현황 (라이브 DB 조회, 2026-08-05)
 
@@ -31,7 +31,7 @@ ZEST SURVIVOR(이하 제서) 예선이 **7/27(월)~8/5(수)** 로 진행돼 이 
 | 날짜 | 내용 |
 |---|---|
 | 7/6~7/24 | 1~3주차 (변경 없음) |
-| **7/27~7/31, 8/3~8/5 (평일 8일)** | **제서 측정** 1장 |
+| **7/27~7/31, 8/3~8/5 (평일 8일)** | **ZEST SURVIVOR 예선** 1장 |
 | **8/6(목), 8/7(금)** | **스페셜 세션** (내용 후속 확정) |
 | 8/10~8/14 | 4주차 |
 | 8/17~8/21 | 5주차 |
@@ -39,16 +39,22 @@ ZEST SURVIVOR(이하 제서) 예선이 **7/27(월)~8/5(수)** 로 진행돼 이 
 | 8/31~9/4 | 7주차 |
 | 9/7~9/11 | 8주차 → 프로그램 종료 |
 
-주말(8/1~8/2)은 제서 측정을 두지 않는다(프로그램은 평일 리듬 유지).
+주말(8/1~8/2)은 예선 카드를 두지 않는다(프로그램은 평일 리듬 유지).
 
-### 3.2 제서 측정 세션
+### 3.2 제서 예선 세션
 
 날짜별로 공용 `workouts` 1행 + `workout_exercises` 1행.
 
-- `title`: `제서 측정`, `category`: `측정`, `owner_user_id`: null, `default_weekday`: null, `sort_order`: 0
+- `title`: `ZEST SURVIVOR 예선`, `category`: `측정`, `owner_user_id`: null, `default_weekday`: null, `sort_order`: 0
 - `program_label`: **null** — `getCurrentProgram`이 `program_label not null` 행만 프로그램 범위로 보므로, null이면 헤더 배너의 시작·종료·주차 계산을 흔들지 않는다.
-- 동작: `exercise_name` `제서 예선`, `sets`/`reps` **null**, `notes` `ZEST SURVIVOR 예선 · 기록 메모`, `set_group` 1, `section` null.
-  `sets`/`reps`가 null이면 `ExerciseCard`의 메타 줄이 렌더되지 않아 체크 한 줄 + 메모로 깔끔하게 나온다.
+- 동작: `exercise_name` `제서 이벤트 측정`, `sets`/`reps`/`notes` **null**, `set_group` 1, `section` null.
+  `sets`/`reps`가 null이면 `ExerciseCard`의 메타 줄이 렌더되지 않고, 제목·동작명이 이미 설명적이라 `notes`도 비운다 → 카드가 체크 한 줄로 나온다.
+
+```
+┌─ ZEST SURVIVOR 예선 ──────┐
+│ ☐  제서 이벤트 측정            │
+└─────────────────────────┘
+```
 
 기록은 각자 로그의 메모/무게 칸에 자유롭게 남긴다(예선 종목을 앱에서 강제하지 않는다).
 
@@ -74,18 +80,18 @@ where owner_user_id is null
   and program_label like 'Strength 8주%'
   and program_date >= '2026-07-27';          -- 기대 143행
 
--- 3) 제서 측정 8일치 삽입 (평일 8일, 날짜당 카드 1장 · 동작 1행)
+-- 3) 제서 예선 카드 8일치 삽입 (평일 8일, 날짜당 카드 1장 · 동작 1행)
 --    program_label = null → 헤더 프로그램 배너에 영향 없음
 with d(program_date) as (values
   ('2026-07-27'::date), ('2026-07-28'), ('2026-07-29'), ('2026-07-30'),
   ('2026-07-31'), ('2026-08-03'), ('2026-08-04'), ('2026-08-05')
 ), w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
-  select '제서 측정', null, null, '측정', d.program_date, null, 0 from d
+  select 'ZEST SURVIVOR 예선', null, null, '측정', d.program_date, null, 0 from d
   returning id
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
-select w.id, null, '제서 예선', null, null, 'ZEST SURVIVOR 예선 · 기록 메모', 0, 1, null, null from w;
+select w.id, null, '제서 이벤트 측정', null, null, null, 0, 1, null, null from w;
 ```
 
 `completed = false` 조건은 안전장치다. 실행 결과 행수가 236/143과 다르면 멈추고 원인을 확인한다.
@@ -106,7 +112,7 @@ select w.id, null, '제서 예선', null, null, 'ZEST SURVIVOR 예선 · 기록 
 + const missing = all.filter((w) => !present.has(w.id))
 ```
 
-효과: 과거 날짜를 열면 그날 프로그램 카드가 담긴다. 제서 측정 8일치에 별도 백필 SQL이 필요 없고, 8/6~8/7 스페셜 세션을 뒤늦게 삽입해도 사용자가 그 날짜를 열면 담긴다. 또 그날 앱을 못 열어 놓친 과거 세션을 뒤늦게 기록할 수 있다.
+효과: 과거 날짜를 열면 그날 프로그램 카드가 담긴다. 제서 예선 카드 8일치에 별도 백필 SQL이 필요 없고, 8/6~8/7 스페셜 세션을 뒤늦게 삽입해도 사용자가 그 날짜를 열면 담긴다. 또 그날 앱을 못 열어 놓친 과거 세션을 뒤늦게 기록할 수 있다.
 
 부작용은 **캘린더 표시 없음** — `WorkoutCalendar`가 평일이면 이미 무조건 회색 점을 찍고(`worked.has(ds) || 평일`), 금색 점은 `completed` 기준이라 담기만으로는 변하지 않는다. 남는 비용은 "안 한 과거 날을 열면 미완료 카드가 생성돼 남는다" 뿐이다(지난 2주에 쌓인 게 236행 수준이니 규모는 무해).
 
@@ -131,7 +137,7 @@ select w.id, null, '제서 예선', null, null, 'ZEST SURVIVOR 예선 · 기록 
 
 라이브와 시드가 갈라지지 않게 같은 커밋에서 맞춘다.
 
-- `supabase/seed-strength-8week.sql`: `2026-07-27` 이상인 `program_date` 리터럴을 +14일로 치환하고, 제서 측정 8일치 세션을 3주차와 4주차 사이에 추가. 기계적 치환이므로 스크립트로 처리하고 전후 날짜 분포를 비교 검증한다.
+- `supabase/seed-strength-8week.sql`: `2026-07-27` 이상인 `program_date` 리터럴을 +14일로 치환하고, 제서 예선 카드 8일치 세션을 3주차와 4주차 사이에 추가. 기계적 치환이므로 스크립트로 처리하고 전후 날짜 분포를 비교 검증한다.
 - `docs/data/season2-strength-8week-data.md`: 4~8주차 헤더의 날짜 범위 표기 갱신(`## 4주차 — … (8/10 ~ 8/14)` 등), 각 세션 제목의 날짜 갱신, 제서 예선 기간 설명 한 줄 추가.
 - `supabase/migration-strength-shift-2w.sql`: 라이브 1회성 적용용. 시드를 처음부터 다시 돌리는 경우엔 필요 없다는 주석을 단다.
 
@@ -142,8 +148,8 @@ select w.id, null, '제서 예선', null, null, 'ZEST SURVIVOR 예선 · 기록 
 3. SQL 실행 후 라이브 조회로 확인:
    - `program_date >= '2026-07-27'` & Strength 라벨 로그 = **0건**
    - 날짜별 카드 수: 8/10~8/14가 4주차, 9/7~9/11이 8주차, 종료일 9/11
-   - 7/27~8/5 평일 8일에 `제서 측정` 카드 1장씩, 8/6~8/7은 0장
-4. 앱에서: 7/28 열기 → 제서 측정 카드 담김 · 체크 동작. 8/10 열기 → 4주차 콘텐츠. 헤더가 "Strength 8주 · 3주차"(오늘 기준).
+   - 7/27~8/5 평일 8일에 `ZEST SURVIVOR 예선` 카드 1장씩, 8/6~8/7은 0장
+4. 앱에서: 7/28 열기 → 제서 예선 카드 담김 · 체크 동작. 8/10 열기 → 4주차 콘텐츠. 헤더가 "Strength 8주 · 3주차"(오늘 기준).
 
 ## 5. 후속 — 8/6~8/7 스페셜 세션
 
