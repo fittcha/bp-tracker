@@ -151,9 +151,44 @@ select w.id, null, '제서 이벤트 측정', null, null, null, 0, 1, null, null
    - 7/27~8/5 평일 8일에 `ZEST SURVIVOR 예선` 카드 1장씩, 8/6~8/7은 0장
 4. 앱에서: 7/28 열기 → 제서 예선 카드 담김 · 체크 동작. 8/10 열기 → 4주차 콘텐츠. 헤더가 "Strength 8주 · 3주차"(오늘 기준).
 
-## 5. 후속 — 8/6~8/7 스페셜 세션
+## 5. 8/6~8/7 스페셜 세션 (2026-08-05 확정)
 
-내용은 별도로 정한다. 플레이스홀더 카드는 **넣지 않는다** — 나중에 동작 행을 교체하면 사용자 로그의 `workout_exercise_id`가 `on delete set null`로 끊겨 시즌1 레거시 카드처럼 렌더되기 때문이다. 가드 제거(3.4a) 덕분에 내용이 확정된 뒤 삽입해도 해당 날짜를 여는 사용자에게 정상적으로 담긴다.
+예선 직후 이틀. 성격은 **벤치마크 + 어깨·전거근·코어 보조**로 정했다. 회복을 유산소(로잉)로 채우지 않고 코어·견갑 계열로 잡은 이유는, 이 프로그램이 이미 쓰는 어휘(`Serratus Punch (band)`, `Banded Face Pull`, `Pallof Press`, `Plank Shoulder Taps`)로 예선 피로 부위를 직접 다루기 때문이다. 동작명은 전부 기존 시드 표기를 그대로 재사용한다.
+
+벤치마크 배치는 **8/6 Baseline · 8/7 Annie**. Baseline에는 Air Squat 40개가 있어 하지 부하가 있고 Annie는 줄넘기·코어라 하지를 거의 쓰지 않으므로, **8/10(월) 스쿼트 디로드** 직전인 금요일을 비워두는 쪽이 맞다.
+
+카드 메타는 예선 카드와 동일 — `owner_user_id` null, `program_label` **null**(헤더 배너 미포함), `category` `측정`, `sets` 컬럼은 null이고 세트 수는 `set_info`가 운반한다.
+
+### 8/6 (목)
+
+| 카드 (sort_order) | set_info | 동작 | reps | notes |
+|---|---|---|---|---|
+| `A · Baseline` (0) | `For Time · 1 Round` | Row (Erg) | 500m | 단일 라운드, 쉬지 않고 이어서 |
+| | | Air Squat | 40 | |
+| | | Sit ups | 30 | |
+| | | Push up | 20 | |
+| | | Pull up | 10 | 밴드·점핑 대사 가능 |
+| `B · 어깨·전거근` (1) | `Superset · 3 Sets` | Serratus Punch (band) | 15 | |
+| | | Banded Face Pull | 20 | Rest 1:00 b/w sets |
+| `C · 코어` (2) | `3 Sets` | Dead Bug | 10/10 | |
+| | | Pallof Press | 12/12 | Rest as needed |
+
+### 8/7 (금)
+
+| 카드 (sort_order) | set_info | 동작 | reps | notes |
+|---|---|---|---|---|
+| `A · Annie` (0) | `For Time` | Double Under | 50-40-30-20-10 | 미숙하면 Single Under ×2로 대사 |
+| | | Sit ups | 50-40-30-20-10 | |
+| `B · 어깨·전거근` (1) | `Superset · 3 Sets` | Serratus Punch (band) | 15 | |
+| | | Rear Delt Fly | 15 | |
+| | | Lateral Raises | 15 | Rest 1:00 b/w sets |
+| `C · 안정화` (2) | `3 Sets` | Plank Shoulder Taps | 0:45 | Rest as needed |
+
+8/7에는 굴곡 코어를 더 넣지 않는다 — Annie가 이미 Sit ups 150개다. 대신 견갑 안정화만 붙인다.
+
+Baseline은 전 세계 박스에서 첫 측정용으로 널리 쓰이는 관례적 벤치마크, Annie는 공식 Girls 벤치마크다. 둘 다 기록이 남아 나중에 재측정 기준으로 쓸 수 있다.
+
+플레이스홀더 카드를 미리 넣지 않은 판단은 유효했다 — 동작 행을 나중에 교체하면 사용자 로그의 `workout_exercise_id`가 `on delete set null`로 끊겨 시즌1 레거시 카드처럼 렌더된다. 가드 제거(3.4a) 덕분에 지금 삽입해도 해당 날짜를 여는 사용자에게 정상적으로 담긴다.
 
 ## 6. 비목표
 

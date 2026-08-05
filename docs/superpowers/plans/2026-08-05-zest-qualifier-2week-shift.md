@@ -748,7 +748,187 @@ cd /Users/chacha/lab/roadtorxd/app && npm run dev
 
 ---
 
+---
+
+## Task 7: 8/6~8/7 스페셜 세션 삽입
+
+**Files:**
+- Create: `supabase/migration-strength-special-0806.sql`
+- Modify: `supabase/seed-strength-8week.sql` (예선 블록과 `-- 4주차` 구분선 사이에 같은 카드 추가)
+- Modify: `docs/data/season2-strength-8week-data.md` (스페셜 섹션의 "내용 미확정" 문단을 실제 표로 교체)
+
+**Interfaces:**
+- Consumes: Task 3의 예선 카드 메타 규칙(`program_label` null, `category` `측정`)
+- Produces: 8/6·8/7 날짜에 카드 3장씩
+
+**내용 출처:** 설계 문서 §5의 표가 유일한 진실. 카드 6장 = 8/6 `A · Baseline`/`B · 어깨·전거근`/`C · 코어`, 8/7 `A · Annie`/`B · 어깨·전거근`/`C · 안정화`.
+
+- [ ] **Step 1: 마이그레이션 파일 작성**
+
+`supabase/migration-strength-special-0806.sql`:
+
+```sql
+-- 8/6(목)·8/7(금) 스페셜 세션 삽입 (1회성).
+-- 설계: docs/superpowers/specs/2026-08-05-zest-qualifier-2week-shift-design.md §5
+-- 제서 예선 직후 이틀 — 벤치마크(8/6 Baseline · 8/7 Annie) + 어깨·전거근·코어 보조.
+-- program_label = null → 헤더 프로그램 배너 미포함(예선 카드와 동일).
+-- !!! 멱등하지 않다 — 두 번 실행하면 카드가 중복 생성된다 !!!
+-- anon 키로 Supabase SQL editor 실행.
+
+-- 사전 점검: 0이어야 미적용
+select count(*) as already_applied from workouts
+where owner_user_id is null and program_date in ('2026-08-06', '2026-08-07');
+
+-- ===== 8/6 (목) =====
+with w as (
+  insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
+  values ('A · Baseline', null, null, '측정', '2026-08-06', null, 0) returning id
+)
+insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
+select w.id, v.* from w, (values
+  ('A', 'Row (Erg)', null, '500m', '단일 라운드, 쉬지 않고 이어서', 0, 1, 'For Time · 1 Round', null),
+  ('A', 'Air Squat', null, '40', null, 1, 1, 'For Time · 1 Round', null),
+  ('A', 'Sit ups', null, '30', null, 2, 1, 'For Time · 1 Round', null),
+  ('A', 'Push up', null, '20', null, 3, 1, 'For Time · 1 Round', null),
+  ('A', 'Pull up', null, '10', '밴드·점핑 대사 가능', 4, 1, 'For Time · 1 Round', null)
+) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
+with w as (
+  insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
+  values ('B · 어깨·전거근', null, null, '측정', '2026-08-06', null, 1) returning id
+)
+insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
+select w.id, v.* from w, (values
+  ('B', 'Serratus Punch (band)', null, '15', null, 0, 1, 'Superset · 3 Sets', null),
+  ('B', 'Banded Face Pull', null, '20', 'Rest 1:00 b/w sets', 1, 1, 'Superset · 3 Sets', null)
+) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
+with w as (
+  insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
+  values ('C · 코어', null, null, '측정', '2026-08-06', null, 2) returning id
+)
+insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
+select w.id, v.* from w, (values
+  ('C', 'Dead Bug', null, '10/10', null, 0, 1, '3 Sets', null),
+  ('C', 'Pallof Press', null, '12/12', 'Rest as needed', 1, 1, '3 Sets', null)
+) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
+
+-- ===== 8/7 (금) =====
+with w as (
+  insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
+  values ('A · Annie', null, null, '측정', '2026-08-07', null, 0) returning id
+)
+insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
+select w.id, v.* from w, (values
+  ('A', 'Double Under', null, '50-40-30-20-10', '미숙하면 Single Under ×2로 대사', 0, 1, 'For Time', null),
+  ('A', 'Sit ups', null, '50-40-30-20-10', null, 1, 1, 'For Time', null)
+) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
+with w as (
+  insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
+  values ('B · 어깨·전거근', null, null, '측정', '2026-08-07', null, 1) returning id
+)
+insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
+select w.id, v.* from w, (values
+  ('B', 'Serratus Punch (band)', null, '15', null, 0, 1, 'Superset · 3 Sets', null),
+  ('B', 'Rear Delt Fly', null, '15', null, 1, 1, 'Superset · 3 Sets', null),
+  ('B', 'Lateral Raises', null, '15', 'Rest 1:00 b/w sets', 2, 1, 'Superset · 3 Sets', null)
+) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
+with w as (
+  insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
+  values ('C · 안정화', null, null, '측정', '2026-08-07', null, 2) returning id
+)
+insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
+select w.id, v.* from w, (values
+  ('C', 'Plank Shoulder Taps', null, '0:45', 'Rest as needed', 0, 1, '3 Sets', null)
+) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
+
+-- 사후 검증: 8/6·8/7 각 3장, 동작 8/6=9행·8/7=6행
+select w.program_date, w.sort_order, w.title, count(e.id) as ex
+from workouts w left join workout_exercises e on e.workout_id = w.id
+where w.owner_user_id is null and w.program_date in ('2026-08-06', '2026-08-07')
+group by 1, 2, 3 order by 1, 2;
+```
+
+- [ ] **Step 2: 시드에 같은 카드 추가**
+
+`supabase/seed-strength-8week.sql`에서 예선 카드 마지막 블록(`'2026-08-05'`)과 `-- 4주차` 구분선 사이에, Step 1의 `-- ===== 8/6 (목) =====` ~ 마지막 insert까지(사전/사후 select 제외)를 그대로 붙인다. 앞에 구분 주석을 단다:
+
+```sql
+-- ============================================================
+-- 스페셜 세션 — 8/6(목) Baseline · 8/7(금) Annie
+-- 예선 직후 이틀. 벤치마크 + 어깨·전거근·코어 보조. program_label 없음.
+-- ============================================================
+```
+
+- [ ] **Step 3: 시드 검증**
+
+```bash
+cd /Users/chacha/lab/roadtorxd/app
+grep -c "insert into workouts" supabase/seed-strength-8week.sql   # 242 (236 + 스페셜 6)
+grep -o "'2026-08-0[67]'" supabase/seed-strength-8week.sql | sort | uniq -c   # 각 3
+```
+Expected: 242 / `'2026-08-06'` 3개, `'2026-08-07'` 3개
+
+- [ ] **Step 4: 데이터 문서의 스페셜 문단을 표로 교체**
+
+`docs/data/season2-strength-8week-data.md`에서
+
+```markdown
+8/6(목)·8/7(금)은 스페셜 세션 — 내용 미확정. 정해지면 이 자리에 표로 추가하고 시드에도 반영한다.
+```
+
+를 아래로 교체한다:
+
+```markdown
+### 목 8/6 · Baseline  _(category: 측정)_
+
+| 섹션 | 운동 | 세트 | 횟수 | 메모 |
+|---|---|---|---|---|
+| A | Row (Erg) | For Time · 1 Round | 500m | 단일 라운드, 쉬지 않고 이어서 |
+| A | Air Squat | — | 40 | |
+| A | Sit ups | — | 30 | |
+| A | Push up | — | 20 | |
+| A | Pull up | — | 10 | 밴드·점핑 대사 가능 |
+| B | Serratus Punch (band) | 3 sets | 15 | Superset |
+| B | Banded Face Pull | 3 sets | 20 | Rest 1:00 b/w sets |
+| C | Dead Bug | 3 sets | 10/10 | |
+| C | Pallof Press | 3 sets | 12/12 | Rest as needed |
+
+### 금 8/7 · Annie  _(category: 측정)_
+
+| 섹션 | 운동 | 세트 | 횟수 | 메모 |
+|---|---|---|---|---|
+| A | Double Under | For Time | 50-40-30-20-10 | 미숙하면 Single Under ×2로 대사 |
+| A | Sit ups | — | 50-40-30-20-10 | |
+| B | Serratus Punch (band) | 3 sets | 15 | Superset |
+| B | Rear Delt Fly | 3 sets | 15 | |
+| B | Lateral Raises | 3 sets | 15 | Rest 1:00 b/w sets |
+| C | Plank Shoulder Taps | 3 sets | 0:45 | Rest as needed |
+
+Baseline(관례적 벤치마크)과 Annie(공식 Girls)는 기록이 남아 나중에 재측정 기준으로 쓸 수 있다.
+Annie가 Sit ups 150개라 8/7에는 굴곡 코어를 더 넣지 않고 견갑 안정화만 붙였다.
+```
+
+- [ ] **Step 5: 커밋**
+
+```bash
+git add supabase/migration-strength-special-0806.sql supabase/seed-strength-8week.sql docs/data/season2-strength-8week-data.md
+git commit -m "$(cat <<'EOF'
+feat(strength): 8/6~8/7 스페셜 세션 — Baseline · Annie
+
+예선 직후 이틀: 벤치마크 + 어깨·전거근·코어 보조(카드 3장씩).
+하지 부하가 있는 Baseline을 목요일로 당겨 8/10 스쿼트 디로드 직전을 비움.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+EOF
+)"
+```
+
+- [ ] **Step 6: 사용자에게 SQL 실행 요청**
+
+`supabase/migration-strength-special-0806.sql`을 SQL 에디터에서 한 번만 실행 요청. `already_applied = 0` 확인 후 진행, 사후 쿼리가 8/6 3장(9동작)·8/7 3장(6동작)인지 확인.
+
+---
+
 ## 후속 (이 계획 범위 밖)
 
-- **8/6~8/7 스페셜 세션**: 내용 확정 후 `workouts`/`workout_exercises` 삽입 SQL + 시드 + 데이터 문서에 추가. 가드 제거(Task 2) 덕분에 날짜가 지난 뒤 삽입해도 사용자가 그 날짜를 열면 담긴다.
 - 챌린지(풀업 등) 일정은 이번 시프트 대상이 아니다.
+- `docs/data/season2-strength-8week-data.md`의 4~8주차 표는 2026-07-16 고립/보조 보강(시드에는 반영됨)이 빠진 옛 구조다. 이번 시프트와 무관한 선행 누락이라 손대지 않았다.
