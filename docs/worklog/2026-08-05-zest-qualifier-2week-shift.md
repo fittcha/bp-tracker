@@ -44,7 +44,17 @@
 
 **재발 1회 더 (8/3, 11행)**: 픽스 푸시(≈08:12 UTC) 이후인 `08:20:12`에 8/3에서 또 발생. 카드 날짜가 8/17(옛 5주차 월)이었다. 원인은 픽스 실패가 아니라 **클라이언트가 아직 옛 번들로 돌고 있었기 때문** — `pickMissingWorkouts`는 브라우저가 새 JS를 받은 뒤에야 동작한다. 11행 삭제, 어긋남 0. 즉 배포 후에도 각 사용자가 앱을 새로 로드하기 전까지는 같은 오염이 생길 수 있으니, 며칠 뒤 점검 쿼리를 한 번 더 돌리는 게 안전하다.
 
-## 5. 최종 상태
+## 5. 캐시 UX — "화면이 와리가리하고 나중에 로드된다" 개선 (main `9d5abff`)
+
+사용자 지적. `ClientLayout.tsx`의 SWR 설정 + 자동담기 왕복 수가 원인이었고 네 갈래를 다 고쳤다.
+
+- **A. 날짜별 훅에서 `keepPreviousData: false`** (`page.tsx`의 `perDate`). 전역이 `true`라 날짜를 넘기면 새 응답이 올 때까지 **이전 날짜 카드가 그대로 보였다**. `loading = logs === undefined` 판정도 keepPreviousData 때문에 성립하지 않아 스켈레톤조차 안 떴다. 이제 전환 구간엔 스켈레톤이 뜨고, 그 날짜가 캐시에 있으면 캐시 히트로 즉시 그려져 첫 페인트는 그대로 빠르다.
+- **B. 자동담기 배치화**. `addWorkoutToDate`는 운동 하나당 라운드트립 4번(동작 조회 → we_id 중복검사 → 이름 중복검사 → 삽입)을 **순차**로 돌아, 하루 6~7장이면 24~28번 왕복 = 1~3초였다("빈 화면 → 카드 우르르"). 새 `addWorkoutsToDate(userId, date, workoutIds)`가 **전체 3번**(동작 일괄조회 → 그날 로그 조회 → 일괄삽입)으로 고정. 중복 판정은 순수 함수 `src/lib/workout/log-rows.ts` `buildLogRowsForWorkouts`로 분리 + vitest 8개. `addWorkoutToDate`는 단건 위임으로 남겨 `AddWorkoutPopup` 호출부 무변경.
+  - **순차와 동일 결과를 보장해야 하는 지점**: 같은 배치의 앞 카드가 담은 이름은 뒤 카드에서 제외한다(실제 사례 2026-07-14 `DB Arnold Press`가 두 카드에 걸침). 반대로 한 카드 안의 같은 이름 2행(메인+백오프)은 둘 다 남긴다. 둘 다 테스트로 못박았다.
+- **C. 캐시 버전 + 만료** (`src/lib/swr/provider.ts`). 키 `r2r-swr:` → **`r2r-swr:v2:`**, 형식 `[entries]` → `{ savedAt, entries }`, **3일** 지난 스냅샷은 하이드레이트하지 않는다. 며칠 전 데이터로 첫 렌더하던 문제와 §4 오염의 트리거를 함께 줄인다. v1 키는 읽지 않고 삭제(용량 회수). 배포 직후 1회는 캐시가 비어 첫 로딩이 조금 느리다.
+- **D. `focusThrottleInterval: 60_000`**. `revalidateOnFocus: true`라 앱 복귀마다 재검증→스왑되던 빈도를 1분으로 묶었다.
+
+## 6. 최종 상태
 
 | 기간 | 내용 |
 |---|---|
@@ -53,6 +63,6 @@
 | 8/6 · 8/7 | Baseline · Annie + 어깨·전거근·코어 |
 | 8/10~9/11 | 4~8주차 (8/10 = 4주차, 종료 9/11) |
 
-vitest 57개 green(신규 14: `deriveProgram` 8 · `pickMissingWorkouts` 6). lint는 작업 전 기준선과 동일(기존 `AuthGuard.tsx` set-state-in-effect 등 9건, 신규 0).
+vitest 68개 green(신규 25: `deriveProgram` 8 · `pickMissingWorkouts` 6 · `buildLogRowsForWorkouts` 8 · provider 3). lint는 작업 전 기준선과 동일(기존 `AuthGuard.tsx` set-state-in-effect 등 9건, 신규 0).
 
 **남은 불일치(이번 범위 밖)**: `docs/data/season2-strength-8week-data.md`의 4~8주차 표는 2026-07-16 고립/보조 보강이 빠진 옛 구조다(시드·라이브엔 반영됨). 날짜 표기만 이번에 맞췄다.

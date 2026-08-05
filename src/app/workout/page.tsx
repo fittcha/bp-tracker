@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { toDateString } from '@/lib/utils'
 import { getLoggedInUser } from '@/lib/auth'
 import { getWorkoutsForDate, getDefaultWorkoutsForWeekday } from '@/lib/api/workouts'
-import { getWorkoutLogsWithWorkout, addWorkoutToDate, type WorkoutLogJoined } from '@/lib/api/workout-logs'
+import { getWorkoutLogsWithWorkout, addWorkoutsToDate, type WorkoutLogJoined } from '@/lib/api/workout-logs'
 import { getCardioLogs, setCardioCompleted } from '@/lib/api/cardio-logs'
 import { pickMissingWorkouts } from '@/lib/workout/pick-missing'
 import { k } from '@/lib/swr/keys'
@@ -152,6 +152,11 @@ export default function WorkoutPage() {
   const ds = toDateString(date)
   const { mutate } = useSWRConfig()
 
+  // 날짜별 데이터는 keepPreviousData(전역 true)를 끈다: 날짜를 넘겼을 때 새 날짜 응답이
+  // 도착할 때까지 '이전 날짜 카드'가 그대로 보이던 문제. 이제 그 구간은 스켈레톤이 뜬다.
+  // localStorage 캐시에 그 날짜가 있으면 캐시 히트로 즉시 그려지므로 첫 페인트는 그대로 빠르다.
+  const perDate = { keepPreviousData: false } as const
+
   // ── day-defaults: 요일 공용 + 날짜별 프로그램 ──
   const { data: defaults } = useSWR(uid ? k.dayDefaults(uid, ds) : null, async () => {
     const jsDay = new Date(`${ds}T00:00:00`).getDay()
@@ -160,16 +165,15 @@ export default function WorkoutPage() {
       weekday <= 5 ? getDefaultWorkoutsForWeekday(weekday) : Promise.resolve([]),
       getWorkoutsForDate(ds),
     ])
-    // ds를 함께 실어 보낸다: keepPreviousData로 날짜 전환 중 이전 날짜 defaults가
-    // 잠깐 노출될 때, 자동담기가 그 stale 값으로 엉뚱한 날짜에 담는 것을 막기 위함.
+    // ds를 함께 실어 보낸다: 자동담기가 stale 값으로 엉뚱한 날짜에 담는 것을 막기 위함.
     return { ds, weekday: weekday_, date: date_ }
-  })
+  }, perDate)
 
   // ── day-logs: 그날 운동 로그 ──
-  const { data: logs } = useSWR(uid ? k.dayLogs(uid, ds) : null, () => getWorkoutLogsWithWorkout(ds, uid))
+  const { data: logs } = useSWR(uid ? k.dayLogs(uid, ds) : null, () => getWorkoutLogsWithWorkout(ds, uid), perDate)
 
   // ── cardio: 저강도 유산소 (시즌1 레거시) ──
-  const { data: cardio } = useSWR(uid ? k.cardio(uid, ds) : null, () => getCardioLogs(ds, uid))
+  const { data: cardio } = useSWR(uid ? k.cardio(uid, ds) : null, () => getCardioLogs(ds, uid), perDate)
 
   // ── 자동담기: defaults·logs 변경 시 누락분 재조정. ──
   // 요일 공용(WOD)·날짜 공용(프로그램) 모두 과거 포함 항상 담는다.
@@ -194,7 +198,8 @@ export default function WorkoutPage() {
     addingRef.current.add(ds)
     ;(async () => {
       try {
-        for (const w of missing) await addWorkoutToDate(uid, ds, w.id)
+        // 한 번에 담는다: 운동당 4왕복 순차 → 전체 3왕복. 카드가 한 박자에 나타난다.
+        await addWorkoutsToDate(uid, ds, missing.map((w) => w.id))
         await mutate(k.dayLogs(uid, ds))
       } finally {
         addingRef.current.delete(ds)

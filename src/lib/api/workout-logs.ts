@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
-import { getWorkoutExercises } from './workouts'
+import type { WorkoutExercise } from './workouts'
+import { buildLogRowsForWorkouts } from '@/lib/workout/log-rows'
 
 export interface WorkoutLog {
   id?: string
@@ -210,60 +211,55 @@ export async function getWorkoutLogsWithWorkout(
   })
 }
 
+// 여러 운동을 한 날짜에 한 번에 담는다. 라운드트립 3번(동작 일괄조회 → 그날 로그 조회 → 삽입)
+// 으로 고정 — 예전엔 운동당 4번씩 순차라 하루 6~7장이면 24~28번 왕복이었다.
+// 중복 판정은 buildLogRowsForWorkouts(순수·테스트됨): we_id가 이미 있으면 그 운동 통째 건너뜀,
+// 이름이 이미 있으면 그 동작만 제외(박스 와드 placeholder 방어), 같은 배치 앞 카드가 담은
+// 이름도 뒤 카드에서 제외(순차 호출과 동일 결과).
+export async function addWorkoutsToDate(
+  userId: string,
+  date: string,
+  workoutIds: string[],
+): Promise<WorkoutLog[]> {
+  if (workoutIds.length === 0) return []
+  const { data: exData, error: ee } = await supabase
+    .from('workout_exercises')
+    .select('*')
+    .in('workout_id', workoutIds)
+    .order('sort_order', { ascending: true })
+  if (ee) throw ee
+  const byWorkout = new Map<string, WorkoutExercise[]>()
+  for (const ex of (exData ?? []) as WorkoutExercise[]) {
+    const arr = byWorkout.get(ex.workout_id)
+    if (arr) arr.push(ex)
+    else byWorkout.set(ex.workout_id, [ex])
+  }
+  if (byWorkout.size === 0) return []
+
+  const { data: existing, error: xe } = await supabase
+    .from('workout_logs')
+    .select('workout_exercise_id, exercise_name')
+    .eq('user_id', userId)
+    .eq('date', date)
+  if (xe) throw xe
+  const exist = (existing ?? []) as { workout_exercise_id: string | null; exercise_name: string }[]
+
+  const rows = buildLogRowsForWorkouts({
+    userId,
+    date,
+    workouts: workoutIds.map((id) => ({ workoutId: id, exercises: byWorkout.get(id) ?? [] })),
+    existingExerciseIds: new Set(exist.map((r) => r.workout_exercise_id).filter((v): v is string => !!v)),
+    existingNames: new Set(exist.map((r) => r.exercise_name)),
+  })
+  return batchInsertWorkoutLogs(rows)
+}
+
 export async function addWorkoutToDate(
   userId: string,
   date: string,
   workoutId: string,
 ): Promise<WorkoutLog[]> {
-  const exercises = await getWorkoutExercises(workoutId)
-  if (exercises.length === 0) return []
-  // 멱등: 이 운동의 동작이 이미 그날 담겨 있으면 추가하지 않는다.
-  // 자동담기가 stale 캐시(이전 세션의 빈/부분 day-logs)로 present를 계산해 재담기하면
-  // 정확히 2배 중복이 생기던 문제 방어 — DB 기준으로 한 번 더 막는다.
-  const { data: existing, error: ce } = await supabase
-    .from('workout_logs')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('date', date)
-    .in('workout_exercise_id', exercises.map((e) => e.id))
-    .limit(1)
-  if (ce) throw ce
-  if (existing && existing.length > 0) return []
-  // 이름 기준 중복 방어: 같은 이름의 동작이 이미 그날 있으면(예: 시즌1 템플릿 WOD '박스 와드'
-  // placeholder) 그 동작은 담지 않는다. 위 we_id 가드는 동작 id만 비교해, 이름만 같은
-  // 템플릿/커스텀 행과의 중복(박스 와드 2행)을 못 막던 문제 방어.
-  const names = [...new Set(exercises.map((e) => e.exercise_name))]
-  const { data: sameName, error: sne } = await supabase
-    .from('workout_logs')
-    .select('exercise_name')
-    .eq('user_id', userId)
-    .eq('date', date)
-    .in('exercise_name', names)
-  if (sne) throw sne
-  const dupNames = new Set((sameName ?? []).map((r: { exercise_name: string }) => r.exercise_name))
-  const toAdd = exercises.filter((ex) => !dupNames.has(ex.exercise_name))
-  if (toAdd.length === 0) return []
-  const rows: Omit<WorkoutLog, 'id'>[] = toAdd.map((ex) => ({
-    user_id: userId,
-    date,
-    template_id: null,
-    workout_exercise_id: ex.id,
-    is_custom: false,
-    exercise_name: ex.exercise_name,
-    section: ex.section,
-    completed: false,
-    weight_lb: null,
-    weight_unit: 'lb',
-    memo: null,
-    custom_sets: ex.sets,
-    custom_reps: ex.reps,
-    custom_notes: ex.notes,
-    set_group: ex.set_group ?? 1,
-    set_info: ex.set_info ?? null,
-    set_lead: ex.set_lead ?? null,
-  }))
-  if (rows.length === 0) return []
-  return batchInsertWorkoutLogs(rows)
+  return addWorkoutsToDate(userId, date, [workoutId])
 }
 
 // 캘린더용: 기간 내 '완료 동작이 1개 이상' 있는 날짜 목록(중복 제거).
