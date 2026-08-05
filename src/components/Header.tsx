@@ -29,7 +29,13 @@ export default function Header() {
   if (program) {
     const [, sm, sd] = program.startDate.split('-').map(Number)
     const right =
-      program.status === 'upcoming' ? `${sm}월 ${sd}일 시작` : program.status === 'done' ? '완료' : `${program.currentWeek}주차`
+      program.status === 'upcoming'
+        ? `${sm}월 ${sd}일 시작`
+        : program.status === 'done'
+          ? '완료'
+          : program.currentWeek != null
+            ? `${program.currentWeek}주차`
+            : '진행 중'
     progLabel = `${program.name} · ${right}`
   }
 

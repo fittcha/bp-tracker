@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { deriveProgram, type CurrentProgram, type ProgramRow } from '@/lib/workout/program-week'
 
 export interface Workout {
   id: string
@@ -68,15 +69,9 @@ export async function getWorkoutsForDate(date: string): Promise<Workout[]> {
   return (data ?? []) as Workout[]
 }
 
-export interface CurrentProgram {
-  name: string                 // 'Strength 8주' (라벨의 ' · ' 앞부분)
-  startDate: string            // 첫 세션 날짜 'YYYY-MM-DD'
-  totalWeeks: number | null
-  currentWeek: number | null   // null = 아직 시작 전
-  status: 'upcoming' | 'active' | 'done'
-}
+export type { CurrentProgram }
 
-// 홈 배너용: 활성 공용 프로그램의 진행 상태. 오늘 기준 시작 전/진행 중/완료 + 현재 주차(날짜로 계산).
+// 홈 배너용: 활성 공용 프로그램의 진행 상태. 주차 판정은 program-week.deriveProgram(라벨 기준).
 export async function getCurrentProgram(today: string): Promise<CurrentProgram | null> {
   const { data, error } = await supabase
     .from('workouts')
@@ -87,29 +82,7 @@ export async function getCurrentProgram(today: string): Promise<CurrentProgram |
     .eq('archived', false)
     .order('program_date', { ascending: true })
   if (error) throw error
-  const rows = (data ?? []) as { program_date: string; program_label: string }[]
-  if (rows.length === 0) return null
-  const startDate = rows[0].program_date
-  const endDate = rows[rows.length - 1].program_date
-  const firstLabel = rows[0].program_label
-  const name = firstLabel.split(' · ')[0]
-  const totMatch = firstLabel.match(/(\d+)\s*주\s*·/)
-  const totalWeeks = totMatch ? Number(totMatch[1]) : null
-  let status: CurrentProgram['status']
-  let currentWeek: number | null
-  if (today < startDate) {
-    status = 'upcoming'
-    currentWeek = null
-  } else if (today > endDate) {
-    status = 'done'
-    currentWeek = totalWeeks
-  } else {
-    status = 'active'
-    const days = Math.floor((Date.parse(today) - Date.parse(startDate)) / 86_400_000)
-    const wk = Math.floor(days / 7) + 1
-    currentWeek = totalWeeks ? Math.min(wk, totalWeeks) : wk
-  }
-  return { name, startDate, totalWeeks, currentWeek, status }
+  return deriveProgram((data ?? []) as ProgramRow[], today)
 }
 
 export async function getWorkoutExercises(workoutId: string): Promise<WorkoutExercise[]> {
