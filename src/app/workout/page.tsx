@@ -8,6 +8,7 @@ import { getLoggedInUser } from '@/lib/auth'
 import { getWorkoutsForDate, getDefaultWorkoutsForWeekday } from '@/lib/api/workouts'
 import { getWorkoutLogsWithWorkout, addWorkoutToDate, type WorkoutLogJoined } from '@/lib/api/workout-logs'
 import { getCardioLogs, setCardioCompleted } from '@/lib/api/cardio-logs'
+import { pickMissingWorkouts } from '@/lib/workout/pick-missing'
 import { k } from '@/lib/swr/keys'
 import WorkoutCard from '@/components/workout/WorkoutCard'
 import Calculator from '@/components/workout/Calculator'
@@ -183,11 +184,12 @@ export default function WorkoutPage() {
     // 담기던 off-by-one 오염 방지). 재검증으로 ds가 맞춰지면 effect가 다시 돌아 담는다.
     if (defaults.ds !== ds) return
     if (addingRef.current.has(ds)) return
-    const present = new Set(logs.map((l) => l.workout?.workout_id).filter(Boolean))
+    const present = new Set(logs.map((l) => l.workout?.workout_id).filter((id): id is string => !!id))
     const all = [...defaults.weekday, ...defaults.date]
     // 과거 날짜도 담는다: 예선 카드/스페셜 세션을 뒤늦게 삽입해도 담기고, 놓친 과거 세션을
     // 뒤늦게 기록할 수 있다. 캘린더 표시는 평일이면 이미 무조건 회색 점이라 영향 없음.
-    const missing = all.filter((w) => !present.has(w.id))
+    // 선별은 pickMissingWorkouts가 담당 — 낡은 캐시가 내려준 다른 날짜 카드를 걸러낸다.
+    const missing = pickMissingWorkouts(all, present, ds)
     if (missing.length === 0) return
     addingRef.current.add(ds)
     ;(async () => {
