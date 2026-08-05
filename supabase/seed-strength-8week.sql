@@ -882,11 +882,11 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('A', 'Row (Erg)', null, '500m', '단일 라운드, 쉬지 않고 이어서', 0, 1, 'For Time · 1 Round', null),
+  ('A', 'Row (Erg)', null, '500m', null, 0, 1, 'For Time · 1 Round', null),
   ('A', 'Air Squat', null, '40', null, 1, 1, 'For Time · 1 Round', null),
   ('A', 'Sit ups', null, '30', null, 2, 1, 'For Time · 1 Round', null),
   ('A', 'Push up', null, '20', null, 3, 1, 'For Time · 1 Round', null),
-  ('A', 'Pull up', null, '10', '밴드·점핑 대사 가능', 4, 1, 'For Time · 1 Round', null)
+  ('A', 'Pull up', null, '10', null, 4, 1, 'For Time · 1 Round', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -914,7 +914,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('A', 'Double Under', null, '50-40-30-20-10', '미숙하면 Single Under ×2로 대사', 0, 1, 'For Time', null),
+  ('A', 'Double Under', null, '50-40-30-20-10', null, 0, 1, 'For Time', null),
   ('A', 'Sit ups', null, '50-40-30-20-10', null, 1, 1, 'For Time', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (

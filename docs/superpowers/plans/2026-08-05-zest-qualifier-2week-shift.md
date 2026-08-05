@@ -786,11 +786,11 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('A', 'Row (Erg)', null, '500m', '단일 라운드, 쉬지 않고 이어서', 0, 1, 'For Time · 1 Round', null),
+  ('A', 'Row (Erg)', null, '500m', null, 0, 1, 'For Time · 1 Round', null),
   ('A', 'Air Squat', null, '40', null, 1, 1, 'For Time · 1 Round', null),
   ('A', 'Sit ups', null, '30', null, 2, 1, 'For Time · 1 Round', null),
   ('A', 'Push up', null, '20', null, 3, 1, 'For Time · 1 Round', null),
-  ('A', 'Pull up', null, '10', '밴드·점핑 대사 가능', 4, 1, 'For Time · 1 Round', null)
+  ('A', 'Pull up', null, '10', null, 4, 1, 'For Time · 1 Round', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
   insert into workouts (title, owner_user_id, default_weekday, category, program_date, program_label, sort_order)
@@ -818,7 +818,7 @@ with w as (
 )
 insert into workout_exercises (workout_id, section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead)
 select w.id, v.* from w, (values
-  ('A', 'Double Under', null, '50-40-30-20-10', '미숙하면 Single Under ×2로 대사', 0, 1, 'For Time', null),
+  ('A', 'Double Under', null, '50-40-30-20-10', null, 0, 1, 'For Time', null),
   ('A', 'Sit ups', null, '50-40-30-20-10', null, 1, 1, 'For Time', null)
 ) as v(section, exercise_name, sets, reps, notes, sort_order, set_group, set_info, set_lead);
 with w as (
@@ -882,11 +882,11 @@ Expected: 242 / `'2026-08-06'` 3개, `'2026-08-07'` 3개
 
 | 섹션 | 운동 | 세트 | 횟수 | 메모 |
 |---|---|---|---|---|
-| A | Row (Erg) | For Time · 1 Round | 500m | 단일 라운드, 쉬지 않고 이어서 |
+| A | Row (Erg) | For Time · 1 Round | 500m | |
 | A | Air Squat | — | 40 | |
 | A | Sit ups | — | 30 | |
 | A | Push up | — | 20 | |
-| A | Pull up | — | 10 | 밴드·점핑 대사 가능 |
+| A | Pull up | — | 10 | |
 | B | Serratus Punch (band) | 3 sets | 15 | Superset |
 | B | Banded Face Pull | 3 sets | 20 | Rest 1:00 b/w sets |
 | C | Dead Bug | 3 sets | 10/10 | |
@@ -896,7 +896,7 @@ Expected: 242 / `'2026-08-06'` 3개, `'2026-08-07'` 3개
 
 | 섹션 | 운동 | 세트 | 횟수 | 메모 |
 |---|---|---|---|---|
-| A | Double Under | For Time | 50-40-30-20-10 | 미숙하면 Single Under ×2로 대사 |
+| A | Double Under | For Time | 50-40-30-20-10 | |
 | A | Sit ups | — | 50-40-30-20-10 | |
 | B | Serratus Punch (band) | 3 sets | 15 | Superset |
 | B | Rear Delt Fly | 3 sets | 15 | |

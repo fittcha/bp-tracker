@@ -187,11 +187,11 @@ ZEST SURVIVOR 예선 기간이라 추가운동을 대체한다. 평일 8일(7/27
 
 | 섹션 | 운동 | 세트 | 횟수 | 메모 |
 |---|---|---|---|---|
-| A | Row (Erg) | For Time · 1 Round | 500m | 단일 라운드, 쉬지 않고 이어서 |
+| A | Row (Erg) | For Time · 1 Round | 500m | |
 | A | Air Squat | — | 40 | |
 | A | Sit ups | — | 30 | |
 | A | Push up | — | 20 | |
-| A | Pull up | — | 10 | 밴드·점핑 대사 가능 |
+| A | Pull up | — | 10 | |
 | B | Serratus Punch (band) | 3 sets | 15 | Superset |
 | B | Banded Face Pull | 3 sets | 20 | Rest 1:00 b/w sets |
 | C | Dead Bug | 3 sets | 10/10 | |
@@ -201,7 +201,7 @@ ZEST SURVIVOR 예선 기간이라 추가운동을 대체한다. 평일 8일(7/27
 
 | 섹션 | 운동 | 세트 | 횟수 | 메모 |
 |---|---|---|---|---|
-| A | Double Under | For Time | 50-40-30-20-10 | 미숙하면 Single Under ×2로 대사 |
+| A | Double Under | For Time | 50-40-30-20-10 | |
 | A | Sit ups | — | 50-40-30-20-10 | |
 | B | Serratus Punch (band) | 3 sets | 15 | Superset |
 | B | Rear Delt Fly | 3 sets | 15 | |

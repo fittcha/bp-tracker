@@ -163,11 +163,11 @@ select w.id, null, '제서 이벤트 측정', null, null, null, 0, 1, null, null
 
 | 카드 (sort_order) | set_info | 동작 | reps | notes |
 |---|---|---|---|---|
-| `A · Baseline` (0) | `For Time · 1 Round` | Row (Erg) | 500m | 단일 라운드, 쉬지 않고 이어서 |
+| `A · Baseline` (0) | `For Time · 1 Round` | Row (Erg) | 500m | |
 | | | Air Squat | 40 | |
 | | | Sit ups | 30 | |
 | | | Push up | 20 | |
-| | | Pull up | 10 | 밴드·점핑 대사 가능 |
+| | | Pull up | 10 | |
 | `B · 어깨·전거근` (1) | `Superset · 3 Sets` | Serratus Punch (band) | 15 | |
 | | | Banded Face Pull | 20 | Rest 1:00 b/w sets |
 | `C · 코어` (2) | `3 Sets` | Dead Bug | 10/10 | |
@@ -177,7 +177,7 @@ select w.id, null, '제서 이벤트 측정', null, null, null, 0, 1, null, null
 
 | 카드 (sort_order) | set_info | 동작 | reps | notes |
 |---|---|---|---|---|
-| `A · Annie` (0) | `For Time` | Double Under | 50-40-30-20-10 | 미숙하면 Single Under ×2로 대사 |
+| `A · Annie` (0) | `For Time` | Double Under | 50-40-30-20-10 | |
 | | | Sit ups | 50-40-30-20-10 | |
 | `B · 어깨·전거근` (1) | `Superset · 3 Sets` | Serratus Punch (band) | 15 | |
 | | | Rear Delt Fly | 15 | |
