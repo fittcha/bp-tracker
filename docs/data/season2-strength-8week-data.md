@@ -183,7 +183,33 @@ ZEST SURVIVOR 예선 기간이라 추가운동을 대체한다. 평일 8일(7/27
 |---|---|---|---|---|
 | — | 제서 이벤트 측정 | — | — | 카드 제목 `ZEST SURVIVOR 예선` · 기록은 각자 메모에 |
 
-8/6(목)·8/7(금)은 스페셜 세션 — 내용 미확정. 정해지면 이 자리에 표로 추가하고 시드에도 반영한다.
+### 목 8/6 · Baseline  _(category: 측정)_
+
+| 섹션 | 운동 | 세트 | 횟수 | 메모 |
+|---|---|---|---|---|
+| A | Row (Erg) | For Time · 1 Round | 500m | 단일 라운드, 쉬지 않고 이어서 |
+| A | Air Squat | — | 40 | |
+| A | Sit ups | — | 30 | |
+| A | Push up | — | 20 | |
+| A | Pull up | — | 10 | 밴드·점핑 대사 가능 |
+| B | Serratus Punch (band) | 3 sets | 15 | Superset |
+| B | Banded Face Pull | 3 sets | 20 | Rest 1:00 b/w sets |
+| C | Dead Bug | 3 sets | 10/10 | |
+| C | Pallof Press | 3 sets | 12/12 | Rest as needed |
+
+### 금 8/7 · Annie  _(category: 측정)_
+
+| 섹션 | 운동 | 세트 | 횟수 | 메모 |
+|---|---|---|---|---|
+| A | Double Under | For Time | 50-40-30-20-10 | 미숙하면 Single Under ×2로 대사 |
+| A | Sit ups | — | 50-40-30-20-10 | |
+| B | Serratus Punch (band) | 3 sets | 15 | Superset |
+| B | Rear Delt Fly | 3 sets | 15 | |
+| B | Lateral Raises | 3 sets | 15 | Rest 1:00 b/w sets |
+| C | Plank Shoulder Taps | 3 sets | 0:45 | Rest as needed |
+
+Baseline(관례적 벤치마크)과 Annie(공식 Girls)는 기록이 남아 나중에 재측정 기준으로 쓸 수 있다.
+Annie가 Sit ups 150개라 8/7에는 굴곡 코어를 더 넣지 않고 견갑 안정화만 붙였다.
 
 ---
 
