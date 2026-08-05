@@ -171,7 +171,7 @@ export default function WorkoutPage() {
   const { data: cardio } = useSWR(uid ? k.cardio(uid, ds) : null, () => getCardioLogs(ds, uid))
 
   // ── 자동담기: defaults·logs 변경 시 누락분 재조정. ──
-  // WOD(요일 공용)는 과거 포함 항상, 프로그램 등 날짜 공용은 오늘/미래만.
+  // 요일 공용(WOD)·날짜 공용(프로그램) 모두 과거 포함 항상 담는다.
   // ds당 "영구 1회"가 아니라 "동시 실행만" 막는다(in-flight 락): SWR이 stale 캐시를
   // 먼저 주고 뒤늦게 재검증으로 프로그램 defaults를 채워도 그때 다시 담기도록.
   // 중복은 present(로그 기반)가 막고, 추가 후 mutate→logs 갱신으로 missing=[]에 수렴.
@@ -184,10 +184,10 @@ export default function WorkoutPage() {
     if (defaults.ds !== ds) return
     if (addingRef.current.has(ds)) return
     const present = new Set(logs.map((l) => l.workout?.workout_id).filter(Boolean))
-    const isPast = ds < toDateString(new Date())
-    const weekdayIds = new Set(defaults.weekday.map((w) => w.id))
     const all = [...defaults.weekday, ...defaults.date]
-    const missing = all.filter((w) => !present.has(w.id) && (!isPast || weekdayIds.has(w.id)))
+    // 과거 날짜도 담는다: 예선 카드/스페셜 세션을 뒤늦게 삽입해도 담기고, 놓친 과거 세션을
+    // 뒤늦게 기록할 수 있다. 캘린더 표시는 평일이면 이미 무조건 회색 점이라 영향 없음.
+    const missing = all.filter((w) => !present.has(w.id))
     if (missing.length === 0) return
     addingRef.current.add(ds)
     ;(async () => {
