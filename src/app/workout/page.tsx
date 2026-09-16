@@ -9,12 +9,14 @@ import { getWorkoutsForDate, getDefaultWorkoutsForWeekday } from '@/lib/api/work
 import { getWorkoutLogsWithWorkout, addWorkoutsToDate, type WorkoutLogJoined } from '@/lib/api/workout-logs'
 import { getCardioLogs, setCardioCompleted } from '@/lib/api/cardio-logs'
 import { pickMissingWorkouts } from '@/lib/workout/pick-missing'
+import { URBAN_CATEGORY } from '@/lib/api/urban'
 import { k } from '@/lib/swr/keys'
 import WorkoutCard from '@/components/workout/WorkoutCard'
 import Calculator from '@/components/workout/Calculator'
 import ExerciseGifModal from '@/components/workout/ExerciseGifModal'
 import ExerciseSearchModal from '@/components/workout/ExerciseSearchModal'
 import AddWorkoutPopup from '@/components/workout/AddWorkoutPopup'
+import UrbanTrainingPopup from '@/components/workout/UrbanTrainingPopup'
 
 const DAY_LABELS = ['월', '화', '수', '목', '금', '토', '일']
 
@@ -45,7 +47,9 @@ function buildGroups(
     if (!byWorkout.has(wid)) {
       byWorkout.set(wid, {
         title: l.workout!.title,
-        isShared: l.workout!.owner_user_id === null,
+        // urban 훈련은 공용(owner null)이지만 사용자가 직접 담는 것이라 개인 취급한다 —
+        // '추가 운동' 섹션에 놓고 '이 날짜에서 빼기'(isPersonal 게이트)를 살리기 위함.
+        isShared: l.workout!.owner_user_id === null && l.workout!.category !== URBAN_CATEGORY,
         logs: [],
       })
     }
@@ -90,6 +94,7 @@ export default function WorkoutPage() {
   const [gifModalExercise, setGifModalExercise] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
+  const [urbanOpen, setUrbanOpen] = useState(false)
   const dateInputRef = useRef<HTMLInputElement>(null)
 
   const [calcOpen, _setCalcOpen] = useState(false)
@@ -399,6 +404,28 @@ export default function WorkoutPage() {
           date={toDateString(date)}
           onAdded={() => { setAddOpen(false); mutate(k.dayLogs(uid, ds)) }}
           onClose={() => setAddOpen(false)}
+        />
+      )}
+
+      {/* urban 훈련(공용 라이브러리) 열기 */}
+      {!loading && (
+        <button
+          onClick={() => setUrbanOpen(true)}
+          className="w-full rounded-xl border border-border py-3 text-sm text-accent hover:bg-accent-light transition-colors"
+        >
+          + urban 훈련
+        </button>
+      )}
+      {urbanOpen && (
+        <UrbanTrainingPopup
+          userId={userId}
+          date={toDateString(date)}
+          onAdded={() => {
+            setUrbanOpen(false)
+            mutate(k.dayLogs(uid, ds))
+            mutate(k.urbanStats(uid))
+          }}
+          onClose={() => setUrbanOpen(false)}
         />
       )}
 
