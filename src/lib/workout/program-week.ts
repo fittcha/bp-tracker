@@ -21,13 +21,31 @@ export function deriveProgram(rows: ProgramRow[], today: string): CurrentProgram
   const sorted = [...rows].sort((a, b) => a.program_date.localeCompare(b.program_date))
   if (sorted.length === 0) return null
 
-  const name = sorted[0].program_label.split(' · ')[0]
-  // 같은 프로그램 행만 범위 계산에 쓴다 — 라벨이 다른 특별 세션이 시작/종료일을 흔들지 않게.
-  const prog = sorted.filter((r) => r.program_label.startsWith(name))
-  const startDate = prog[0].program_date
-  const endDate = prog[prog.length - 1].program_date
-  const totMatch = name.match(/(\d+)\s*주/)
-  const totalWeeks = totMatch ? Number(totMatch[1]) : null
+  // 프로그램 이름(라벨의 ' · ' 앞부분)별로 묶는다. 8주 프로그램이 끝나고 6주가 시작되는 식으로
+  // 여러 개가 공존할 수 있어서, '가장 이른 것'이 아니라 '지금 것'을 골라야 한다.
+  const byName = new Map<string, ProgramRow[]>()
+  for (const r of sorted) {
+    const n = r.program_label.split(' · ')[0]
+    const arr = byName.get(n)
+    if (arr) arr.push(r)
+    else byName.set(n, [r])
+  }
+  // 주차 수를 읽을 수 있는 이름만 후보 — 일회성 이벤트 라벨이 배너를 가로채지 않게.
+  const all = [...byName.entries()].map(([n, rs]) => ({
+    name: n, rows: rs, start: rs[0].program_date, end: rs[rs.length - 1].program_date,
+    totalWeeks: n.match(/(\d+)\s*주/) ? Number(n.match(/(\d+)\s*주/)![1]) : null,
+  }))
+  const cands = all.filter((c) => c.totalWeeks != null).length > 0
+    ? all.filter((c) => c.totalWeeks != null)
+    : all
+  // 진행 중 > 곧 시작 > 가장 최근에 끝난 것 순으로 고른다.
+  const active = cands.filter((c) => c.start <= today && today <= c.end).sort((a, b) => b.start.localeCompare(a.start))
+  const upcoming = cands.filter((c) => c.start > today).sort((a, b) => a.start.localeCompare(b.start))
+  const finished = cands.filter((c) => c.end < today).sort((a, b) => b.end.localeCompare(a.end))
+  const picked = active[0] ?? upcoming[0] ?? finished[0]
+  if (!picked) return null
+
+  const { name, rows: prog, start: startDate, end: endDate, totalWeeks } = picked
 
   if (today < startDate) return { name, startDate, totalWeeks, currentWeek: null, status: 'upcoming' }
   if (today > endDate) return { name, startDate, totalWeeks, currentWeek: totalWeeks, status: 'done' }

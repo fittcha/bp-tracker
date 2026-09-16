@@ -52,4 +52,42 @@ describe('deriveProgram', () => {
   it('행이 없으면 null', () => {
     expect(deriveProgram([], '2026-08-05')).toBeNull()
   })
+
+  // 2026-09-14부터 Urban Wave 6주가 시작되며 프로그램이 둘이 됐다.
+  // 예전엔 '가장 이른 프로그램'을 골라 끝난 8주짜리가 배너를 계속 차지했다.
+  describe('프로그램이 여럿일 때', () => {
+    const UW: ProgramRow[] = [
+      { program_date: '2026-09-14', program_label: 'Urban Wave 6주 · 1주차' },
+      { program_date: '2026-09-21', program_label: 'Urban Wave 6주 · 2주차' },
+      { program_date: '2026-10-23', program_label: 'Urban Wave 6주 · 6주차' },
+    ]
+    const BOTH = [...SCHEDULE, ...UW]
+
+    it('오늘이 속한 프로그램을 고른다', () => {
+      expect(deriveProgram(BOTH, '2026-09-21')).toMatchObject({
+        name: 'Urban Wave 6주', totalWeeks: 6, currentWeek: 2, status: 'active',
+      })
+    })
+
+    it('끝난 프로그램이 배너를 차지하지 않는다', () => {
+      expect(deriveProgram(BOTH, '2026-08-05')).toMatchObject({ name: 'Strength 8주', currentWeek: 3 })
+    })
+
+    it('프로그램 사이 공백이면 다음에 시작할 쪽을 보여준다', () => {
+      expect(deriveProgram(BOTH, '2026-09-12')).toMatchObject({
+        name: 'Urban Wave 6주', status: 'upcoming', startDate: '2026-09-14', currentWeek: null,
+      })
+    })
+
+    it('전부 끝났으면 가장 최근에 끝난 쪽', () => {
+      expect(deriveProgram(BOTH, '2026-11-01')).toMatchObject({
+        name: 'Urban Wave 6주', status: 'done', currentWeek: 6,
+      })
+    })
+
+    it('주차 수가 없는 일회성 라벨은 후보에서 제외한다', () => {
+      const rows = [...SCHEDULE, { program_date: '2026-09-30', program_label: 'ZEST 이벤트 · 특별' }]
+      expect(deriveProgram(rows, '2026-09-12')).toMatchObject({ name: 'Strength 8주', status: 'done' })
+    })
+  })
 })
