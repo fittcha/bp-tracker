@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useSWRConfig } from 'swr'
 import { upsertWorkoutLog, deleteWorkoutLogs, type WorkoutLogJoined } from '@/lib/api/workout-logs'
 import { matchPrefix } from '@/lib/swr/revalidate'
+import { URBAN_CATEGORY } from '@/lib/api/urban'
 
 // 그룹 라벨(섹션 setInfo/세트수) 계산 — 카드 헤더·섹션 라벨 공용
 function deriveGroupLabel(rows: WorkoutLogJoined[]): string | null {
@@ -57,6 +58,8 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
     if (!uid) return
     mutate(matchPrefix('cal-dates', uid))
     mutate(matchPrefix('home-stats', uid))
+    // urban 훈련 완료 횟수/최근 기록은 로그에서 파생 — 완료 토글·카드 빼기 후 갱신되게 한다.
+    mutate(matchPrefix('urban-stats', uid))
   }
 
   // 동작명 롱프레스 → GIF 모달 (시즌1 동작 유지)
@@ -169,7 +172,11 @@ export default function WorkoutCard({ title, logs, onChanged, onExerciseLongPres
 
   // ── 그룹 렌더: 로그에 set_group이 있으면(개인 + 공용 프로그램) 세트 그룹으로 묶는다. ──
   // set_group 없으면(레거시 요일반복 공용·시즌1 템플릿) 아래 섹션 로직 그대로.
-  const isPersonal = !!items[0]?.workout?.owner_user_id // 휴지통(그날에서 빼기) 조건용
+  // 휴지통(그날에서 빼기) 조건: 사용자가 스스로 담은 카드만. 개인 운동 + urban 훈련이 해당된다.
+  // urban은 공용(owner null)이지만 자동으로 담기지 않고 직접 담는 것이라 뺄 수 있어야 한다.
+  // 레거시(workout null)·요일 WOD·날짜 프로그램은 대상이 아니다.
+  const w0 = items[0]?.workout
+  const isPersonal = !!w0?.owner_user_id || w0?.category === URBAN_CATEGORY
   const hasGroups = items.some((l) => l.set_group != null)
   const groups: { key: number; setInfo: string | null; setLead: string | null; rows: WorkoutLogJoined[] }[] = []
   if (hasGroups) {
