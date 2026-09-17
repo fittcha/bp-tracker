@@ -48,7 +48,7 @@ export default function Home() {
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-secondary truncate">
                 {EVENT.name}
               </p>
-              <p className="mt-1.5 text-[2.75rem] font-bold leading-none tabular-nums text-accent-pop">
+              <p className="mt-1 text-2xl font-bold leading-none tabular-nums text-accent-pop">
                 {formatDday(dday)}
               </p>
             </div>
