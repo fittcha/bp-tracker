@@ -54,7 +54,8 @@ export default function Home() {
             </div>
           )}
           {/* 오른쪽: 이번 달 / 이번 주 */}
-          <dl className="grid grid-cols-[auto_auto] items-baseline gap-x-3 gap-y-1.5 text-right">
+          {/* gap-y를 좁혀 두 줄을 한 덩어리로 묶고, items-end 기준선에서 살짝 내린다 */}
+          <dl className="grid translate-y-1 grid-cols-[auto_auto] items-baseline gap-x-3 gap-y-0.5 text-right">
             <dt className="text-[11px] text-text-secondary">이번 달 운동</dt>
             <dd className="text-sm font-semibold tabular-nums text-foreground">{monthCount ?? '–'}일</dd>
             <dt className="text-[11px] text-text-secondary">이번 주 운동</dt>
