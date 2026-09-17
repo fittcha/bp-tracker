@@ -5,6 +5,7 @@ import { getLoggedInUser } from '@/lib/auth'
 import { getCurrentProgram } from '@/lib/api/workouts'
 import { k } from '@/lib/swr/keys'
 import { toDateString } from '@/lib/utils'
+import { EVENT, daysUntil, formatDday } from '@/lib/workout/dday'
 import Avatar from '@/components/Avatar'
 import { getUserProfile } from '@/lib/api/users'
 
@@ -14,6 +15,9 @@ export default function Header() {
   const username = user?.username ?? toDateString(new Date())
   const { data: profile } = useSWR(uid ? k.profile(uid) : null, () => getUserProfile(uid))
   const today = toDateString(new Date())
+  // 대회 카운트다운. 홈 카드와 같은 규칙 — 지나면 숨긴다.
+  const remaining = daysUntil(EVENT.date, today)
+  const dday = remaining >= 0 ? remaining : null
   // undefined=로딩, null=프로그램 없음
   const { data: program } = useSWR(k.program(today), () => getCurrentProgram(today))
 
@@ -52,6 +56,11 @@ export default function Header() {
             {program ? (
               <>
                 <span className="text-[11px] font-medium text-accent truncate">{progLabel}</span>
+                {dday != null && (
+                  <span className="text-[11px] font-semibold tabular-nums text-accent-pop shrink-0">
+                    {formatDday(dday)}
+                  </span>
+                )}
                 {program.totalWeeks != null && (
                   <div className="ml-auto flex gap-0.5 shrink-0">
                     {Array.from({ length: program.totalWeeks }, (_, i) => (

@@ -37,26 +37,29 @@ export default function Home() {
       <WorkoutCalendar />
 
       {/* 대회 D-day + 운동 통계 */}
-      <div className="bg-surface border border-border rounded-xl p-4">
-        <div className="flex items-start justify-between gap-4">
+      {/* 정렬: 아래를 맞춰(items-end) D-day 숫자와 '이번 주 운동' 값이 같은 선에 놓인다.
+          오른쪽은 라벨/값 2열 그리드 — 값이 한 열로 떨어져 4줄 들쭉날쭉이 사라진다.
+          숫자는 전부 tabular-nums: D-day가 매일 줄고(31→30→9) 자릿수가 바뀌어도 안 흔들린다. */}
+      <div className="bg-surface border border-border rounded-xl px-4 py-3.5">
+        <div className="flex items-end justify-between gap-4">
           {/* 왼쪽: 대회 카운트다운. 대회가 지나면 숨기고 통계만 남는다 */}
           {dday != null && (
             <div className="min-w-0">
-              <p className="text-xs font-semibold text-text-secondary">{EVENT.name}</p>
-              <p className="text-4xl font-bold text-accent-pop leading-none mt-2.5">{formatDday(dday)}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-secondary truncate">
+                {EVENT.name}
+              </p>
+              <p className="mt-1.5 text-[2.75rem] font-bold leading-none tabular-nums text-accent-pop">
+                {formatDday(dday)}
+              </p>
             </div>
           )}
           {/* 오른쪽: 이번 달 / 이번 주 */}
-          <div className={`space-y-2.5 ${dday != null ? 'text-right' : 'flex-1 flex items-end justify-between'}`}>
-            <div>
-              <p className="text-xs text-text-secondary">이번 달 운동</p>
-              <p className="text-lg font-semibold text-foreground leading-none mt-1">{monthCount ?? '–'}일</p>
-            </div>
-            <div>
-              <p className="text-xs text-text-secondary">이번 주 운동</p>
-              <p className="text-lg font-semibold text-accent leading-none mt-1">{weekCount ?? '–'}일</p>
-            </div>
-          </div>
+          <dl className="grid grid-cols-[auto_auto] items-baseline gap-x-3 gap-y-1.5 text-right">
+            <dt className="text-[11px] text-text-secondary">이번 달 운동</dt>
+            <dd className="text-sm font-semibold tabular-nums text-foreground">{monthCount ?? '–'}일</dd>
+            <dt className="text-[11px] text-text-secondary">이번 주 운동</dt>
+            <dd className="text-sm font-semibold tabular-nums text-accent">{weekCount ?? '–'}일</dd>
+          </dl>
         </div>
       </div>
 
