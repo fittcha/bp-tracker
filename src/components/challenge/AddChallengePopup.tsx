@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 import { getLoggedInUser } from '@/lib/auth'
+import { toDateString } from '@/lib/utils'
+import { startStackChallenge } from '@/lib/api/stack'
 import {
   getChallengeTemplates,
   getProgramsForTemplate,
@@ -36,12 +38,17 @@ export default function AddChallengePopup({ isOpen, onClose, onStarted }: AddCha
   const [weightKg, setWeightKg] = useState('')
   const [weekdays, setWeekdays] = useState<number[]>([1, 2, 3, 4, 5])
   const [saving, setSaving] = useState(false)
+  // 쌓기 챌린지(step 'stack'): 종목명 + 목표 설정 여부/개수
+  const [stackTitle, setStackTitle] = useState('')
+  const [stackHasGoal, setStackHasGoal] = useState(false)
+  const [stackGoal, setStackGoal] = useState('')
 
   useEffect(() => {
     if (!isOpen) return
     setStep(1); setTemplate(null); setPrograms([]); setProgramId('')
     setBandCounts({}); setWeightKg('')
     setWeekdays([1, 2, 3, 4, 5]); setSaving(false)
+    setStackTitle(''); setStackHasGoal(false); setStackGoal('')
     getChallengeTemplates().then(setTemplates).catch(() => setTemplates([]))
   }, [isOpen])
 
@@ -105,13 +112,37 @@ export default function AddChallengePopup({ isOpen, onClose, onStarted }: AddCha
     }
   }
 
+  const stackGoalNum = parseInt(stackGoal, 10)
+  const stackReady =
+    stackTitle.trim().length > 0 && (!stackHasGoal || (Number.isFinite(stackGoalNum) && stackGoalNum > 0))
+
+  async function handleStartStack() {
+    const user = getLoggedInUser()
+    if (!user || !stackReady) return
+    setSaving(true)
+    try {
+      await startStackChallenge({
+        userId: user.id,
+        title: stackTitle.trim(),
+        goalCount: stackHasGoal ? stackGoalNum : null,
+        startedAt: toDateString(new Date()),
+      })
+      onStarted()
+      onClose()
+    } catch (e) {
+      alert(`챌린지 시작에 실패했어요.\n\n(${e instanceof Error ? e.message : String(e)})`)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="relative w-full max-w-lg bg-surface rounded-2xl p-6 max-h-[85vh] overflow-y-auto animate-slide-up">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold">
-            {step === 1 ? '챌린지 선택' : step === 2 ? '난이도 선택' : '훈련 요일'}
+            {step === 0 ? '쌓기 챌린지' : step === 1 ? '챌린지 선택' : step === 2 ? '난이도 선택' : '훈련 요일'}
           </h3>
           <button onClick={onClose} className="p-1 text-text-secondary" aria-label="닫기"><X size={20} /></button>
         </div>
@@ -129,6 +160,71 @@ export default function AddChallengePopup({ isOpen, onClose, onStarted }: AddCha
                 {t.exercise}
               </button>
             ))}
+            <button
+              onClick={() => setStep(0)}
+              className="py-5 rounded-xl border border-dashed border-accent/50 bg-background font-semibold text-accent hover:border-accent"
+            >
+              쌓기
+            </button>
+          </div>
+        )}
+
+        {/* Step 0: 쌓기 챌린지 — 종목명 + 목표 설정 */}
+        {step === 0 && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm text-text-secondary mb-1.5">종목</label>
+              <input
+                autoFocus
+                placeholder="예: 푸쉬업"
+                value={stackTitle}
+                onChange={(e) => setStackTitle(e.target.value)}
+                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-text-secondary/40 outline-none focus:border-accent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-text-secondary mb-1.5">목표 설정</label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setStackHasGoal(false)}
+                  className={`flex-1 py-2 rounded-lg border text-sm font-medium transition ${!stackHasGoal ? 'border-accent bg-accent text-white' : 'border-border bg-background text-foreground'}`}
+                >
+                  없음
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStackHasGoal(true)}
+                  className={`flex-1 py-2 rounded-lg border text-sm font-medium transition ${stackHasGoal ? 'border-accent bg-accent text-white' : 'border-border bg-background text-foreground'}`}
+                >
+                  있음
+                </button>
+              </div>
+              {stackHasGoal && (
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  placeholder="목표 개수 (예: 10000)"
+                  value={stackGoal}
+                  onChange={(e) => setStackGoal(e.target.value)}
+                  className="mt-2 w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-text-secondary/40 outline-none focus:border-accent"
+                />
+              )}
+            </div>
+            <p className="text-xs text-text-secondary">오늘이 1일차가 되고, 개수는 카드의 +/− 버튼으로만 쌓아요.</p>
+            <div className="flex gap-2">
+              <button onClick={() => setStep(1)} className="px-4 py-2.5 rounded-lg border border-border text-sm text-text-secondary">
+                뒤로
+              </button>
+              <button
+                onClick={handleStartStack}
+                disabled={!stackReady || saving}
+                className="flex-1 py-2.5 rounded-lg bg-accent text-white text-sm font-semibold disabled:opacity-40"
+              >
+                {saving ? '시작 중…' : '시작'}
+              </button>
+            </div>
           </div>
         )}
 
