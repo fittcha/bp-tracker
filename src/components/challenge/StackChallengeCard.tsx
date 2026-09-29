@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { MoreVertical, Trash2 } from 'lucide-react'
+import { MoreVertical, Pencil, Trash2 } from 'lucide-react'
 import { toDateString } from '@/lib/utils'
 import { deriveStack } from '@/lib/challenge/stack'
 import { addStackEntry, archiveStackChallenge, type StackChallengeWithEntries } from '@/lib/api/stack'
+import EditStackChallengePopup from './EditStackChallengePopup'
 
 interface Props {
   item: StackChallengeWithEntries
@@ -18,6 +19,7 @@ const STEPS = [10, 5, 1] as const
 export default function StackChallengeCard({ item, onChanged }: Props) {
   const { challenge, entries } = item
   const [menuOpen, setMenuOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   // 낙관적 보정: 서버 반영 전까지 화면 숫자를 먼저 움직인다.
   const [pending, setPending] = useState(0)
@@ -87,6 +89,12 @@ export default function StackChallengeCard({ item, onChanged }: Props) {
             onClick={(e) => e.stopPropagation()}
           >
             <button
+              onClick={() => { setMenuOpen(false); setEditOpen(true) }}
+              className="flex items-center gap-2 w-full px-4 py-2 text-xs text-foreground hover:bg-accent-light"
+            >
+              <Pencil size={13} /> 수정
+            </button>
+            <button
               onClick={handleArchive}
               className="flex items-center gap-2 w-full px-4 py-2 text-xs text-danger hover:bg-accent-light"
             >
@@ -142,6 +150,13 @@ export default function StackChallengeCard({ item, onChanged }: Props) {
       <p className="text-[11px] text-text-secondary text-center mt-2.5 tabular-nums">
         오늘 {Math.max(0, todayTotal).toLocaleString()}개
       </p>
+
+      <EditStackChallengePopup
+        isOpen={editOpen}
+        challenge={challenge}
+        onClose={() => setEditOpen(false)}
+        onSaved={onChanged}
+      />
     </div>
   )
 }

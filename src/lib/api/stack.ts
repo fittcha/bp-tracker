@@ -91,3 +91,16 @@ export async function archiveStackChallenge(challengeId: string): Promise<void> 
     .eq('id', challengeId)
   if (error) throw error
 }
+
+// 종목명·목표 수정. 누적(stack_entries)과 시작일은 건드리지 않는다 —
+// 숫자는 ± 버튼으로만 움직인다는 규칙, 시작일은 일차 기준이라 고정.
+export async function updateStackChallenge(
+  challengeId: string,
+  p: { title: string; goalCount: number | null },
+): Promise<void> {
+  const { error } = await supabase
+    .from('stack_challenges')
+    .update({ title: p.title, goal_count: p.goalCount })
+    .eq('id', challengeId)
+  if (error) throw error
+}
